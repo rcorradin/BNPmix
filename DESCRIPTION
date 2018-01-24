@@ -1,0 +1,14 @@
+Package: BNPmix
+Type: Package
+Title: Bayesian nonparametric mixture modelling
+Version: 0.1
+Date: 2018-01-23
+Author: Riccardo Corradin [aut, cre]
+Maintainer: Riccardo Corradin <riccardo.corradin@gmail.com>
+Description: ***
+License: LGPL-3 | file license
+Imports: Rcpp (>= 0.12.13), RcppArmadillo
+LinkingTo: Rcpp, RcppArmadillo
+Encoding: UTF-8
+SystemRequirements: GNU Make, C++11
+NeedsCompilation: yes
