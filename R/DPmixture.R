@@ -1,5 +1,5 @@
 # options(add.error.underscore=FALSE)
-DPmixture <- function(nsim = NULL,
+DPmixMulti <- function(nsim = NULL,
                       nburn = NULL,
                       napprox = NULL,
                       nparam = NULL,
@@ -22,7 +22,7 @@ DPmixture <- function(nsim = NULL,
                       t2 = NULL,
                       nupd = NULL,
                       plim = NULL,
-                      fix = TRUE,
+                      fix = FALSE,
                       seed = 42) {
 
   set.seed(seed = seed)
@@ -64,63 +64,42 @@ DPmixture <- function(nsim = NULL,
     Lambda_start = var(data)
   }
 
-
-
-  if(fix != TRUE){
-    mod <- main_fun(nsim = nsim,
-                    nburn = nburn,
-                    napprox = napprox,
-                    nparam = nparam,
-                    d = d,
-                    grid_l = grid_l,
-                    data = data,
-                    grid = grid,
-                    conf_start,
-                    mu_start = mu_start,
-                    Lambda_start = Lambda_start,
-                    theta = theta_start,
-                    m0 = m0,
-                    B0 = B0,
-                    nu0 = nu0,
-                    sigma = sigma,
-                    b1 = b1,
-                    B1 = B1,
-                    m1 = m1,
-                    M1 = M1,
-                    s1 = s1,
-                    S1 = S1,
-                    t1 = t1,
-                    t2 = t2,
-                    nupd = nupd,
-                    plim = plim)
+  if(is.null(t1) || is.null(t2)){
+    t1 = 1
+    t2 = 1
+    if(isTRUE(!fix)){
+      warning("Parameters t1 and t2 missed: initialized to default (equal to 1)")
+    }
   }
 
 
-  if(fix == TRUE){
-    mod <- main_fun_fix(nsim = nsim,
-                    nburn = nburn,
-                    napprox = napprox,
-                    nparam = nparam,
-                    d = d,
-                    grid_l = grid_l,
-                    data = data,
-                    grid = grid,
-                    mu_start = mu_start,
-                    Lambda_start = Lambda_start,
-                    theta = theta_start,
-                    m0 = m0,
-                    B0 = B0,
-                    nu0 = nu0,
-                    sigma = sigma,
-                    b1 = b1,
-                    B1 = B1,
-                    m1 = m1,
-                    M1 = M1,
-                    s1 = s1,
-                    S1 = S1,
-                    nupd = nupd,
-                    plim = plim)
+  mod <- main_fun(nsim = nsim,
+                  nburn = nburn,
+                  napprox = napprox,
+                  nparam = nparam,
+                  d = d,
+                  grid_l = grid_l,
+                  data = data,
+                  grid = grid,
+                  conf_start,
+                  mu_start = mu_start,
+                  Lambda_start = Lambda_start,
+                  theta = theta_start,
+                  m0 = m0,
+                  B0 = B0,
+                  nu0 = nu0,
+                  sigma = sigma,
+                  b1 = b1,
+                  B1 = B1,
+                  m1 = m1,
+                  M1 = M1,
+                  s1 = s1,
+                  S1 = S1,
+                  t1 = t1,
+                  t2 = t2,
+                  nupd = nupd,
+                  plim = plim,
+                  FIX = fix)
   }
-
   return(mod)
 }

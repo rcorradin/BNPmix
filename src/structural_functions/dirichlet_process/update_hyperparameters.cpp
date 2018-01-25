@@ -25,7 +25,7 @@
 
 // [[Rcpp::depends("RcppArmadillo")]]
 
-/* 
+/*
   Update hyperparameters, according to the posterior distirbutions
 
   args:
@@ -52,36 +52,37 @@
 */
 
 //[[Rcpp::export]]
-double update_hyperparameters(int n, 
-                              double& theta, 
-                              arma::cube Lambda, 
-                              arma::mat mu, 
-                              arma::vec clust, 
-                              arma::vec useful, 
-                              arma::vec& m0, 
-                              arma::mat& B0, 
-                              double nu0, 
-                              arma::mat& sigma, 
-                              int b1, 
-                              arma::mat B1, 
-                              arma::vec m1, 
-                              arma::mat M1, 
-                              int s1, 
-                              arma::mat S1, 
-                              double t1, 
-                              double t2) {
+double update_hyperparameters(int n,
+                              double& theta,
+                              arma::cube Lambda,
+                              arma::mat mu,
+                              arma::vec clust,
+                              arma::vec useful,
+                              arma::vec& m0,
+                              arma::mat& B0,
+                              double nu0,
+                              arma::mat& sigma,
+                              int b1,
+                              arma::mat B1,
+                              arma::vec m1,
+                              arma::mat M1,
+                              int s1,
+                              arma::mat S1,
+                              double t1,
+                              double t2,
+                              bool FIX) {
   int k = (int) arma::sum(useful);
-  
+
   arma::mat temp_mu  = mu.rows(arma::find(useful == 1));
   arma::mat temp_muc = temp_mu - arma::repmat(arma::trans(m0), k, 1);
   arma::mat B1n      = arma::inv(B1 + arma::trans(temp_muc) * temp_muc);
   B0                 = arma::inv(rWishartMat(b1 + k, B1n));
-  
+
   // arma::mat M1n = arma::inv(M1 + k * B0);
   arma::mat M1n = arma::inv(arma::inv(M1) + k * arma::inv(B0));
-  arma::vec m1n = M1n * (arma::inv(M1) * m1 + arma::inv(B0) * arma::trans(sum(temp_mu, 0)));  
+  arma::vec m1n = M1n * (arma::inv(M1) * m1 + arma::inv(B0) * arma::trans(sum(temp_mu, 0)));
   m0            = arma::trans(rmvnormMat(1, m1n, M1n));
-  
+
   // arma::mat tMatL = arma::sum(Lambda.slices(0, k - 1), 2);
   arma::cube tinv = Lambda.slices(0, k - 1);
   for(int ind = 0; ind < k; ind++){
@@ -92,14 +93,15 @@ double update_hyperparameters(int n,
   // sigma = arma::inv(rWishartMat(s1 + k * nu0, tLambdas));
   arma::mat tLambdas = arma::inv(arma::inv(S1) + tMatL);
   sigma = rWishartMat(s1 + k * nu0, tLambdas);
-  
-  // generate beta distribution as ratio of gamma distributions
-  // NB the gamma distribution R::rgamma
-  // is specified in function of shape and scale
-  
-  double eta = R::rbeta(theta + 1, n);
-  double pre = (t1 + k - 1) / (t1 + k - 1 + n * (t2 - log(eta)));
-  double u = arma::randu(1)[0];
-  int tval = (u < 1 - pre ? 1 : 0);
-  theta = R::rgamma(t1 + k - tval, 1 / (t2 - log(eta)));
+
+  if(FIX == true){
+
+    // NB the gamma distribution R::rgamma
+    // is specified in function of shape and scale
+    double eta = R::rbeta(theta + 1, n);
+    double pre = (t1 + k - 1) / (t1 + k - 1 + n * (t2 - log(eta)));
+    double u = arma::randu(1)[0];
+    int tval = (u < 1 - pre ? 1 : 0);
+    theta = R::rgamma(t1 + k - tval, 1 / (t2 - log(eta)));
+  }
 }

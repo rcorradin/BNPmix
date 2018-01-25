@@ -92,7 +92,8 @@ Rcpp::List main_fun(int nsim,
                     double t1,
                     double t2,
                     int nupd,
-                    int plim) {
+                    int plim,
+                    bool FIX) {
   int n = data.n_rows;
 
   // initialize results
@@ -181,7 +182,8 @@ Rcpp::List main_fun(int nsim,
                            s1 = s1,
                            S1 = S1,
                            t1 = t1,
-                           t2 = t2);
+                           t2 = t2,
+                           FIX = FIX);
 
     // save quantities
     if(sim >= nburn){
