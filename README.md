@@ -1,5 +1,5 @@
 # BNPmix
-An efficient  based C++ package to model density distributions via Bayesian nonparametric methods in R.
+An efficient C++ based package to model density distributions via Bayesian nonparametric methods in R.
 
 ## Prerequisite and how to install
 The BNPmix package is based on RcppArmadillo tools, the GitHub version is a source pack, if not present and on some machine (i.e. Windows) it is necessary to install the 'Rtools34' package to compile.
