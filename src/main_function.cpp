@@ -31,7 +31,7 @@
 
 // [[Rcpp::depends("RcppArmadillo")]]
 
-/* 
+/*
   Update hyperparameters, according to the posterior distirbutions
 
   args:
@@ -41,7 +41,7 @@
     - d:            int, number of dimension
     - grid_l:       int, number of points of grid (to evaluate the density)
     - data:         matrix, given data
-    - grid:         matrix, points to evaluate the density 
+    - grid:         matrix, points to evaluate the density
     - Lambda_start: matrix, initial value for the scale component of the kernel
     - mu_start:     matrix, initial value for the location component of the kernel
     - clust:        vector, each (integer) value is the cluster of the corresp. obs.
@@ -75,130 +75,128 @@ Rcpp::List main_fun(int nsim,
                     int grid_l,
                     arma::mat data,
                     arma::mat grid,
-                    arma::vec mu_start, 
+                    arma::vec conf_start,
+                    arma::vec mu_start,
                     arma::mat Lambda_start,
                     double theta,
                     arma::vec m0,
-                    arma::mat B0, 
-                    double nu0, 
+                    arma::mat B0,
+                    double nu0,
                     arma::mat sigma,
-                    int b1, 
-                    arma::mat B1, 
-                    arma::vec m1, 
-                    arma::mat M1, 
-                    int s1, 
-                    arma::mat S1, 
-                    double t1, 
+                    int b1,
+                    arma::mat B1,
+                    arma::vec m1,
+                    arma::mat M1,
+                    int s1,
+                    arma::mat S1,
+                    double t1,
                     double t2,
                     int nupd,
-                    int plim){
+                    int plim) {
   int n = data.n_rows;
-  
+
   // initialize results
   arma::mat result_clust(nsim - nburn, n);
   arma::vec distribution(grid_l);
   arma::vec result_theta(nsim - nburn);
-  
-  distribution.fill(0);
-  
+
   // initialize cluster and parameters
   arma::mat mu(nparam, d);
   arma::cube Lambda(d,d,nparam);
   arma::vec clust(n);
   arma::vec useful(nparam);
-  
+
+  // fill the vectors
+  distribution.fill(0);
   mu.fill(0);
   Lambda.fill(0);
-  clust.fill(0);
   useful.fill(0);
-  
-  // int maxp = (n < plim ? n : plim);
-  // arma::vec prob_vec(maxp);
-  // prob_vec.fill(1/maxp);
-  
-  for(int i = 0; i < n; i++) {
-    int t_cl;
-    (i < n/2 ? t_cl = 0 : t_cl = 1);
-    mu.row(t_cl) = arma::trans(mu_start);
-    Lambda.slice(t_cl) = Lambda_start;
-    useful(t_cl) = 1;
-    clust(i) = t_cl;  
+
+  clust = conf_start;
+
+  // initialize the useful parameters
+  int n_uniq = clust.unique().n_elem;
+
+  for(int i = 0; i < n_uniq; i++) {
+    mu.row(i) = arma::trans(mu_start);
+    Lambda.slice(i) = Lambda_start;
+    useful(i) = 1;
   }
-  
+
   para_cleanser(Lambda = Lambda,
-                mu = mu, 
-                clust = clust, 
+                mu = mu,
+                clust = clust,
                 useful = useful);
-  
+
   int start_s = clock();
   int current_s;
   // strarting loop
   for(int sim = 0; sim < nsim; sim++){
-    
+
     // update cluster allocation
-    update_cluster_cpp(data = data, 
-                       Lambda = Lambda, 
-                       mu = mu, 
-                       clust = clust, 
-                       useful = useful, 
-                       m0 = m0, 
-                       B0 = B0, 
-                       nu0 = nu0, 
-                       sigma = sigma, 
-                       theta = theta, 
+    update_cluster_cpp(data = data,
+                       Lambda = Lambda,
+                       mu = mu,
+                       clust = clust,
+                       useful = useful,
+                       m0 = m0,
+                       B0 = B0,
+                       nu0 = nu0,
+                       sigma = sigma,
+                       theta = theta,
                        napprox = napprox);
-    
+
     // clean parameter objects
     para_cleanser(Lambda = Lambda,
-                  mu = mu, 
-                  clust = clust, 
+                  mu = mu,
+                  clust = clust,
                   useful = useful);
-    
+
     // update parameters objects
-    update_parameters(data = data, 
-                      Lambda = Lambda, 
-                      mu = mu, 
-                      clust = clust, 
-                      useful = useful, 
-                      m0 = m0, 
-                      B0 = B0, 
-                      nu0 = nu0, 
+    update_parameters(data = data,
+                      Lambda = Lambda,
+                      mu = mu,
+                      clust = clust,
+                      useful = useful,
+                      m0 = m0,
+                      B0 = B0,
+                      nu0 = nu0,
                       sigma = sigma);
-    
+
     // update hyperparameters
-    update_hyperparameters(n = n, 
-                           theta = theta, 
+    update_hyperparameters(n = n,
+                           theta = theta,
                            Lambda = Lambda,
-                           mu = mu, 
-                           clust = clust, 
-                           useful = useful, 
-                           m0 = m0, 
-                           B0 = B0, 
-                           nu0 = nu0, 
-                           sigma = sigma, 
-                           b1 = b1, 
-                           B1 = B1, 
-                           m1 = m1, 
+                           mu = mu,
+                           clust = clust,
+                           useful = useful,
+                           m0 = m0,
+                           B0 = B0,
+                           nu0 = nu0,
+                           sigma = sigma,
+                           b1 = b1,
+                           B1 = B1,
+                           m1 = m1,
                            M1 = M1,
-                           s1 = s1, 
-                           S1 = S1, 
-                           t1 = t1, 
+                           s1 = s1,
+                           S1 = S1,
+                           t1 = t1,
                            t2 = t2);
-    
+
     // save quantities
     if(sim >= nburn){
 
       result_clust.row(sim - nburn) = arma::trans(clust);
       result_theta(sim - nburn) = theta;
-      
+
       // update distributrion
-      distribution += update_distribution(grid = grid, 
+      distribution += update_distribution(grid = grid,
                                                 grid_l = grid_l,
-                                                mu = mu, 
-                                                Lambda = Lambda, 
-                                                useful = useful, 
-                                                clust = clust, 
-                                                theta = theta, 
+                                                mu = mu,
+                                                Lambda = Lambda,
+                                                useful = useful,
+                                                clust = clust,
+                                                theta = theta,
                                                 n = n);
     }
     if((sim + 1) % nupd == 0){
@@ -210,8 +208,8 @@ Rcpp::List main_fun(int nsim,
   }
   distribution /= (nsim - nburn);
   Rcpp::Rcout << "Heya! Your estimation is done Captain, ARGH!\n";
-  
-  Rcpp::List resu; 
+
+  Rcpp::List resu;
   resu["dist"]  = distribution;
   resu["clust"] = result_clust;
   resu["theta"] = result_theta;
