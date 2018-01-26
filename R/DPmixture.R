@@ -100,6 +100,5 @@ DPmixMulti <- function(nsim = NULL,
                   nupd = nupd,
                   plim = plim,
                   FIX = fix)
-  }
   return(mod)
 }
