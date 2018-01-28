@@ -94,7 +94,7 @@ double update_hyperparameters(int n,
   arma::mat tLambdas = arma::inv(arma::inv(S1) + tMatL);
   sigma = rWishartMat(s1 + k * nu0, tLambdas);
 
-  if(FIX == true){
+  if(FIX == false){
 
     // NB the gamma distribution R::rgamma
     // is specified in function of shape and scale
