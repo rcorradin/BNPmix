@@ -37,14 +37,14 @@ DPmixMulti <- function(data = NULL,
   #-------#
 
   nu0 = params$nu0
-  b1 = param$b1
-  B1 = param$B1
-  m1 = param$m1
-  M1 = param$M1
-  s1 = param$s1
-  S1 = param$S1
-  t1 = param$t1
-  t2 = param$r2
+  b1 = params$b1
+  B1 = params$B1
+  m1 = params$m1
+  M1 = params$M1
+  s1 = params$s1
+  S1 = params$S1
+  t1 = params$t1
+  t2 = params$r2
 
   #--------------------#
   # seed and dimension #
