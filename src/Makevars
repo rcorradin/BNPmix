@@ -10,10 +10,12 @@ PKG_LIBS = ${LAPACK_LIBS} ${BLAS_LIBS} ${FLIBS}
 
 DIST_SRCS :=${wildcard distributions/*.cpp}
 STRU_SRCS :=${wildcard structural_functions/*.cpp}
-DIRP_SRCS :=${wildcard structural_functions/dirichlet_process/marginal/multivar/*.cpp}
+DIRP_MAR_MULTI_SRCS :=${wildcard structural_functions/dirichlet_process/marginal/multivar/*.cpp}
+DIRP_SRCS :=${wildcard structural_functions/dirichlet_process/*.cpp}
 
 CXX_SRCS = ${DIST_SRCS} \
 	   ${STRU_SRCS} \
+	   ${DIRP_MAR_MULTI_SRCS}\
 	   ${DIRP_SRCS}
 
 CXX_STD = CXX11
