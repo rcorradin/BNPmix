@@ -24,10 +24,10 @@
 #include <distributions/wishart.hpp>
 
 #include <structural_functions/para_cleanser.hpp>
-#include <structural_functions/dirichlet_process/update_cluster.hpp>
-#include <structural_functions/dirichlet_process/update_parameters.hpp>
-#include <structural_functions/dirichlet_process/update_hyperparameters.hpp>
-#include <structural_functions/update_distribution.hpp>
+#include <structural_functions/dirichlet_process/multivar/update_cluster.hpp>
+#include <structural_functions/dirichlet_process/multivar/update_parameters.hpp>
+#include <structural_functions/dirichlet_process/multivar/update_hyperparameters.hpp>
+#include <structural_functions/dirichlet_process/multivar/update_distribution.hpp>
 
 // [[Rcpp::depends("RcppArmadillo")]]
 
