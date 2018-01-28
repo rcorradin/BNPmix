@@ -1,35 +1,62 @@
 # options(add.error.underscore=FALSE)
-DPmixMulti <- function(nsim = NULL,
-                      nburn = NULL,
-                      napprox = NULL,
-                      nparam = NULL,
-                      data = NULL,
-                      grid = NULL,
-                      mu_start = NULL,
-                      Lambda_start = NULL,
-                      theta_start = NULL,
-                      m0 = NULL,
-                      B0 = NULL,
-                      nu0 = NULL,
-                      sigma = NULL,
-                      b1 = NULL,
-                      B1 = NULL,
-                      m1 = NULL,
-                      M1 = NULL,
-                      s1 = NULL,
-                      S1 = NULL,
-                      t1 = NULL,
-                      t2 = NULL,
-                      nupd = NULL,
-                      plim = NULL,
-                      fix = FALSE,
-                      seed = 42) {
+DPmixMulti <- function(data = NULL,
+                       grid = NULL,
+                       MCMC_par = list(nsim= NULL, nburn = NULL, napprox = 100, nparam, nupd, plim),
+                       starting_val = list(mu_start = NULL, Lambda_start = NULL, theta_start = NULL,
+                                           m0 = NULL, B0 = NULL, sigma = NULL),
+                       params = list(nu0 = NULL, b1 = NULL, B1 = NULL, m1 = NULL, M1 = NULL,
+                                     s1 = NULL, S1 = NULL, t1 = NULL, t2 = NULL, theta_fix = NULL),
+                       fix = FALSE,
+                       seed = 42) {
+
+  #-----------------#
+  # MCMC parameters #
+  #-----------------#
+
+  nsim= MCMC_par$nsim
+  nburn = MCMC_par$nburn
+  napprox = MCMC_par$napprox
+  nparam = MCMC_par$nparam
+  nupd = MCMC_par$nupd
+  plim = MCMC_par$plim
+
+  #-----------------#
+  # starting values #
+  #-----------------#
+
+  mu_start = starting_val$mu_start
+  Lambda_start = starting_val$Lambda_start
+  theta_start = starting_val$theta_start
+  m0 = starting_val$m0
+  B0 = starting_val$B0
+  sigma = starting_val$sigma
+  theta_fix = starting_val$theta_fix
+
+  #-------#
+  # param #
+  #-------#
+
+  nu0 = params$nu0
+  b1 = param$b1
+  B1 = param$B1
+  m1 = param$m1
+  M1 = param$M1
+  s1 = param$s1
+  S1 = param$S1
+  t1 = param$t1
+  t2 = param$r2
+
+  #--------------------#
+  # seed and dimension #
+  #--------------------#
 
   set.seed(seed = seed)
   d = ncol(data)
   grid_l = nrow(grid)
 
-  # check if any parameter is missed
+  #--------------------------------#
+  # check on parameters: MCMCparam #
+  #--------------------------------#
 
   if(is.null(nsim) || is.null(nburn)){
     stop("One or more MCMC parameters are missing")
@@ -48,6 +75,14 @@ DPmixMulti <- function(nsim = NULL,
     }
   }
 
+  if(is.null(nupd)){
+    nupd = round(nsim * .1)
+  }
+
+  #---------------------------#
+  # check on parameters: data #
+  #---------------------------#
+
   if(is.null(data)){
     stop("Give me a data set!")
   }
@@ -55,6 +90,10 @@ DPmixMulti <- function(nsim = NULL,
   if(is.null(grid)){
     stop("Give me a grid!")
   }
+
+  #-----------------------------------#
+  # check on parameters: starting_val #
+  #-----------------------------------#
 
   if(is.null(mu_start)){
     mu_start = colMeans(data)
@@ -64,6 +103,32 @@ DPmixMulti <- function(nsim = NULL,
     Lambda_start = var(data)
   }
 
+  if(is.null(theta_start)){
+    if(isTRUE(fix)){
+      theta_start = theta_fix
+    }
+    if(isTRUE(!fix)){
+      theta_start = 1
+      warning("Initialized theta_start = 1")
+    }
+  }
+
+  if(is.null(m0)){
+    m0 = colMeans(data)
+  }
+
+  if(is.null(B0)){
+    B0 = var(data)
+  }
+
+  if(is.null(sigma)){
+    sigma = var(data)
+  }
+
+  #-----------------------------#
+  # check on parameters: params #
+  #-----------------------------#
+
   if(is.null(t1) || is.null(t2)){
     t1 = 1
     t2 = 1
@@ -72,6 +137,48 @@ DPmixMulti <- function(nsim = NULL,
     }
   }
 
+  if(isTRUE(fix) && is.null(theta_fix)){
+    stop("Missing value for theta in params")
+  }
+
+  if(is.null(nu0)){
+    nu0 = d + 2
+    warning("Missing nu0 in params, initialized to minimum (ncol(data)+2)")
+  }
+
+  if(is.null(b1)){
+    b1 = d + 2
+    warning("Missing b1 in params, initialized to minimum (ncol(data)+2)")
+  }
+
+  if(is.null(s1)){
+    s1 = d + 2
+    warning("Missing s1 in params, initialized to minimum (ncol(data)+2)")
+  }
+
+  if(is.null(B1)){
+    B1 = diag(1,d)
+    warning("Missing B1 in params, initialized to default (diag(1))")
+  }
+
+  if(is.null(M1)){
+    M1 = diag(1,d)
+    warning("Missing M1 in params, initialized to default (diag(1))")
+  }
+
+  if(is.null(S1)){
+    S1 = diag(1,d)
+    warning("Missing S1 in params, initialized to default (diag(1))")
+  }
+
+  if(is.null(m1)){
+    m1 = rep(0,d)
+    warning("Missing m1 in params, initialized to default (diag(1))")
+  }
+
+  #----------------------#
+  # Estimating the model #
+  #----------------------#
 
   mod <- main_fun(nsim = nsim,
                   nburn = nburn,
