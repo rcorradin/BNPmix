@@ -116,7 +116,7 @@ Rcpp::List marginal_DP_multi(int nsim,
   clust = conf_start;
 
   // initialize the useful parameters
-  int n_uniq = clust.unique().n_elem;
+  int n_uniq = unique(cluster).n_elem;
 
   for(int i = 0; i < n_uniq; i++) {
     mu.row(i) = arma::trans(mu_start);
