@@ -1,27 +1,5 @@
-# -*- Makefile -*-
-
-all:	libBNPmix.a
-
-PKG_CFLAGS = -DADD_ -DR_NO_REMAP
-PKG_CPPFLAGS = -I. -I../inst/include -IBmath -Imath/cephes -DNO_BOOST_THREADS -DNO_BOOST_FILESYSTEM -DADD_ -DRLANGUAGE
-PKG_LIBS = ${LAPACK_LIBS} ${BLAS_LIBS} ${FLIBS}
-
-# -------------------------#
-
-DIST_SRCS :=${wildcard distributions/*.cpp}
-STRU_SRCS :=${wildcard structural_functions/*.cpp}
-DPMARMULTI_SRCS :=${wildcard structural_functions/dirichlet_process/marginal/multivar/*.cpp}
-DIRP_SRCS :=${wildcard structural_functions/dirichlet_process/*.cpp}
-
-CXX_SRCS = ${DIST_SRCS} \
-	   ${STRU_SRCS} \
-	   ${DPMARMULTI_SRCS}\
-	   ${DIRP_SRCS}
-
+## optional
 CXX_STD = CXX11
 
-OBJECTS = ${CXX_SRCS:.cpp=.o}
-
-libBNPmix.a: ${OBJECTS}
-	     ${AR} rc $@ $^
-
+PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS) 
+PKG_LIBS = $(SHLIB_OPENMP_CFLAGS) $(LAPACK_LIBS) $(BLAS_LIBS) $(FLIBS)

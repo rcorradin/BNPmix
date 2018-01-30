@@ -1,1 +1,4 @@
+useDynLib(BNPmix)
+importFrom(Rcpp, evalCpp)
 exportPattern("^[[:alpha:]]+")
+

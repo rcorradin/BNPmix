@@ -1,11 +1,29 @@
 # options(add.error.underscore=FALSE)
 DPmixMulti <- function(data = NULL,
                        grid = NULL,
-                       MCMC_par = list(nsim= NULL, nburn = NULL, napprox = 100, nparam, nupd, plim),
-                       starting_val = list(mu_start = NULL, Lambda_start = NULL, theta_start = NULL,
-                                           m0 = NULL, B0 = NULL, sigma = NULL),
-                       params = list(nu0 = NULL, b1 = NULL, B1 = NULL, m1 = NULL, M1 = NULL,
-                                     s1 = NULL, S1 = NULL, t1 = NULL, t2 = NULL, theta_fix = NULL),
+                       MCMC_par = list(nsim= NULL,
+                                       nburn = NULL,
+                                       napprox = 100,
+                                       nparam = NULL,
+                                       nupd = NULL,
+                                       plim = NULL),
+                       starting_val = list(conf_start = NULL,
+                                           mu_start = NULL,
+                                           Lambda_start = NULL,
+                                           theta_start = NULL,
+                                           m0 = NULL,
+                                           B0 = NULL,
+                                           sigma = NULL),
+                       params = list(nu0 = NULL,
+                                     b1 = NULL,
+                                     B1 = NULL,
+                                     m1 = NULL,
+                                     M1 = NULL,
+                                     s1 = NULL,
+                                     S1 = NULL,
+                                     t1 = NULL,
+                                     t2 = NULL,
+                                     theta_fix = NULL),
                        fix = FALSE,
                        seed = 42) {
 
@@ -24,6 +42,7 @@ DPmixMulti <- function(data = NULL,
   # starting values #
   #-----------------#
 
+  conf_start = starting_val$conf_start
   mu_start = starting_val$mu_start
   Lambda_start = starting_val$Lambda_start
   theta_start = starting_val$theta_start
@@ -94,6 +113,10 @@ DPmixMulti <- function(data = NULL,
   #-----------------------------------#
   # check on parameters: starting_val #
   #-----------------------------------#
+
+  if(is.null(conf_start)){
+    conf_start = rep(0, nrow(data))
+  }
 
   if(is.null(mu_start)){
     mu_start = colMeans(data)
@@ -188,7 +211,7 @@ DPmixMulti <- function(data = NULL,
                            grid_l = grid_l,
                            data = data,
                            grid = grid,
-                           conf_start,
+                           conf_start = conf_start,
                            mu_start = mu_start,
                            Lambda_start = Lambda_start,
                            theta = theta_start,

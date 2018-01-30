@@ -6,9 +6,9 @@
 
 using namespace Rcpp;
 
-// main_fun_fix
-Rcpp::List main_fun_fix(int nsim, int nburn, int napprox, int nparam, int d, int grid_l, arma::mat data, arma::mat grid, arma::vec mu_start, arma::mat Lambda_start, double theta, arma::vec m0, arma::mat B0, double nu0, arma::mat sigma, int b1, arma::mat B1, arma::vec m1, arma::mat M1, int s1, arma::mat S1, int nupd, int plim);
-RcppExport SEXP _BNPmix_main_fun_fix(SEXP nsimSEXP, SEXP nburnSEXP, SEXP napproxSEXP, SEXP nparamSEXP, SEXP dSEXP, SEXP grid_lSEXP, SEXP dataSEXP, SEXP gridSEXP, SEXP mu_startSEXP, SEXP Lambda_startSEXP, SEXP thetaSEXP, SEXP m0SEXP, SEXP B0SEXP, SEXP nu0SEXP, SEXP sigmaSEXP, SEXP b1SEXP, SEXP B1SEXP, SEXP m1SEXP, SEXP M1SEXP, SEXP s1SEXP, SEXP S1SEXP, SEXP nupdSEXP, SEXP plimSEXP) {
+// marginal_DP_multi
+Rcpp::List marginal_DP_multi(int nsim, int nburn, int napprox, int nparam, int d, int grid_l, arma::mat data, arma::mat grid, arma::vec conf_start, arma::vec mu_start, arma::mat Lambda_start, double theta, arma::vec m0, arma::mat B0, double nu0, arma::mat sigma, int b1, arma::mat B1, arma::vec m1, arma::mat M1, int s1, arma::mat S1, double t1, double t2, int nupd, int plim, bool FIX);
+RcppExport SEXP _BNPmix_marginal_DP_multi(SEXP nsimSEXP, SEXP nburnSEXP, SEXP napproxSEXP, SEXP nparamSEXP, SEXP dSEXP, SEXP grid_lSEXP, SEXP dataSEXP, SEXP gridSEXP, SEXP conf_startSEXP, SEXP mu_startSEXP, SEXP Lambda_startSEXP, SEXP thetaSEXP, SEXP m0SEXP, SEXP B0SEXP, SEXP nu0SEXP, SEXP sigmaSEXP, SEXP b1SEXP, SEXP B1SEXP, SEXP m1SEXP, SEXP M1SEXP, SEXP s1SEXP, SEXP S1SEXP, SEXP t1SEXP, SEXP t2SEXP, SEXP nupdSEXP, SEXP plimSEXP, SEXP FIXSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -20,39 +20,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type grid_l(grid_lSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type data(dataSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type grid(gridSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type mu_start(mu_startSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type Lambda_start(Lambda_startSEXP);
-    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type m0(m0SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type B0(B0SEXP);
-    Rcpp::traits::input_parameter< double >::type nu0(nu0SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< int >::type b1(b1SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type B1(B1SEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type m1(m1SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type M1(M1SEXP);
-    Rcpp::traits::input_parameter< int >::type s1(s1SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type S1(S1SEXP);
-    Rcpp::traits::input_parameter< int >::type nupd(nupdSEXP);
-    Rcpp::traits::input_parameter< int >::type plim(plimSEXP);
-    rcpp_result_gen = Rcpp::wrap(main_fun_fix(nsim, nburn, napprox, nparam, d, grid_l, data, grid, mu_start, Lambda_start, theta, m0, B0, nu0, sigma, b1, B1, m1, M1, s1, S1, nupd, plim));
-    return rcpp_result_gen;
-END_RCPP
-}
-// main_fun
-Rcpp::List main_fun(int nsim, int nburn, int napprox, int nparam, int d, int grid_l, arma::mat data, arma::mat grid, arma::vec mu_start, arma::mat Lambda_start, double theta, arma::vec m0, arma::mat B0, double nu0, arma::mat sigma, int b1, arma::mat B1, arma::vec m1, arma::mat M1, int s1, arma::mat S1, double t1, double t2, int nupd, int plim);
-RcppExport SEXP _BNPmix_main_fun(SEXP nsimSEXP, SEXP nburnSEXP, SEXP napproxSEXP, SEXP nparamSEXP, SEXP dSEXP, SEXP grid_lSEXP, SEXP dataSEXP, SEXP gridSEXP, SEXP mu_startSEXP, SEXP Lambda_startSEXP, SEXP thetaSEXP, SEXP m0SEXP, SEXP B0SEXP, SEXP nu0SEXP, SEXP sigmaSEXP, SEXP b1SEXP, SEXP B1SEXP, SEXP m1SEXP, SEXP M1SEXP, SEXP s1SEXP, SEXP S1SEXP, SEXP t1SEXP, SEXP t2SEXP, SEXP nupdSEXP, SEXP plimSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type nsim(nsimSEXP);
-    Rcpp::traits::input_parameter< int >::type nburn(nburnSEXP);
-    Rcpp::traits::input_parameter< int >::type napprox(napproxSEXP);
-    Rcpp::traits::input_parameter< int >::type nparam(nparamSEXP);
-    Rcpp::traits::input_parameter< int >::type d(dSEXP);
-    Rcpp::traits::input_parameter< int >::type grid_l(grid_lSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type grid(gridSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type conf_start(conf_startSEXP);
     Rcpp::traits::input_parameter< arma::vec >::type mu_start(mu_startSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type Lambda_start(Lambda_startSEXP);
     Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
@@ -70,7 +38,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< double >::type t2(t2SEXP);
     Rcpp::traits::input_parameter< int >::type nupd(nupdSEXP);
     Rcpp::traits::input_parameter< int >::type plim(plimSEXP);
-    rcpp_result_gen = Rcpp::wrap(main_fun(nsim, nburn, napprox, nparam, d, grid_l, data, grid, mu_start, Lambda_start, theta, m0, B0, nu0, sigma, b1, B1, m1, M1, s1, S1, t1, t2, nupd, plim));
+    Rcpp::traits::input_parameter< bool >::type FIX(FIXSEXP);
+    rcpp_result_gen = Rcpp::wrap(marginal_DP_multi(nsim, nburn, napprox, nparam, d, grid_l, data, grid, conf_start, mu_start, Lambda_start, theta, m0, B0, nu0, sigma, b1, B1, m1, M1, s1, S1, t1, t2, nupd, plim, FIX));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -111,8 +80,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_BNPmix_main_fun_fix", (DL_FUNC) &_BNPmix_main_fun_fix, 23},
-    {"_BNPmix_main_fun", (DL_FUNC) &_BNPmix_main_fun, 25},
+    {"_BNPmix_marginal_DP_multi", (DL_FUNC) &_BNPmix_marginal_DP_multi, 27},
     {"_BNPmix_find_part", (DL_FUNC) &_BNPmix_find_part, 1},
     {"_BNPmix_pairwise_mat", (DL_FUNC) &_BNPmix_pairwise_mat, 1},
     {"_BNPmix_est_ISE_2D", (DL_FUNC) &_BNPmix_est_ISE_2D, 3},
