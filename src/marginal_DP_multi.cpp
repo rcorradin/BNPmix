@@ -18,16 +18,16 @@
 
 #include "RcppArmadillo.h"
 
-#include <distributions/gaussian.hpp>
-#include <distributions/rintnunif.hpp>
-#include <distributions/tstudent.hpp>
-#include <distributions/wishart.hpp>
+#include <gaussian.hpp>
+#include <rintnunif.hpp>
+#include <tstudent.hpp>
+#include <wishart.hpp>
 
-#include <structural_functions/para_cleanser.hpp>
-#include <structural_functions/dirichlet_process/marginal/multivar/update_cluster.hpp>
-#include <structural_functions/dirichlet_process/marginal/multivar/update_parameters.hpp>
-#include <structural_functions/dirichlet_process/marginal/multivar/update_hyperparameters.hpp>
-#include <structural_functions/dirichlet_process/marginal/multivar/update_distribution.hpp>
+#include <para_cleanser.hpp>
+#include <update_cluster.hpp>
+#include <update_parameters.hpp>
+#include <update_hyperparameters.hpp>
+#include <update_distribution.hpp>
 
 // [[Rcpp::depends("RcppArmadillo")]]
 

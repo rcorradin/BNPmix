@@ -18,14 +18,14 @@
 
 #include "RcppArmadillo.h"
 
-#include <distributions/gaussian.hpp>
-#include <distributions/rintnunif.hpp>
-#include <distributions/tstudent.hpp>
-#include <distributions/wishart.hpp>
+#include <gaussian.hpp>
+#include <rintnunif.hpp>
+#include <tstudent.hpp>
+#include <wishart.hpp>
 
 // [[Rcpp::depends("RcppArmadillo")]]
 
-/* 
+/*
   Update parameters, according to the posterior distirbutions
 
   args:
@@ -39,19 +39,19 @@
     - B0:      matrix, variance of the location component of the base measure
     - nu0:     double, gdl of the scale component of the base measure
     - sigma    matrix, charateristic matrix of the scale component of the base measure
-    
+
   Void function.
 */
 
 //[[Rcpp::export]]
-void update_parameters(arma::mat data, 
-                       arma::cube& Lambda, 
-                       arma::mat& mu, 
-                       arma::vec& clust, 
-                       arma::vec useful, 
-                       arma::vec m0, 
-                       arma::mat B0, 
-                       double nu0, 
+void update_parameters(arma::mat data,
+                       arma::cube& Lambda,
+                       arma::mat& mu,
+                       arma::vec& clust,
+                       arma::vec useful,
+                       arma::vec m0,
+                       arma::mat B0,
+                       double nu0,
                        arma::mat sigma) {
   int k = (int) arma::sum(useful);
 
@@ -64,10 +64,10 @@ void update_parameters(arma::mat data,
     arma::mat temp_datac = temp_data - arma::repmat(mu.row(j), nj, 1);
     arma::mat temp_mat   = arma::inv(sigma + arma::trans(temp_datac) * temp_datac);
     Lambda.slice(j)      = arma::inv(rWishartMat(nu0 + nj, temp_mat));
-    
+
     // update the location of each component
     arma::mat Bn = arma::inv(arma::inv(B0) + nj * arma::inv(Lambda.slice(j)));
-    arma::vec mn = Bn * (arma::inv(B0) * m0 + arma::inv(Lambda.slice(j)) * arma::trans(sum(temp_data, 0)));  
+    arma::vec mn = Bn * (arma::inv(B0) * m0 + arma::inv(Lambda.slice(j)) * arma::trans(sum(temp_data, 0)));
     mu.row(j)    = rmvnormMat(1, mn, Bn);
   }
 }

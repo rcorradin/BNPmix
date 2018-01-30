@@ -18,15 +18,15 @@
 
 #include "RcppArmadillo.h"
 
-#include <distributions/gaussian.hpp>
-#include <distributions/rintnunif.hpp>
-#include <distributions/tstudent.hpp>
-#include <distributions/wishart.hpp>
+#include <gaussian.hpp>
+#include <rintnunif.hpp>
+#include <tstudent.hpp>
+#include <wishart.hpp>
 
 // [[Rcpp::depends("RcppArmadillo")]]
 
-/* 
-  Update distribution (approximate). 
+/*
+  Update distribution (approximate).
 
   args:
     - grid:    matrix, given points to evaluate the density
@@ -37,17 +37,17 @@
                               used, value 0 implies that is not used
     - theta    double, precision parameter of the Dirichlet process
     - n:       int, number of observation
-  
+
   Void function.
 */
 
-arma::vec update_distribution(arma::mat grid, 
+arma::vec update_distribution(arma::mat grid,
                               int grid_l,
-                              arma::mat mu, 
-                              arma::cube Lambda, 
-                              arma::vec useful, 
-                              arma::vec clust, 
-                              double theta, 
+                              arma::mat mu,
+                              arma::cube Lambda,
+                              arma::vec useful,
+                              arma::vec clust,
+                              double theta,
                               int n){
   int k = (int) arma::sum(useful);
   arma::vec temp_out(grid_l);
@@ -59,6 +59,6 @@ arma::vec update_distribution(arma::mat grid,
     // evaluated the density weigthed by the frequence of the component
     temp_out += arma::sum(clust == j) * dmvnrm_ar_mat(grid, mu.row(j), Lambda.slice(j));
   }
-  
+
   return temp_out / n;
 }

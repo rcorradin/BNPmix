@@ -18,16 +18,16 @@
 
 #include "RcppArmadillo.h"
 
-#include <distributions/gaussian.hpp>
-#include <distributions/rintnunif.hpp>
-#include <distributions/tstudent.hpp>
-#include <distributions/wishart.hpp>
+#include <gaussian.hpp>
+#include <rintnunif.hpp>
+#include <tstudent.hpp>
+#include <wishart.hpp>
 
 // [[Rcpp::depends("RcppArmadillo")]]
 
-/* 
+/*
   Update cluster, based on marginal approach of
-  Dirichlet process mixture modelling. 
+  Dirichlet process mixture modelling.
 
   args:
     - data:    matrix of given data
@@ -42,49 +42,49 @@
     - sigma    matrix, charateristic matrix of the scale component of the base measure
     - theta    double, precision parameter of the Dirichlet process
     - napprox: int, number of approximation for the probability of new cluster
-  
+
   Void function.
 */
 
 //[[Rcpp::export]]
-void update_cluster_cpp(arma::mat data, 
-                        arma::cube& Lambda, 
-                        arma::mat& mu, 
-                        arma::vec& clust, 
-                        arma::vec &useful, 
-                        arma::vec m0, 
-                        arma::mat B0, 
-                        double nu0, 
-                        arma::mat sigma, 
-                        double theta, 
+void update_cluster_cpp(arma::mat data,
+                        arma::cube& Lambda,
+                        arma::mat& mu,
+                        arma::vec& clust,
+                        arma::vec &useful,
+                        arma::vec m0,
+                        arma::mat B0,
+                        double nu0,
+                        arma::mat sigma,
+                        double theta,
                         int napprox) {
 
   // initialize the number of observation
-  
+
   int n = data.n_rows;
-  
+
   // for each observation:
-  //    using a marginal approach to generate the new 
+  //    using a marginal approach to generate the new
   //    cluster, given the remaining observations
-  
+
   for(int i = 0; i < n; i++) {
-    
+
     int k = (int) arma::sum(useful);
     arma::vec prob(k+1);
     prob.fill(0);
     arma::vec temp_clust = clust;
     temp_clust(i) = k+1;
-    
+
     // for each cluster:
     //    compute the probability to fall inside
-    
+
     for(int j = 0; j < k; j++) {
       int nj = (int) arma::sum(temp_clust == j);
       prob[j] = dmvnrm_ar(data.row(i), mu.row(j), Lambda.slice(j)) * nj;
     }
-    
-    // compute the probability to generate a new cluster 
-    
+
+    // compute the probability to generate a new cluster
+
     double temp = 0.0;
     arma::vec cdata   = arma::trans(data.row(i)) - m0;
     arma::mat tempMat = arma::inv(sigma + cdata * arma::trans(cdata));
@@ -94,20 +94,20 @@ void update_cluster_cpp(arma::mat data,
     }
     prob[k] = theta * (temp / napprox);
     prob = prob / arma::sum(prob);
-    
+
     // generate the cluster
     // plus acceleration step:
-    //    if the cluster is new, then generate a 
+    //    if the cluster is new, then generate a
     //    new value for the parameters
-    
+
     clust[i] = rintnunif(prob, k+1);
     if(clust[i] == k){
       useful[k] = 1;
-      
+
       arma::vec cdata = arma::trans(data.row(i)) - m0;
       arma::mat tempMat = arma::inv(sigma + cdata * arma::trans(cdata));
       Lambda.slice(k) = arma::inv(rWishartMat(nu0 + 1, tempMat));
-      
+
       arma::mat Bn = arma::inv(arma::inv(B0) + arma::inv(Lambda.slice(k)));
       arma::vec mn = Bn * (arma::inv(B0) * m0 + arma::inv(Lambda.slice(k)) * arma::trans(data.row(i)));
       mu.row(k) = rmvnormMat(1, mn, Bn);

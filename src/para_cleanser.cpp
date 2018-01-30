@@ -17,17 +17,11 @@
 */
 
 #include "RcppArmadillo.h"
-
-#include <distributions/gaussian.hpp>
-#include <distributions/rintnunif.hpp>
-#include <distributions/tstudent.hpp>
-#include <distributions/wishart.hpp>
-
 // [[Rcpp::depends("RcppArmadillo")]]
 
-/* 
-  Clean parameter, discard the middle not used values for the clusters and 
-    update the correspondent parameters. 
+/*
+  Clean parameter, discard the middle not used values for the clusters and
+    update the correspondent parameters.
 
   args:
     - Lambda:  array, each slice is a precision matrix
@@ -39,18 +33,18 @@
   Void function.
 */
 
-void para_cleanser(arma::cube &Lambda, 
-                   arma::mat &mu, 
-                   arma::vec &clust, 
+void para_cleanser(arma::cube &Lambda,
+                   arma::mat &mu,
+                   arma::vec &clust,
                    arma::vec &useful) {
   int k = (int) arma::sum(useful);
-  
+
   // for all the used parameters
   for(int i = 0; i < k; i++){
-    
+
     // if a cluster is empty
     if((int) arma::sum(clust == i) == 0){
-      
+
       // find the last full cluster, then swap
       for(int j = k; j > i; j--){
         if((int) arma::sum(clust == j) != 0){
