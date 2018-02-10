@@ -18,10 +18,7 @@
 
 #include "RcppArmadillo.h"
 
-#include "gaussian.hpp"
-#include "rintnunif.hpp"
-#include "tstudent.hpp"
-#include "wishart.hpp"
+#include "distributions.hpp"
 
 #include "para_cleanser.hpp"
 #include "update_cluster.hpp"

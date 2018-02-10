@@ -1,4 +1,17 @@
 # options(add.error.underscore=FALSE)
+#' Estimating the posterion mean of a Dirichlet Process Mixture Model via marginal Gibbs sampler.
+#' The base measure is specified with independent component.
+#'
+#' @param data A multivariate dataset.
+#' @param grid An expanded grid of points to evaluating the density.
+#' @param MCMC_param A list of MCMC parameters
+#' @inheritParams nsim Number of iterations (includes the burnin iteration)
+#' @inheritParams nburn Number of burn-in iterations
+#' @inheritParams napprox Number of simulated values to approximate the predictive distribution when updating the latent components
+#'
+#' @return A list of
+#'
+
 DPmixMulti <- function(data = NULL,
                        grid = NULL,
                        MCMC_par = list(nsim= NULL,

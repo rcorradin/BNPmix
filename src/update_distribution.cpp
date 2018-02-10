@@ -18,10 +18,7 @@
 
 #include "RcppArmadillo.h"
 
-#include "gaussian.hpp"
-#include "rintnunif.hpp"
-#include "tstudent.hpp"
-#include "wishart.hpp"
+#include "distributions.hpp"
 
 // [[Rcpp::depends("RcppArmadillo")]]
 

@@ -5,6 +5,18 @@ marginal_DP_multi <- function(nsim, nburn, napprox, nparam, d, grid_l, data, gri
     .Call('_BNPmix_marginal_DP_multi', PACKAGE = 'BNPmix', nsim, nburn, napprox, nparam, d, grid_l, data, grid, conf_start, mu_start, Lambda_start, theta, m0, B0, nu0, sigma, b1, B1, m1, M1, s1, S1, t1, t2, nupd, plim, FIX)
 }
 
+update_cluster_cpp <- function(data, Lambda, mu, clust, useful, m0, B0, nu0, sigma, theta, napprox) {
+    invisible(.Call('_BNPmix_update_cluster_cpp', PACKAGE = 'BNPmix', data, Lambda, mu, clust, useful, m0, B0, nu0, sigma, theta, napprox))
+}
+
+update_hyperparameters <- function(n, theta, Lambda, mu, clust, useful, m0, B0, nu0, sigma, b1, B1, m1, M1, s1, S1, t1, t2, FIX) {
+    .Call('_BNPmix_update_hyperparameters', PACKAGE = 'BNPmix', n, theta, Lambda, mu, clust, useful, m0, B0, nu0, sigma, b1, B1, m1, M1, s1, S1, t1, t2, FIX)
+}
+
+update_parameters <- function(data, Lambda, mu, clust, useful, m0, B0, nu0, sigma) {
+    invisible(.Call('_BNPmix_update_parameters', PACKAGE = 'BNPmix', data, Lambda, mu, clust, useful, m0, B0, nu0, sigma))
+}
+
 find_part <- function(clust_mat) {
     .Call('_BNPmix_find_part', PACKAGE = 'BNPmix', clust_mat)
 }
