@@ -32,7 +32,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
    Void function.
 */
 
-//[[Rcpp::export]]
 void para_cleanser(arma::cube &Lambda,
                    arma::mat &mu,
                    arma::vec &clust) {
@@ -86,7 +85,6 @@ void para_cleanser(arma::cube &Lambda,
   Void function.
 */
 
-//[[Rcpp::export]]
 void update_cluster_cpp(arma::mat data,
                         arma::cube &Lambda,
                         arma::mat &mu,
@@ -187,7 +185,6 @@ void update_cluster_cpp(arma::mat data,
   Void function.
 */
 
-//[[Rcpp::export]]
 void update_parameters(arma::mat data,
                        arma::cube &Lambda,
                        arma::mat &mu,
@@ -239,7 +236,6 @@ void update_parameters(arma::mat data,
   Void function.
 */
 
-//[[Rcpp::export]]
 double update_hyperparameters(int n,
                               double& theta,
                               arma::cube Lambda,
@@ -314,7 +310,6 @@ double update_hyperparameters(int n,
    Void function.
 */
 
-//[[Rcpp::export]]
 arma::vec update_distribution(arma::mat grid,
                               int grid_l,
                               arma::mat mu,
