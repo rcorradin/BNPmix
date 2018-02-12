@@ -351,7 +351,8 @@ int rintnunif(arma::vec prob,
   double u = arma::randu(1)[0];
   prob = arma::cumsum(prob);
 
-  for(int k = 0; k < a; k++) {
+  // NB now is 0 to k with loop up to a+1
+  for(int k = 0; k < a + 1; k++) {
     if(u <= prob[k]) {
       return k;
     }

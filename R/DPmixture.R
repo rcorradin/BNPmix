@@ -14,42 +14,23 @@
 
 DPmixMulti <- function(data = NULL,
                        grid = NULL,
-                       MCMC_par = list(nsim= NULL,
-                                       nburn = NULL,
-                                       napprox = 100,
-                                       nparam = NULL,
-                                       nupd = NULL,
-                                       plim = NULL),
-                       starting_val = list(conf_start = NULL,
-                                           mu_start = NULL,
-                                           Lambda_start = NULL,
-                                           theta_start = NULL,
-                                           m0 = NULL,
-                                           B0 = NULL,
-                                           sigma = NULL),
-                       params = list(nu0 = NULL,
-                                     b1 = NULL,
-                                     B1 = NULL,
-                                     m1 = NULL,
-                                     M1 = NULL,
-                                     s1 = NULL,
-                                     S1 = NULL,
-                                     t1 = NULL,
-                                     t2 = NULL,
-                                     theta_fix = NULL),
+                       MCMC_par = list(),
+                       starting_val = list(),
+                       params = list(),
                        fix = FALSE,
                        seed = 42) {
+
+  data = as.matrix(data)
+  grid = as.matrix(grid)
 
   #-----------------#
   # MCMC parameters #
   #-----------------#
 
-  nsim= MCMC_par$nsim
+  nsim = MCMC_par$nsim
   nburn = MCMC_par$nburn
   napprox = MCMC_par$napprox
-  nparam = MCMC_par$nparam
   nupd = MCMC_par$nupd
-  plim = MCMC_par$plim
 
   #-----------------#
   # starting values #
@@ -76,7 +57,7 @@ DPmixMulti <- function(data = NULL,
   s1 = params$s1
   S1 = params$S1
   t1 = params$t1
-  t2 = params$r2
+  t2 = params$t2
 
   #--------------------#
   # seed and dimension #
@@ -94,16 +75,10 @@ DPmixMulti <- function(data = NULL,
     stop("One or more MCMC parameters are missing")
   }
 
-  if(is.null(napprox) || is.null(nparam) || is.null(plim)) {
-    warning("napprox or nparam or plim missed, using the default one")
+  if(is.null(napprox)) {
+    warning("napprox missed, using the default one")
     if(is.null(napprox)){
       napprox = 100
-    }
-    if(is.null(nparam)){
-      nparam = round(nrow(data) * 1.5)
-    }
-    if(is.null(plim)){
-      plim = round(0.1 * nrow(data))
     }
   }
 
@@ -216,32 +191,29 @@ DPmixMulti <- function(data = NULL,
   # Estimating the model #
   #----------------------#
 
-  mod <- marginal_DP_multi(nsim = nsim,
-                           nburn = nburn,
-                           napprox = napprox,
-                           nparam = nparam,
-                           d = d,
-                           grid_l = grid_l,
-                           data = data,
-                           grid = grid,
-                           conf_start = conf_start,
-                           mu_start = mu_start,
-                           Lambda_start = Lambda_start,
-                           theta = theta_start,
-                           m0 = m0,
-                           B0 = B0,
-                           nu0 = nu0,
-                           sigma = sigma,
-                           b1 = b1,
-                           B1 = B1,
-                           m1 = m1,
-                           M1 = M1,
-                           s1 = s1,
-                           S1 = S1,
-                           t1 = t1,
-                           t2 = t2,
-                           nupd = nupd,
-                           plim = plim,
-                           FIX = fix)
+  mod <- marginal_DP_multi_indep(nsim = nsim,
+                                 nburn = nburn,
+                                 napprox = napprox,
+                                 d = d,
+                                 data = data,
+                                 grid = grid,
+                                 conf_start = conf_start,
+                                 mu_start = mu_start,
+                                 Lambda_start = Lambda_start,
+                                 theta = theta_start,
+                                 m0 = m0,
+                                 B0 = B0,
+                                 nu0 = nu0,
+                                 sigma = sigma,
+                                 b1 = b1,
+                                 B1 = B1,
+                                 m1 = m1,
+                                 M1 = M1,
+                                 s1 = s1,
+                                 S1 = S1,
+                                 t1 = t1,
+                                 t2 = t2,
+                                 nupd = nupd,
+                                 FIX = fix)
   return(mod)
 }
