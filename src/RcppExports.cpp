@@ -6,98 +6,6 @@
 
 using namespace Rcpp;
 
-// para_cleanser
-void para_cleanser(arma::cube& Lambda, arma::mat& mu, arma::vec& clust);
-RcppExport SEXP _BNPmix_para_cleanser(SEXP LambdaSEXP, SEXP muSEXP, SEXP clustSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::cube& >::type Lambda(LambdaSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type clust(clustSEXP);
-    para_cleanser(Lambda, mu, clust);
-    return R_NilValue;
-END_RCPP
-}
-// update_cluster_cpp
-void update_cluster_cpp(arma::mat data, arma::cube& Lambda, arma::mat& mu, arma::vec& clust, arma::vec m0, arma::mat B0, double nu0, arma::mat sigma, double theta, int napprox);
-RcppExport SEXP _BNPmix_update_cluster_cpp(SEXP dataSEXP, SEXP LambdaSEXP, SEXP muSEXP, SEXP clustSEXP, SEXP m0SEXP, SEXP B0SEXP, SEXP nu0SEXP, SEXP sigmaSEXP, SEXP thetaSEXP, SEXP napproxSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< arma::cube& >::type Lambda(LambdaSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type clust(clustSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type m0(m0SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type B0(B0SEXP);
-    Rcpp::traits::input_parameter< double >::type nu0(nu0SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< int >::type napprox(napproxSEXP);
-    update_cluster_cpp(data, Lambda, mu, clust, m0, B0, nu0, sigma, theta, napprox);
-    return R_NilValue;
-END_RCPP
-}
-// update_parameters
-void update_parameters(arma::mat data, arma::cube& Lambda, arma::mat& mu, arma::vec& clust, arma::vec m0, arma::mat B0, double nu0, arma::mat sigma);
-RcppExport SEXP _BNPmix_update_parameters(SEXP dataSEXP, SEXP LambdaSEXP, SEXP muSEXP, SEXP clustSEXP, SEXP m0SEXP, SEXP B0SEXP, SEXP nu0SEXP, SEXP sigmaSEXP) {
-BEGIN_RCPP
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type data(dataSEXP);
-    Rcpp::traits::input_parameter< arma::cube& >::type Lambda(LambdaSEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type clust(clustSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type m0(m0SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type B0(B0SEXP);
-    Rcpp::traits::input_parameter< double >::type nu0(nu0SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type sigma(sigmaSEXP);
-    update_parameters(data, Lambda, mu, clust, m0, B0, nu0, sigma);
-    return R_NilValue;
-END_RCPP
-}
-// update_hyperparameters
-double update_hyperparameters(int n, double& theta, arma::cube Lambda, arma::mat mu, arma::vec clust, arma::vec& m0, arma::mat& B0, double nu0, arma::mat& sigma, int b1, arma::mat B1, arma::vec m1, arma::mat M1, int s1, arma::mat S1, double t1, double t2, bool FIX);
-RcppExport SEXP _BNPmix_update_hyperparameters(SEXP nSEXP, SEXP thetaSEXP, SEXP LambdaSEXP, SEXP muSEXP, SEXP clustSEXP, SEXP m0SEXP, SEXP B0SEXP, SEXP nu0SEXP, SEXP sigmaSEXP, SEXP b1SEXP, SEXP B1SEXP, SEXP m1SEXP, SEXP M1SEXP, SEXP s1SEXP, SEXP S1SEXP, SEXP t1SEXP, SEXP t2SEXP, SEXP FIXSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< int >::type n(nSEXP);
-    Rcpp::traits::input_parameter< double& >::type theta(thetaSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type Lambda(LambdaSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type clust(clustSEXP);
-    Rcpp::traits::input_parameter< arma::vec& >::type m0(m0SEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type B0(B0SEXP);
-    Rcpp::traits::input_parameter< double >::type nu0(nu0SEXP);
-    Rcpp::traits::input_parameter< arma::mat& >::type sigma(sigmaSEXP);
-    Rcpp::traits::input_parameter< int >::type b1(b1SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type B1(B1SEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type m1(m1SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type M1(M1SEXP);
-    Rcpp::traits::input_parameter< int >::type s1(s1SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type S1(S1SEXP);
-    Rcpp::traits::input_parameter< double >::type t1(t1SEXP);
-    Rcpp::traits::input_parameter< double >::type t2(t2SEXP);
-    Rcpp::traits::input_parameter< bool >::type FIX(FIXSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_hyperparameters(n, theta, Lambda, mu, clust, m0, B0, nu0, sigma, b1, B1, m1, M1, s1, S1, t1, t2, FIX));
-    return rcpp_result_gen;
-END_RCPP
-}
-// update_distribution
-arma::vec update_distribution(arma::mat grid, int grid_l, arma::mat mu, arma::cube Lambda, arma::vec clust, double theta);
-RcppExport SEXP _BNPmix_update_distribution(SEXP gridSEXP, SEXP grid_lSEXP, SEXP muSEXP, SEXP LambdaSEXP, SEXP clustSEXP, SEXP thetaSEXP) {
-BEGIN_RCPP
-    Rcpp::RObject rcpp_result_gen;
-    Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type grid(gridSEXP);
-    Rcpp::traits::input_parameter< int >::type grid_l(grid_lSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type mu(muSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type Lambda(LambdaSEXP);
-    Rcpp::traits::input_parameter< arma::vec >::type clust(clustSEXP);
-    Rcpp::traits::input_parameter< double >::type theta(thetaSEXP);
-    rcpp_result_gen = Rcpp::wrap(update_distribution(grid, grid_l, mu, Lambda, clust, theta));
-    return rcpp_result_gen;
-END_RCPP
-}
 // marginal_DP_multi_indep
 Rcpp::List marginal_DP_multi_indep(int nsim, int nburn, int napprox, int d, arma::mat data, arma::mat grid, arma::vec conf_start, arma::vec mu_start, arma::mat Lambda_start, double theta, arma::vec m0, arma::mat B0, double nu0, arma::mat sigma, int b1, arma::mat B1, arma::vec m1, arma::mat M1, int s1, arma::mat S1, double t1, double t2, int nupd, bool FIX);
 RcppExport SEXP _BNPmix_marginal_DP_multi_indep(SEXP nsimSEXP, SEXP nburnSEXP, SEXP napproxSEXP, SEXP dSEXP, SEXP dataSEXP, SEXP gridSEXP, SEXP conf_startSEXP, SEXP mu_startSEXP, SEXP Lambda_startSEXP, SEXP thetaSEXP, SEXP m0SEXP, SEXP B0SEXP, SEXP nu0SEXP, SEXP sigmaSEXP, SEXP b1SEXP, SEXP B1SEXP, SEXP m1SEXP, SEXP M1SEXP, SEXP s1SEXP, SEXP S1SEXP, SEXP t1SEXP, SEXP t2SEXP, SEXP nupdSEXP, SEXP FIXSEXP) {
@@ -169,11 +77,6 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_BNPmix_para_cleanser", (DL_FUNC) &_BNPmix_para_cleanser, 3},
-    {"_BNPmix_update_cluster_cpp", (DL_FUNC) &_BNPmix_update_cluster_cpp, 10},
-    {"_BNPmix_update_parameters", (DL_FUNC) &_BNPmix_update_parameters, 8},
-    {"_BNPmix_update_hyperparameters", (DL_FUNC) &_BNPmix_update_hyperparameters, 18},
-    {"_BNPmix_update_distribution", (DL_FUNC) &_BNPmix_update_distribution, 6},
     {"_BNPmix_marginal_DP_multi_indep", (DL_FUNC) &_BNPmix_marginal_DP_multi_indep, 24},
     {"_BNPmix_find_part", (DL_FUNC) &_BNPmix_find_part, 1},
     {"_BNPmix_pairwise_mat", (DL_FUNC) &_BNPmix_pairwise_mat, 1},

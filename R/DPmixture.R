@@ -67,124 +67,42 @@ DPmixMulti <- function(data = NULL,
   d = ncol(data)
   grid_l = nrow(grid)
 
-  #--------------------------------#
-  # check on parameters: MCMCparam #
-  #--------------------------------#
+  #---------------------------------#
+  # check on parameters: STOP check #
+  #---------------------------------#
 
-  if(is.null(nsim) || is.null(nburn)){
-    stop("One or more MCMC parameters are missing")
-  }
+  if(is.null(nsim) || is.null(nburn)) stop("One or more MCMC parameters are missing")
+  if(is.null(data)) stop("Give me a data set!")
+  if(is.null(grid)) stop("Give me a grid!")
+  if(isTRUE(fix) && is.null(theta_fix)) stop("Missing value for theta in params")
 
-  if(is.null(napprox)) {
-    warning("napprox missed, using the default one")
-    if(is.null(napprox)){
-      napprox = 100
-    }
-  }
+  #---------------------------------------------#
+  # check on parameters: warning and initialize #
+  #---------------------------------------------#
 
-  if(is.null(nupd)){
-    nupd = round(nsim * .1)
-  }
+  if(is.null(napprox)) napprox = 100
+  if(is.null(nupd)) nupd = round(nsim * .1)
+  if(is.null(conf_start)) conf_start = rep(0, nrow(data))
+  if(is.null(mu_start)) mu_start = colMeans(data)
+  if(is.null(Lambda_start)) Lambda_start = var(data)
+  if(is.null(theta_start) && isTRUE(!fix)) theta_start = 1
+  if(is.null(theta_start) && isTRUE(fix)) theta_start = theta_fix
+  if(is.null(m0)) m0 = colMeans(data)
+  if(is.null(B0)) B0 = var(data)
+  if(is.null(sigma)) sigma = var(data)
+  if(is.null(t1)) t1 = 1
+  if(is.null(t2)) t2 = 1
+  if(is.null(nu0)) nu0 = d + 2
+  if(is.null(b1)) b1 = d + 2
+  if(is.null(s1)) s1 = d + 2
+  if(is.null(B1)) B1 = diag(1,d)
+  if(is.null(M1)) M1 = diag(1,d)
+  if(is.null(S1)) S1 = diag(1,d)
+  if(is.null(m1)) m1 = rep(0,d)
 
-  #---------------------------#
-  # check on parameters: data #
-  #---------------------------#
-
-  if(is.null(data)){
-    stop("Give me a data set!")
-  }
-
-  if(is.null(grid)){
-    stop("Give me a grid!")
-  }
-
-  #-----------------------------------#
-  # check on parameters: starting_val #
-  #-----------------------------------#
-
-  if(is.null(conf_start)){
-    conf_start = rep(0, nrow(data))
-  }
-
-  if(is.null(mu_start)){
-    mu_start = colMeans(data)
-  }
-
-  if(is.null(Lambda_start)){
-    Lambda_start = var(data)
-  }
-
-  if(is.null(theta_start)){
-    if(isTRUE(fix)){
-      theta_start = theta_fix
-    }
-    if(isTRUE(!fix)){
-      theta_start = 1
-      warning("Initialized theta_start = 1")
-    }
-  }
-
-  if(is.null(m0)){
-    m0 = colMeans(data)
-  }
-
-  if(is.null(B0)){
-    B0 = var(data)
-  }
-
-  if(is.null(sigma)){
-    sigma = var(data)
-  }
-
-  #-----------------------------#
-  # check on parameters: params #
-  #-----------------------------#
-
-  if(is.null(t1) || is.null(t2)){
-    t1 = 1
-    t2 = 1
-    if(isTRUE(!fix)){
-      warning("Parameters t1 and t2 missed: initialized to default (equal to 1)")
-    }
-  }
-
-  if(isTRUE(fix) && is.null(theta_fix)){
-    stop("Missing value for theta in params")
-  }
-
-  if(is.null(nu0)){
-    nu0 = d + 2
-    warning("Missing nu0 in params, initialized to minimum (ncol(data)+2)")
-  }
-
-  if(is.null(b1)){
-    b1 = d + 2
-    warning("Missing b1 in params, initialized to minimum (ncol(data)+2)")
-  }
-
-  if(is.null(s1)){
-    s1 = d + 2
-    warning("Missing s1 in params, initialized to minimum (ncol(data)+2)")
-  }
-
-  if(is.null(B1)){
-    B1 = diag(1,d)
-    warning("Missing B1 in params, initialized to default (diag(1))")
-  }
-
-  if(is.null(M1)){
-    M1 = diag(1,d)
-    warning("Missing M1 in params, initialized to default (diag(1))")
-  }
-
-  if(is.null(S1)){
-    S1 = diag(1,d)
-    warning("Missing S1 in params, initialized to default (diag(1))")
-  }
-
-  if(is.null(m1)){
-    m1 = rep(0,d)
-    warning("Missing m1 in params, initialized to default (diag(1))")
+  if(is.null(m0) || is.null(B0) || is.null(sigma) || is.null(t1) || is.null(t2) || is.null(nu0) ||
+     is.null(b1) || is.null(s1) || is.null(B1) || is.null(M1) || is.null(S1) || is.null(m1)){
+    warning("One or more parameter missed, initialized to default.")
   }
 
   #----------------------#
