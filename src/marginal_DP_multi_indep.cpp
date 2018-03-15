@@ -317,7 +317,7 @@ arma::vec update_distribution(arma::mat grid,
                               arma::vec clust,
                               double theta){
   int k = mu.n_rows;
-  int n = clust.n_elem;
+  double n = (double) clust.n_elem;
 
   arma::vec temp_out(grid_l);
   temp_out.fill(0);

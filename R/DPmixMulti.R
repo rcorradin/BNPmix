@@ -12,52 +12,36 @@
 #' @return A list of
 #'
 
-DPmixMulti <- function(data = NULL,
+DPmixMulti <- function(nsim = NULL,
+                       nburn = NULL,
+                       napprox = 100,
+                       data = NULL,
                        grid = NULL,
-                       MCMC_par = list(),
-                       starting_val = list(),
-                       params = list(),
+                       conf_start = NULL,
+                       mu_start = NULL,
+                       Lambda_start = NULL,
+                       theta = NULL,
+                       m0 = NULL,
+                       B0 = NULL,
+                       nu0 = NULL,
+                       sigma = NULL,
+                       b1 = NULL,
+                       B1 = NULL,
+                       m1 = NULL,
+                       M1 = NULL,
+                       s1 = NULL,
+                       S1 = NULL,
+                       t1 = NULL,
+                       t2 = NULL,
+                       nupd = NULL,
                        fix = FALSE,
                        seed = 42) {
 
+  if(is.null(data)) stop("Give me a data set!")
+  if(is.null(grid)) stop("Give me a grid!")
+
   data = as.matrix(data)
   grid = as.matrix(grid)
-
-  #-----------------#
-  # MCMC parameters #
-  #-----------------#
-
-  nsim = MCMC_par$nsim
-  nburn = MCMC_par$nburn
-  napprox = MCMC_par$napprox
-  nupd = MCMC_par$nupd
-
-  #-----------------#
-  # starting values #
-  #-----------------#
-
-  conf_start = starting_val$conf_start
-  mu_start = starting_val$mu_start
-  Lambda_start = starting_val$Lambda_start
-  theta_start = starting_val$theta_start
-  m0 = starting_val$m0
-  B0 = starting_val$B0
-  sigma = starting_val$sigma
-  theta_fix = starting_val$theta_fix
-
-  #-------#
-  # param #
-  #-------#
-
-  nu0 = params$nu0
-  b1 = params$b1
-  B1 = params$B1
-  m1 = params$m1
-  M1 = params$M1
-  s1 = params$s1
-  S1 = params$S1
-  t1 = params$t1
-  t2 = params$t2
 
   #--------------------#
   # seed and dimension #
@@ -72,21 +56,24 @@ DPmixMulti <- function(data = NULL,
   #---------------------------------#
 
   if(is.null(nsim) || is.null(nburn)) stop("One or more MCMC parameters are missing")
-  if(is.null(data)) stop("Give me a data set!")
-  if(is.null(grid)) stop("Give me a grid!")
-  if(isTRUE(fix) && is.null(theta_fix)) stop("Missing value for theta in params")
+  if(isTRUE(fix) && is.null(theta)) stop("Missing value for theta in params")
 
   #---------------------------------------------#
   # check on parameters: warning and initialize #
   #---------------------------------------------#
 
-  if(is.null(napprox)) napprox = 100
+  if(is.null(m0) || is.null(B0) || is.null(sigma) || (is.null(t1) & isTRUE(!fix)) ||
+     (is.null(t2) & isTRUE(!fix)) || is.null(nu0) ||
+     is.null(b1) || is.null(s1) || is.null(B1) || is.null(M1) || is.null(S1) || is.null(m1)){
+    warning("One or more parameter missed, initialized to default.")
+  }
+
   if(is.null(nupd)) nupd = round(nsim * .1)
   if(is.null(conf_start)) conf_start = rep(0, nrow(data))
   if(is.null(mu_start)) mu_start = colMeans(data)
   if(is.null(Lambda_start)) Lambda_start = var(data)
-  if(is.null(theta_start) && isTRUE(!fix)) theta_start = 1
-  if(is.null(theta_start) && isTRUE(fix)) theta_start = theta_fix
+  if(is.null(theta) && isTRUE(!fix)) theta = 1
+  if(is.null(theta) && isTRUE(fix)) theta = theta
   if(is.null(m0)) m0 = colMeans(data)
   if(is.null(B0)) B0 = var(data)
   if(is.null(sigma)) sigma = var(data)
@@ -99,11 +86,6 @@ DPmixMulti <- function(data = NULL,
   if(is.null(M1)) M1 = diag(1,d)
   if(is.null(S1)) S1 = diag(1,d)
   if(is.null(m1)) m1 = rep(0,d)
-
-  if(is.null(m0) || is.null(B0) || is.null(sigma) || is.null(t1) || is.null(t2) || is.null(nu0) ||
-     is.null(b1) || is.null(s1) || is.null(B1) || is.null(M1) || is.null(S1) || is.null(m1)){
-    warning("One or more parameter missed, initialized to default.")
-  }
 
   #----------------------#
   # Estimating the model #
@@ -118,7 +100,7 @@ DPmixMulti <- function(data = NULL,
                                  conf_start = conf_start,
                                  mu_start = mu_start,
                                  Lambda_start = Lambda_start,
-                                 theta = theta_start,
+                                 theta = theta,
                                  m0 = m0,
                                  B0 = B0,
                                  nu0 = nu0,
