@@ -236,7 +236,7 @@ void update_parameters(arma::mat data,
   Void function.
 */
 
-double update_hyperparameters(int n,
+void update_hyperparameters(int n,
                               double& theta,
                               arma::cube Lambda,
                               arma::mat mu,
