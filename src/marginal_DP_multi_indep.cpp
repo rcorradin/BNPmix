@@ -483,12 +483,12 @@ Rcpp::List marginal_DP_multi_indep(int nsim,
       result_theta(sim - nburn) = theta;
 
       // update distributrion
-      distribution += arma::trans(update_distribution(grid = grid,
+      distribution += update_distribution(grid = grid,
                                                       grid_l = grid_l,
                                                       mu = mu,
                                                       Lambda = Lambda,
                                                       clust = clust,
-                                                      theta = theta));
+                                                      theta = theta);
     }
     if((sim + 1) % nupd == 0){
       current_s = clock();
