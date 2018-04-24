@@ -499,7 +499,7 @@ Rcpp::List marginal_DP_multi_indep(int nsim,
   }
   Rcpp::Rcout << "Heya! Your estimation is done Captain, ARGH!\n";
 
-  distribution = distribution / (nsim - nburn)
+  distribution = distribution / (nsim - nburn);
 
   Rcpp::List resu;
   resu["dist"]  = distribution;
