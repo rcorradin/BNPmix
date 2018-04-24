@@ -398,7 +398,7 @@ Rcpp::List marginal_DP_multi_indep(int nsim,
 
   // initialize results
   arma::mat result_clust(nsim - nburn, n);
-  arma::mat distribution(nsim - nburn, grid_l);
+  arma::vec distribution(grid_l);
   arma::vec result_theta(nsim - nburn);
   distribution.fill(0);
 
@@ -483,12 +483,12 @@ Rcpp::List marginal_DP_multi_indep(int nsim,
       result_theta(sim - nburn) = theta;
 
       // update distributrion
-      distribution.row(sim - nburn) = arma::trans(update_distribution(grid = grid,
-                                                                       grid_l = grid_l,
-                                                                       mu = mu,
-                                                                       Lambda = Lambda,
-                                                                       clust = clust,
-                                                                       theta = theta));
+      distribution += arma::trans(update_distribution(grid = grid,
+                                                      grid_l = grid_l,
+                                                      mu = mu,
+                                                      Lambda = Lambda,
+                                                      clust = clust,
+                                                      theta = theta));
     }
     if((sim + 1) % nupd == 0){
       current_s = clock();
@@ -498,6 +498,8 @@ Rcpp::List marginal_DP_multi_indep(int nsim,
     Rcpp::checkUserInterrupt();
   }
   Rcpp::Rcout << "Heya! Your estimation is done Captain, ARGH!\n";
+
+  distribution = distribution / (nsim - nburn)
 
   Rcpp::List resu;
   resu["dist"]  = distribution;
