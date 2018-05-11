@@ -9,7 +9,8 @@ DPmixMulti(nsim = NULL, nburn = NULL, napprox = 100, data = NULL,
   grid = NULL, conf_start = NULL, mu_start = NULL, Lambda_start = NULL,
   theta = NULL, m0 = NULL, B0 = NULL, nu0 = NULL, sigma = NULL,
   b1 = NULL, B1 = NULL, m1 = NULL, M1 = NULL, s1 = NULL, S1 = NULL,
-  t1 = NULL, t2 = NULL, nupd = NULL, fix = FALSE, seed = 42)
+  t1 = NULL, t2 = NULL, k1 = NULL, nupd = NULL, fix = FALSE,
+  dep = FALSE, seed = 42)
 }
 \arguments{
 \item{data}{A multivariate dataset.}

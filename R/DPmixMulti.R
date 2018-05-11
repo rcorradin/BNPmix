@@ -33,8 +33,10 @@ DPmixMulti <- function(nsim = NULL,
                        S1 = NULL,
                        t1 = NULL,
                        t2 = NULL,
+                       k1 = NULL,
                        nupd = NULL,
                        fix = FALSE,
+                       dep = FALSE,
                        seed = 42) {
 
   if(is.null(data)) stop("Give me a data set!")
@@ -64,7 +66,8 @@ DPmixMulti <- function(nsim = NULL,
 
   if(is.null(m0) || is.null(B0) || is.null(sigma) || (is.null(t1) & isTRUE(!fix)) ||
      (is.null(t2) & isTRUE(!fix)) || is.null(nu0) ||
-     is.null(b1) || is.null(s1) || is.null(B1) || is.null(M1) || is.null(S1) || is.null(m1)){
+     is.null(b1) || (is.null(s1) & is.TRUE(!dep)) || is.null(B1) || is.null(M1) ||
+     (is.null(S1) & is.TRUE(!dep)) || is.null(m1) || (is.null(k1) & is.TRUE(dep))){
     warning("One or more parameter missed, initialized to default.")
   }
 
@@ -86,34 +89,61 @@ DPmixMulti <- function(nsim = NULL,
   if(is.null(M1)) M1 = diag(1,d)
   if(is.null(S1)) S1 = diag(1,d)
   if(is.null(m1)) m1 = rep(0,d)
+  if(is.null(k1)) k1 = 1
 
   #----------------------#
   # Estimating the model #
   #----------------------#
 
-  mod <- marginal_DP_multi_indep(nsim = nsim,
-                                 nburn = nburn,
-                                 napprox = napprox,
-                                 d = d,
-                                 data = data,
-                                 grid = grid,
-                                 conf_start = conf_start,
-                                 mu_start = mu_start,
-                                 Lambda_start = Lambda_start,
-                                 theta = theta,
-                                 m0 = m0,
-                                 B0 = B0,
-                                 nu0 = nu0,
-                                 sigma = sigma,
-                                 b1 = b1,
-                                 B1 = B1,
-                                 m1 = m1,
-                                 M1 = M1,
-                                 s1 = s1,
-                                 S1 = S1,
-                                 t1 = t1,
-                                 t2 = t2,
-                                 nupd = nupd,
-                                 FIX = fix)
+  if(dep == FALSE){
+    mod <- marginal_DP_multi_indep_indep(nsim = nsim,
+                                         nburn = nburn,
+                                         napprox = napprox,
+                                         d = d,
+                                         data = data,
+                                         grid = grid,
+                                         conf_start = conf_start,
+                                         mu_start = mu_start,
+                                         Lambda_start = Lambda_start,
+                                         theta = theta,
+                                         m0 = m0,
+                                         B0 = B0,
+                                         nu0 = nu0,
+                                         sigma = sigma,
+                                         b1 = b1,
+                                         B1 = B1,
+                                         m1 = m1,
+                                         M1 = M1,
+                                         s1 = s1,
+                                         S1 = S1,
+                                         t1 = t1,
+                                         t2 = t2,
+                                         nupd = nupd,
+                                         FIX = fix)
+
+  }else{
+    mod <- marginal_DP_multi_indep_dep(nsim = nsim,
+                                      nburn = nburn,
+                                      napprox = napprox,
+                                      d = d,
+                                      data = data,
+                                      grid = grid,
+                                      conf_start = conf_start,
+                                      mu_start = mu_start,
+                                      Lambda_start = Lambda_start,
+                                      theta = theta,
+                                      m0 = m0,
+                                      B0 = B0,
+                                      nu0 = nu0,
+                                      sigma = sigma,
+                                      b1 = b1,
+                                      B1 = B1,
+                                      m1 = m1,
+                                      k1 = k1,
+                                      t1 = t1,
+                                      t2 = t2,
+                                      nupd = nupd,
+                                      FIX = fix)
+  }
   return(mod)
 }
