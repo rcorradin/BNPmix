@@ -66,8 +66,8 @@ DPmixMulti <- function(nsim = NULL,
 
   if(is.null(m0) || is.null(B0) || is.null(sigma) || (is.null(t1) & isTRUE(!fix)) ||
      (is.null(t2) & isTRUE(!fix)) || is.null(nu0) ||
-     is.null(b1) || (is.null(s1) & is.TRUE(!dep)) || is.null(B1) || is.null(M1) ||
-     (is.null(S1) & is.TRUE(!dep)) || is.null(m1) || (is.null(k1) & is.TRUE(dep))){
+     is.null(b1) || (is.null(s1) & isTRUE(!dep)) || is.null(B1) || is.null(M1) ||
+     (is.null(S1) & isTRUE(!dep)) || is.null(m1) || (is.null(k1) & isTRUE(dep))){
     warning("One or more parameter missed, initialized to default.")
   }
 
