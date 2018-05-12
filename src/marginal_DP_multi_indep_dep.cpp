@@ -74,7 +74,7 @@ void update_hyperparameters_dep(int n,
   // by the posterior distirbution (Gaussian)
   double kn     = k1 + k;
   arma::vec m1n = (k1 * m1 +  arma::trans(sum(mu, 0))) / kn;
-  m0            = arma::trans(rmvnormMat(1, m1n, kn * B0));
+  m0            = arma::trans(rmvnormMat(1, m1n, B0 / kn));
 
   // FIX = true  - no hyperprior on the mass of DP
   // FIX = false - Gamma hyperprior on the mass of DP
