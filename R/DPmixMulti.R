@@ -10,6 +10,9 @@
 #' @inheritParams napprox Number of simulated values to approximate the predictive distribution when updating the latent components
 #'
 #' @return A list of
+#' @inheritSection estimated density
+#' @inheritSection partition matrix
+#' @inheritSection mass values
 #'
 
 DPmixMulti <- function(nsim = NULL,
