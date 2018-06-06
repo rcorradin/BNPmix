@@ -10,8 +10,4 @@ License: LGPL-3 | file license
 Imports: Rcpp (>= 0.12.13), RcppArmadillo
 Depends: R (>= 3.4.0)
 LinkingTo: Rcpp, RcppArmadillo
-Encoding: UTF-8
-SystemRequirements: GNU Make, C++11
-NeedsCompilation: yes
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 6.0.1
+
