@@ -1,13 +1,13 @@
 Package: BNPmix
 Type: Package
-Title: Bayesian nonparametric mixture modelling
-Version: 0.1
-Date: 2018-01-23
-Author: Riccardo Corradin [aut, cre]
+Title: Algorithms for Dirichlet process mixtures
+Version: 0.1.0
+Date: 2018-06-06
+Author: Riccardo Corradin
 Maintainer: Riccardo Corradin <riccardo.corradin@gmail.com>
-Description: ***
+Description: A package containing different algorithms based on a conditional approach to estimate Dirichlet process mixtures model
 License: LGPL-3 | file license
-Imports: Rcpp (>= 0.12.13), RcppArmadillo
-Depends: R (>= 3.4.0)
+Depends: R (>= 3.3.0), ggplot2
+Imports: Rcpp (>= 0.12.13), ggplot2
 LinkingTo: Rcpp, RcppArmadillo
-
+RoxygenNote: 6.0.1
