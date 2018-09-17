@@ -42,6 +42,10 @@ condMCMCmv(data, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL,
 \value{
 A modCond class object contain the estimated density for each iterations, the allocations for each iterations. If out_param is TRUE, also the parameters.
 }
+\description{
+Estimate a multivariate Dirichlet process mixture model with Gaussian kernel using the 
+conditional Polya urn scheme or Slice sampler
+}
 \examples{
 data_toy <- cbind(c(rnorm(100, -3, 1), rnorm(100, 3, 1)),
                   c(rnorm(100, -3, 1), rnorm(100, 3, 1)))

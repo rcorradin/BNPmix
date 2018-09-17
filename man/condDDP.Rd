@@ -46,6 +46,10 @@ condDDP(data, group, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL,
 \value{
 A modCond class object contain the estimated density for each iterations, the allocations for each iterations. If out_param is TRUE, also the parameters.
 }
+\description{
+Estimate an univariate Dependent Dirichlet process mixture model with Gaussian kernel using the 
+conditional Polya urn scheme
+}
 \examples{
 set.seed(42)
 data_toy <- c(rnorm(50, -4, 1), rnorm(100, 0, 1), rnorm(50, 4, 1))
