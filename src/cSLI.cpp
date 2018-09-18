@@ -23,8 +23,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 // [[Rcpp::depends("RcppArmadillo")]]
 
 /*
- *   cSLI - Univariate Conditional Slice sampler 
- *   
+ *   cSLI - Univariate Conditional Slice sampler
+ *
  *   args:
  *   - data:      a vector of observations
  *   - grid:      vector to evaluate the density
@@ -40,7 +40,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  *                (default FALSE)
  *   - out_dens:  if TRUE, return also the estimated density (default TRUE)
  *   - sigma_PY:   second parameter PY
- *    
+ *
  *   output, list:
  *   - dens:  matrix, each row a density evaluated on the grid
  *   - clust: matrix, each row an allocation
@@ -64,13 +64,13 @@ Rcpp::List cSLI(arma::vec data,
                 int process = 0,
                 double sigma_PY = 0,
                 bool print_message = 1){
-  
+
   if(nupd == 0){
     nupd = int(niter / 10);
   }
-  
+
   int n = data.n_elem;
-  
+
   arma::mat result_clust(niter - nburn, n);
   std::list<arma::vec> result_mu;
   std::list<arma::vec> result_s2;
@@ -78,33 +78,33 @@ Rcpp::List cSLI(arma::vec data,
   arma::mat result_dens(niter - nburn, grid.n_elem);
   arma::vec new_val(niter);
   arma::vec n_clust(niter - nburn);
-  
+
   arma::vec clust(n);
   clust.fill(0);
-  
+
   arma::vec mu(1);
   arma::vec s2(1);
   arma::vec v(1);
   arma::vec w(1);
   arma::vec u(n, arma::fill::randu);
-  
+
   new_val.fill(0);
   n_clust.fill(0);
   mu.fill(m0);
   s2.fill(b0 / (a0 - 1));
-  
+
   int start_s = clock();
   int current_s;
   // strarting loop
   if(process== 0){
     for(int iter = 0; iter < niter; iter++){
-      
-      para_clean_SLI(mu, 
-                     s2, 
+
+      para_clean_SLI(mu,
+                     s2,
                      clust,
                      v,
                      w);
-      
+
       accelerate_SLI(data,
                      mu,
                      s2,
@@ -116,13 +116,13 @@ Rcpp::List cSLI(arma::vec data,
                      a0,
                      b0,
                      mass);
-      
+
       int old_length = mu.n_elem;
-      
+
       update_u_SLI(clust,
                    w,
                    u);
-      
+
       grow_param_SLI(mu,
                      s2,
                      v,
@@ -134,7 +134,7 @@ Rcpp::List cSLI(arma::vec data,
                      b0,
                      mass,
                      n);
-      
+
       update_cluster_SLI(data,
                          mu,
                          s2,
@@ -144,10 +144,10 @@ Rcpp::List cSLI(arma::vec data,
                          old_length,
                          iter,
                          new_val);
-      
-      
+
+
       if(iter >= nburn){
-        
+
         result_clust.row(iter - nburn) = arma::trans(clust);
         result_mu.push_back(mu);
         result_s2.push_back(s2);
@@ -160,7 +160,7 @@ Rcpp::List cSLI(arma::vec data,
                                                       w));
         }
       }
-      
+
       if(print_message){
         // print the current completed work
         if((iter + 1) % nupd == 0){
@@ -173,13 +173,13 @@ Rcpp::List cSLI(arma::vec data,
     }
   } else if(process == 1){
     for(int iter = 0; iter < niter; iter++){
-      
-      para_clean_SLI(mu, 
-                     s2, 
+
+      para_clean_SLI(mu,
+                     s2,
                      clust,
                      v,
                      w);
-      
+
       accelerate_SLI_PY(data,
                         mu,
                         s2,
@@ -192,13 +192,13 @@ Rcpp::List cSLI(arma::vec data,
                         b0,
                         mass,
                         sigma_PY);
-      
+
       int old_length = mu.n_elem;
-      
+
       update_u_SLI(clust,
                    w,
                    u);
-      
+
       grow_param_SLI_PY(mu,
                         s2,
                         v,
@@ -211,7 +211,7 @@ Rcpp::List cSLI(arma::vec data,
                         mass,
                         n,
                         sigma_PY);
-      
+
       update_cluster_SLI(data,
                          mu,
                          s2,
@@ -221,10 +221,10 @@ Rcpp::List cSLI(arma::vec data,
                          old_length,
                          iter,
                          new_val);
-      
-      
+
+
       if(iter >= nburn){
-        
+
         result_clust.row(iter - nburn) = arma::trans(clust);
         result_mu.push_back(mu);
         result_s2.push_back(s2);
@@ -237,7 +237,7 @@ Rcpp::List cSLI(arma::vec data,
                                                       w));
         }
       }
-      
+
       if(print_message){
         // print the current completed work
         if((iter + 1) % nupd == 0){
@@ -253,7 +253,7 @@ Rcpp::List cSLI(arma::vec data,
   if(print_message){
     Rcpp::Rcout << "\n" << "WoooW! Have you seen how fast am I?\n";
   }
-  
+
   Rcpp::List resu;
   if(out_param){
     resu["dens"]   = result_dens;
@@ -276,8 +276,8 @@ Rcpp::List cSLI(arma::vec data,
 
 
 /*
-*   cSLI_mv - MULTIVARIATE Conditional Slice sampler 
-*   
+*   cSLI_mv - MULTIVARIATE Conditional Slice sampler
+*
 *   args:
 *   - data:      a vector of observations
 *   - grid:      vector to evaluate the density
@@ -293,8 +293,8 @@ Rcpp::List cSLI(arma::vec data,
 *                (default FALSE)
 *   - out_dens:  if TRUE, return also the estimated density (default TRUE)
 *   - process:   if 0 DP, if 1 PY
-*   - sigma_PY:  second parameter of PY   
-*    
+*   - sigma_PY:  second parameter of PY
+*
 *   output, list:
 *   - dens:  matrix, each row a density evaluated on the grid
 *   - clust: matrix, each row an allocation
@@ -317,24 +317,29 @@ Rcpp::List cSLI_mv(arma::mat data,
                    bool out_dens = 1,
                    int process = 0,
                    double sigma_PY = 0,
-                   bool print_message = 1){
-  
+                   bool print_message = 1,
+                   bool light_dens = 1){
+
   if(nupd == 0){
     nupd = int(niter / 10);
   }
-  
+
   int n = data.n_rows;
   int d = data.n_cols;
-  
-  // initialize results objects 
+
+  // initialize results objects
   arma::mat result_clust(niter - nburn, n);
   std::list<arma::mat> result_mu;
   std::list<arma::cube> result_s2;
   std::list<arma::vec> result_probs;
-  arma::mat result_dens(niter - nburn, grid.n_rows);
-  
+  arma::mat result_dens(grid.n_rows, 1);
+  if(!light_dens){
+    result_dens.resize(niter - nburn, grid.n_rows);
+  }
+
+
   // initialize required object inside the loop
-  arma::vec clust(n);  
+  arma::vec clust(n);
   arma::mat mu(1,d);
   arma::cube s2(d,d,1);
   arma::vec v(1);
@@ -343,7 +348,7 @@ Rcpp::List cSLI_mv(arma::mat data,
   arma::vec dens(grid.n_rows);
   arma::vec new_val(niter);
   arma::vec n_clust(niter - nburn);
-  
+
   // fill the initialized quantity
   clust.fill(0);
   mu.row(0) = arma::trans(m0);
@@ -356,13 +361,13 @@ Rcpp::List cSLI_mv(arma::mat data,
   // strarting loop
   if(process == 0){
     for(int iter = 0; iter < niter; iter++){
-      
-      para_clean_SLI_mv(mu, 
-                        s2, 
+
+      para_clean_SLI_mv(mu,
+                        s2,
                         clust,
                         v,
                         w);
-      
+
       accelerate_SLI_mv(data,
                         mu,
                         s2,
@@ -374,13 +379,13 @@ Rcpp::List cSLI_mv(arma::mat data,
                         S0,
                         n0,
                         mass);
-      
+
       int old_length = mu.n_elem;
-      
+
       update_u_SLI(clust,
                    w,
                    u);
-      
+
       grow_param_SLI_mv(mu,
                         s2,
                         v,
@@ -392,7 +397,7 @@ Rcpp::List cSLI_mv(arma::mat data,
                         n0,
                         mass,
                         n);
-      
+
       update_cluster_SLI_mv(data,
                             mu,
                             s2,
@@ -402,10 +407,10 @@ Rcpp::List cSLI_mv(arma::mat data,
                             old_length,
                             iter,
                             new_val);
-      
-      
+
+
       if(iter >= nburn){
-        
+
         result_clust.row(iter - nburn) = arma::trans(clust);
         result_mu.push_back(mu);
         result_s2.push_back(s2);
@@ -416,10 +421,14 @@ Rcpp::List cSLI_mv(arma::mat data,
                                  mu,
                                  s2,
                                  w);
-          result_dens.row(iter - nburn) = arma::trans(dens);
+          if(light_dens){
+            result_dens += dens;
+          } else {
+            result_dens.row(iter - nburn) = arma::trans(dens);
+          }
         }
       }
-      
+
       if(print_message){
         // print the current completed work
         if((iter + 1) % nupd == 0){
@@ -432,13 +441,13 @@ Rcpp::List cSLI_mv(arma::mat data,
     }
   } else if(process == 1){
     for(int iter = 0; iter < niter; iter++){
-      
-      para_clean_SLI_mv(mu, 
-                        s2, 
+
+      para_clean_SLI_mv(mu,
+                        s2,
                         clust,
                         v,
                         w);
-      
+
       accelerate_SLI_PY_mv(data,
                            mu,
                            s2,
@@ -451,13 +460,13 @@ Rcpp::List cSLI_mv(arma::mat data,
                            n0,
                            mass,
                            sigma_PY);
-      
+
       int old_length = mu.n_elem;
-      
+
       update_u_SLI(clust,
                    w,
                    u);
-      
+
       grow_param_SLI_PY_mv(mu,
                            s2,
                            v,
@@ -470,7 +479,7 @@ Rcpp::List cSLI_mv(arma::mat data,
                            mass,
                            n,
                            sigma_PY);
-      
+
       update_cluster_SLI_mv(data,
                             mu,
                             s2,
@@ -480,10 +489,10 @@ Rcpp::List cSLI_mv(arma::mat data,
                             old_length,
                             iter,
                             new_val);
-      
-      
+
+
       if(iter >= nburn){
-        
+
         result_clust.row(iter - nburn) = arma::trans(clust);
         result_mu.push_back(mu);
         result_s2.push_back(s2);
@@ -494,10 +503,14 @@ Rcpp::List cSLI_mv(arma::mat data,
                                  mu,
                                  s2,
                                  w);
-          result_dens.row(iter - nburn) = arma::trans(dens);
+          if(light_dens){
+            result_dens += dens;
+          } else {
+            result_dens.row(iter - nburn) = arma::trans(dens);
+          }
         }
       }
-      
+
       if(print_message){
         // print the current completed work
         if((iter + 1) % nupd == 0){
@@ -513,7 +526,7 @@ Rcpp::List cSLI_mv(arma::mat data,
   if(print_message){
     Rcpp::Rcout << "\n" << "WoooW! Have you seen how fast am I?\n";
   }
-  
+
   Rcpp::List resu;
   if(out_param){
     resu["dens"]   = result_dens;

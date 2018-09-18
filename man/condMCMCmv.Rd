@@ -2,13 +2,13 @@
 % Please edit documentation in R/condMCMCmv.R
 \name{condMCMCmv}
 \alias{condMCMCmv}
-\title{Estimate a multivariate Dirichlet process mixture model with Gaussian kernel using the 
+\title{Estimate a multivariate Dirichlet process mixture model with Gaussian kernel using the
 conditional Polya urn scheme or Slice sampler}
 \usage{
 condMCMCmv(data, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL,
   S0 = NULL, n0 = NULL, mass = 1, method = "CPU", napprox = 100,
   nupd = 1000, out_param = F, out_dens = TRUE, process = "DP",
-  sigma_PY = 0, print_message = FALSE)
+  sigma_PY = 0, print_message = TRUE, light_dens = TRUE)
 }
 \arguments{
 \item{data}{A dataset (matrix).}
@@ -43,7 +43,7 @@ condMCMCmv(data, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL,
 A modCond class object contain the estimated density for each iterations, the allocations for each iterations. If out_param is TRUE, also the parameters.
 }
 \description{
-Estimate a multivariate Dirichlet process mixture model with Gaussian kernel using the 
+Estimate a multivariate Dirichlet process mixture model with Gaussian kernel using the
 conditional Polya urn scheme or Slice sampler
 }
 \examples{
@@ -51,7 +51,7 @@ data_toy <- cbind(c(rnorm(100, -3, 1), rnorm(100, 3, 1)),
                   c(rnorm(100, -3, 1), rnorm(100, 3, 1)))
 grid <- expand.grid(seq(-7, 7, length.out = 50),
                     seq(-7, 7, length.out = 50))
-est_model <- condMCMCmv(data = data_toy, grid = grid, niter = 5000, 
+est_model <- condMCMCmv(data = data_toy, grid = grid, niter = 5000,
                        nburn = 1000, napprox = 100)
 plot(est_model)
 

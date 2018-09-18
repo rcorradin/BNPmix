@@ -32,8 +32,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // MPU_mv
-Rcpp::List MPU_mv(arma::mat data, arma::mat grid, int niter, int nburn, arma::vec m0, double k0, arma::mat S0, double n0, double mass, int nupd, bool out_param, bool out_dens, int process, double sigma_PY, bool print_message);
-RcppExport SEXP _BNPmix_MPU_mv(SEXP dataSEXP, SEXP gridSEXP, SEXP niterSEXP, SEXP nburnSEXP, SEXP m0SEXP, SEXP k0SEXP, SEXP S0SEXP, SEXP n0SEXP, SEXP massSEXP, SEXP nupdSEXP, SEXP out_paramSEXP, SEXP out_densSEXP, SEXP processSEXP, SEXP sigma_PYSEXP, SEXP print_messageSEXP) {
+Rcpp::List MPU_mv(arma::mat data, arma::mat grid, int niter, int nburn, arma::vec m0, double k0, arma::mat S0, double n0, double mass, int nupd, bool out_param, bool out_dens, int process, double sigma_PY, bool print_message, bool light_dens);
+RcppExport SEXP _BNPmix_MPU_mv(SEXP dataSEXP, SEXP gridSEXP, SEXP niterSEXP, SEXP nburnSEXP, SEXP m0SEXP, SEXP k0SEXP, SEXP S0SEXP, SEXP n0SEXP, SEXP massSEXP, SEXP nupdSEXP, SEXP out_paramSEXP, SEXP out_densSEXP, SEXP processSEXP, SEXP sigma_PYSEXP, SEXP print_messageSEXP, SEXP light_densSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -52,7 +52,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type process(processSEXP);
     Rcpp::traits::input_parameter< double >::type sigma_PY(sigma_PYSEXP);
     Rcpp::traits::input_parameter< bool >::type print_message(print_messageSEXP);
-    rcpp_result_gen = Rcpp::wrap(MPU_mv(data, grid, niter, nburn, m0, k0, S0, n0, mass, nupd, out_param, out_dens, process, sigma_PY, print_message));
+    Rcpp::traits::input_parameter< bool >::type light_dens(light_densSEXP);
+    rcpp_result_gen = Rcpp::wrap(MPU_mv(data, grid, niter, nburn, m0, k0, S0, n0, mass, nupd, out_param, out_dens, process, sigma_PY, print_message, light_dens));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -110,8 +111,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // cPUS_mv
-Rcpp::List cPUS_mv(arma::mat data, arma::mat grid, int niter, int nburn, arma::vec m0, double k0, arma::mat S0, double n0, double mass, int napprox, int nupd, bool out_param, bool out_dens, int process, double sigma_PY, bool print_message);
-RcppExport SEXP _BNPmix_cPUS_mv(SEXP dataSEXP, SEXP gridSEXP, SEXP niterSEXP, SEXP nburnSEXP, SEXP m0SEXP, SEXP k0SEXP, SEXP S0SEXP, SEXP n0SEXP, SEXP massSEXP, SEXP napproxSEXP, SEXP nupdSEXP, SEXP out_paramSEXP, SEXP out_densSEXP, SEXP processSEXP, SEXP sigma_PYSEXP, SEXP print_messageSEXP) {
+Rcpp::List cPUS_mv(arma::mat data, arma::mat grid, int niter, int nburn, arma::vec m0, double k0, arma::mat S0, double n0, double mass, int napprox, int nupd, bool out_param, bool out_dens, int process, double sigma_PY, bool print_message, bool light_dens);
+RcppExport SEXP _BNPmix_cPUS_mv(SEXP dataSEXP, SEXP gridSEXP, SEXP niterSEXP, SEXP nburnSEXP, SEXP m0SEXP, SEXP k0SEXP, SEXP S0SEXP, SEXP n0SEXP, SEXP massSEXP, SEXP napproxSEXP, SEXP nupdSEXP, SEXP out_paramSEXP, SEXP out_densSEXP, SEXP processSEXP, SEXP sigma_PYSEXP, SEXP print_messageSEXP, SEXP light_densSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -131,7 +132,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type process(processSEXP);
     Rcpp::traits::input_parameter< double >::type sigma_PY(sigma_PYSEXP);
     Rcpp::traits::input_parameter< bool >::type print_message(print_messageSEXP);
-    rcpp_result_gen = Rcpp::wrap(cPUS_mv(data, grid, niter, nburn, m0, k0, S0, n0, mass, napprox, nupd, out_param, out_dens, process, sigma_PY, print_message));
+    Rcpp::traits::input_parameter< bool >::type light_dens(light_densSEXP);
+    rcpp_result_gen = Rcpp::wrap(cPUS_mv(data, grid, niter, nburn, m0, k0, S0, n0, mass, napprox, nupd, out_param, out_dens, process, sigma_PY, print_message, light_dens));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -161,8 +163,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // cSLI_mv
-Rcpp::List cSLI_mv(arma::mat data, arma::mat grid, int niter, int nburn, arma::vec m0, double k0, arma::mat S0, double n0, double mass, int nupd, bool out_param, bool out_dens, int process, double sigma_PY, bool print_message);
-RcppExport SEXP _BNPmix_cSLI_mv(SEXP dataSEXP, SEXP gridSEXP, SEXP niterSEXP, SEXP nburnSEXP, SEXP m0SEXP, SEXP k0SEXP, SEXP S0SEXP, SEXP n0SEXP, SEXP massSEXP, SEXP nupdSEXP, SEXP out_paramSEXP, SEXP out_densSEXP, SEXP processSEXP, SEXP sigma_PYSEXP, SEXP print_messageSEXP) {
+Rcpp::List cSLI_mv(arma::mat data, arma::mat grid, int niter, int nburn, arma::vec m0, double k0, arma::mat S0, double n0, double mass, int nupd, bool out_param, bool out_dens, int process, double sigma_PY, bool print_message, bool light_dens);
+RcppExport SEXP _BNPmix_cSLI_mv(SEXP dataSEXP, SEXP gridSEXP, SEXP niterSEXP, SEXP nburnSEXP, SEXP m0SEXP, SEXP k0SEXP, SEXP S0SEXP, SEXP n0SEXP, SEXP massSEXP, SEXP nupdSEXP, SEXP out_paramSEXP, SEXP out_densSEXP, SEXP processSEXP, SEXP sigma_PYSEXP, SEXP print_messageSEXP, SEXP light_densSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -181,7 +183,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type process(processSEXP);
     Rcpp::traits::input_parameter< double >::type sigma_PY(sigma_PYSEXP);
     Rcpp::traits::input_parameter< bool >::type print_message(print_messageSEXP);
-    rcpp_result_gen = Rcpp::wrap(cSLI_mv(data, grid, niter, nburn, m0, k0, S0, n0, mass, nupd, out_param, out_dens, process, sigma_PY, print_message));
+    Rcpp::traits::input_parameter< bool >::type light_dens(light_densSEXP);
+    rcpp_result_gen = Rcpp::wrap(cSLI_mv(data, grid, niter, nburn, m0, k0, S0, n0, mass, nupd, out_param, out_dens, process, sigma_PY, print_message, light_dens));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -227,12 +230,12 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_BNPmix_MPU", (DL_FUNC) &_BNPmix_MPU, 15},
-    {"_BNPmix_MPU_mv", (DL_FUNC) &_BNPmix_MPU_mv, 15},
+    {"_BNPmix_MPU_mv", (DL_FUNC) &_BNPmix_MPU_mv, 16},
     {"_BNPmix_cDDP", (DL_FUNC) &_BNPmix_cDDP, 17},
     {"_BNPmix_cPUS", (DL_FUNC) &_BNPmix_cPUS, 16},
-    {"_BNPmix_cPUS_mv", (DL_FUNC) &_BNPmix_cPUS_mv, 16},
+    {"_BNPmix_cPUS_mv", (DL_FUNC) &_BNPmix_cPUS_mv, 17},
     {"_BNPmix_cSLI", (DL_FUNC) &_BNPmix_cSLI, 15},
-    {"_BNPmix_cSLI_mv", (DL_FUNC) &_BNPmix_cSLI_mv, 15},
+    {"_BNPmix_cSLI_mv", (DL_FUNC) &_BNPmix_cSLI_mv, 16},
     {"_BNPmix_freq_vec", (DL_FUNC) &_BNPmix_freq_vec, 1},
     {"_BNPmix_eval_density", (DL_FUNC) &_BNPmix_eval_density, 4},
     {"_BNPmix_eval_density_mv", (DL_FUNC) &_BNPmix_eval_density_mv, 4},

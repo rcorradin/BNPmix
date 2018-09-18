@@ -5,8 +5,8 @@ MPU <- function(data, grid, niter, nburn, m0, k0, a0, b0, mass, nupd = 0L, out_p
     .Call('_BNPmix_MPU', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, a0, b0, mass, nupd, out_param, out_dens, process, sigma_PY, print_message)
 }
 
-MPU_mv <- function(data, grid, niter, nburn, m0, k0, S0, n0, mass, nupd = 0L, out_param = 0L, out_dens = 1L, process = 0L, sigma_PY = 0, print_message = 1L) {
-    .Call('_BNPmix_MPU_mv', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, S0, n0, mass, nupd, out_param, out_dens, process, sigma_PY, print_message)
+MPU_mv <- function(data, grid, niter, nburn, m0, k0, S0, n0, mass, nupd = 0L, out_param = 0L, out_dens = 1L, process = 0L, sigma_PY = 0, print_message = 1L, light_dens = 1L) {
+    .Call('_BNPmix_MPU_mv', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, S0, n0, mass, nupd, out_param, out_dens, process, sigma_PY, print_message, light_dens)
 }
 
 cDDP <- function(data, group, ngr, grid, niter, nburn, m0, k0, a0, b0, mass, wei, napprox, n_approx_unif, nupd = 0L, out_dens = 1L, print_message = 1L) {
@@ -17,16 +17,16 @@ cPUS <- function(data, grid, niter, nburn, m0, k0, a0, b0, mass, napprox, nupd =
     .Call('_BNPmix_cPUS', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, a0, b0, mass, napprox, nupd, out_param, out_dens, process, sigma_PY, print_message)
 }
 
-cPUS_mv <- function(data, grid, niter, nburn, m0, k0, S0, n0, mass, napprox, nupd = 0L, out_param = 0L, out_dens = 1L, process = 0L, sigma_PY = 0, print_message = 1L) {
-    .Call('_BNPmix_cPUS_mv', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, S0, n0, mass, napprox, nupd, out_param, out_dens, process, sigma_PY, print_message)
+cPUS_mv <- function(data, grid, niter, nburn, m0, k0, S0, n0, mass, napprox, nupd = 0L, out_param = 0L, out_dens = 1L, process = 0L, sigma_PY = 0, print_message = 1L, light_dens = 1L) {
+    .Call('_BNPmix_cPUS_mv', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, S0, n0, mass, napprox, nupd, out_param, out_dens, process, sigma_PY, print_message, light_dens)
 }
 
 cSLI <- function(data, grid, niter, nburn, m0, k0, a0, b0, mass, nupd = 0L, out_param = 0L, out_dens = 1L, process = 0L, sigma_PY = 0, print_message = 1L) {
     .Call('_BNPmix_cSLI', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, a0, b0, mass, nupd, out_param, out_dens, process, sigma_PY, print_message)
 }
 
-cSLI_mv <- function(data, grid, niter, nburn, m0, k0, S0, n0, mass, nupd = 0L, out_param = 0L, out_dens = 1L, process = 0L, sigma_PY = 0, print_message = 1L) {
-    .Call('_BNPmix_cSLI_mv', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, S0, n0, mass, nupd, out_param, out_dens, process, sigma_PY, print_message)
+cSLI_mv <- function(data, grid, niter, nburn, m0, k0, S0, n0, mass, nupd = 0L, out_param = 0L, out_dens = 1L, process = 0L, sigma_PY = 0, print_message = 1L, light_dens = 1L) {
+    .Call('_BNPmix_cSLI_mv', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, S0, n0, mass, nupd, out_param, out_dens, process, sigma_PY, print_message, light_dens)
 }
 
 freq_vec <- function(vector) {

@@ -23,8 +23,8 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 // [[Rcpp::depends("RcppArmadillo")]]
 
 /*
- *   cPUS - UNIVARIATE Conditional Polya Urn scheme 
- *   
+ *   cPUS - UNIVARIATE Conditional Polya Urn scheme
+ *
  *   args:
  *   - data:      a vector of observations
  *   - grid:      vector to evaluate the density
@@ -42,7 +42,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  *   - out_dens:  if TRUE, return also the estimated density (default TRUE)
  *   - process:   if 0 DP, if 1 PY
  *   - sigma_PY:  second parameter of PY
- *    
+ *
  *   output, list:
  *   - dens:  matrix, each row a density evaluated on the grid
  *   - clust: matrix, each row an allocation
@@ -68,19 +68,19 @@ Rcpp::List cPUS(arma::vec data,
                 int process = 0,
                 double sigma_PY = 0,
                 bool print_message = 1){
-  
+
   if(nupd == 0){
     nupd = (int) (niter / 10);
   }
   int n = data.n_elem;
-  
-  // initialize results objects 
+
+  // initialize results objects
   arma::mat result_clust(niter - nburn, n);
   std::list<arma::vec> result_mu;
   std::list<arma::vec> result_s2;
   std::list<arma::vec> result_probs;
   arma::mat result_dens(niter - nburn, grid.n_elem);
-  
+
   // initialize required object inside the loop
   arma::vec clust(n);
   arma::vec mu(1);
@@ -92,7 +92,7 @@ Rcpp::List cPUS(arma::vec data,
   arma::vec dens(grid);
   arma::vec new_val(niter);
   arma::vec n_clust(niter - nburn);
-  
+
   // fill the initialized quantity
   clust.fill(0);
   mu.fill(m0);
@@ -102,19 +102,19 @@ Rcpp::List cPUS(arma::vec data,
   freqtemp.fill(1);
   new_val.fill(0);
   n_clust.fill(0);
-  
-  
+
+
   int start_s = clock();
   int current_s;
   // strarting loop
   if(process == 0){
     for(int iter = 0; iter < niter; iter++){
-      
+
       // clean parameter objects
-      para_clean_PUS(mu, 
-                     s2, 
+      para_clean_PUS(mu,
+                     s2,
                      clust);
-      
+
       // acceleration step
       accelerate_PUS(data,
                      mu,
@@ -124,11 +124,11 @@ Rcpp::List cPUS(arma::vec data,
                      k0,
                      a0,
                      b0);
-      
-      // sample the probability vector 
+
+      // sample the probability vector
       // from Dirichlet distribution
       ptilde = rdirich_mass(freq_vec(clust), mass);
-      
+
       // simulate the required values
       simu_trunc_PUS(mutemp,
                      s2temp,
@@ -139,7 +139,7 @@ Rcpp::List cPUS(arma::vec data,
                      a0,
                      b0,
                      napprox);
-      
+
       // joint the existent parameters with
       // the simulated new ones
       arma::vec mujoin = arma::join_cols(mu, mutemp);
@@ -148,7 +148,7 @@ Rcpp::List cPUS(arma::vec data,
       arma::vec index = arma::linspace(0, nkpt - 1, nkpt);
       arma::vec probjoin = arma::join_cols(ptilde.elem(arma::find(index < nkpt - 1)),
                                            ptilde[nkpt - 1] * freqtemp / napprox);
-      
+
       // update cluster allocations
       clust_update_PUS(data,
                        mujoin,
@@ -160,7 +160,7 @@ Rcpp::List cPUS(arma::vec data,
                        new_val);
       mu = mujoin;
       s2 = s2join;
-      
+
       // if the burn-in phase is complete
       if(iter >= nburn){
         result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
@@ -173,10 +173,10 @@ Rcpp::List cPUS(arma::vec data,
                               mujoin,
                               s2join,
                               probjoin);
-          result_dens.row(iter - nburn) = arma::trans(dens); 
+          result_dens.row(iter - nburn) = arma::trans(dens);
         }
       }
-      
+
       if(print_message){
         // print the current completed work
         if((iter + 1) % nupd == 0){
@@ -189,12 +189,12 @@ Rcpp::List cPUS(arma::vec data,
     }
   } else if(process == 1){
     for(int iter = 0; iter < niter; iter++){
-      
+
       // clean parameter objects
-      para_clean_PUS(mu, 
-                     s2, 
+      para_clean_PUS(mu,
+                     s2,
                      clust);
-      
+
       // acceleration step
       accelerate_PUS(data,
                      mu,
@@ -204,12 +204,12 @@ Rcpp::List cPUS(arma::vec data,
                      k0,
                      a0,
                      b0);
-      
-      // sample the probability vector 
+
+      // sample the probability vector
       // from Dirichlet distribution
       arma::vec temp_freq = freq_vec(clust);
       ptilde = rdirich_mass(temp_freq - sigma_PY, mass + sigma_PY * temp_freq.n_elem);
-      
+
       // simulate the required values
       simu_trunc_PY(mutemp,
                      s2temp,
@@ -221,7 +221,7 @@ Rcpp::List cPUS(arma::vec data,
                      b0,
                      napprox,
                      sigma_PY);
-      
+
       // joint the existent parameters with
       // the simulated new ones
       arma::vec mujoin = arma::join_cols(mu, mutemp);
@@ -230,7 +230,7 @@ Rcpp::List cPUS(arma::vec data,
       arma::vec index = arma::linspace(0, nkpt - 1, nkpt);
       arma::vec probjoin = arma::join_cols(ptilde.elem(arma::find(index < nkpt - 1)),
                                            ptilde[nkpt - 1] * freqtemp / napprox);
-      
+
       // update cluster allocations
       clust_update_PUS(data,
                        mujoin,
@@ -242,7 +242,7 @@ Rcpp::List cPUS(arma::vec data,
                        new_val);
       mu = mujoin;
       s2 = s2join;
-      
+
       // if the burn-in phase is complete
       if(iter >= nburn){
         result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
@@ -255,10 +255,10 @@ Rcpp::List cPUS(arma::vec data,
                               mujoin,
                               s2join,
                               probjoin);
-          result_dens.row(iter - nburn) = arma::trans(dens); 
+          result_dens.row(iter - nburn) = arma::trans(dens);
         }
       }
-      
+
       if(print_message){
         // print the current completed work
         if((iter + 1) % nupd == 0){
@@ -296,14 +296,14 @@ Rcpp::List cPUS(arma::vec data,
 }
 
 /*
- *   cPUS_mv - MULTIVARIATE Conditional Polya Urn scheme 
- *   
+ *   cPUS_mv - MULTIVARIATE Conditional Polya Urn scheme
+ *
  *   args:
  *   - data:      a matrix of observations
  *   - grid:      matrix to evaluate the density
  *   - niter:     number of iterations
  *   - nburn:     number of burn-in iterations
- *   - m0:        vector of location's prior distribution 
+ *   - m0:        vector of location's prior distribution
  *   - k0:        double of NIG on scale of location distribution
  *   - S0:        matrix of Inverse Wishart distribution
  *   - n0:        degree of freedom of Inverse Wishart distribution
@@ -316,7 +316,7 @@ Rcpp::List cPUS(arma::vec data,
  *   - out_dens:  if TRUE, return also the estimated density (default TRUE)
  *   - process:   if 0 DP, if 1 PY
  *   - sigma_PY:  second parameter of PY
- *    
+ *
  *   output, list:
  *   - dens:  matrix, each row a density evaluated on the grid
  *   - clust: matrix, each row an allocation
@@ -341,22 +341,27 @@ Rcpp::List cPUS_mv(arma::mat data,
                    bool out_dens = 1,
                    int process = 0,
                    double sigma_PY = 0,
-                   bool print_message = 1){
-  
+                   bool print_message = 1,
+                   bool light_dens = 1){
+
   if(nupd == 0){
     nupd = (int) (niter / 10);
   }
   int n = data.n_rows;
   int d = data.n_cols;
-  
-  // initialize results objects 
+
+  // initialize results objects
   arma::mat result_clust(niter - nburn, n);
   std::list<arma::mat> result_mu(niter - nburn);
   std::list<arma::cube> result_s2(niter - nburn);
   std::list<arma::vec> result_probs(niter - nburn);
-  arma::mat result_dens(niter - nburn, grid.n_rows);
+  arma::mat result_dens(grid.n_rows,1);
+  if(!light_dens){
+    result_dens.resize(niter - nburn, grid.n_rows);
+  }
+
   arma::vec n_clust(niter - nburn);
-  
+
   // initialize required object inside the loop
   arma::vec clust(n);
   arma::mat mu(1,d);
@@ -367,7 +372,7 @@ Rcpp::List cPUS_mv(arma::mat data,
   arma::vec ptilde;
   arma::vec dens(grid.n_rows);
   arma::vec new_val(niter);
-  
+
   // fill the initialized quantity
   clust.fill(0);
   mu.row(0) = arma::trans(m0);
@@ -377,17 +382,17 @@ Rcpp::List cPUS_mv(arma::mat data,
   freqtemp.fill(1);
   new_val.fill(0);
   n_clust.fill(0);
-  
+
   int start_s = clock();
   int current_s;
   // strarting loop
   if(process == 0){
     for(int iter = 0; iter < niter; iter++){
       // clean parameter objects
-      para_clean_PUS_mv(mu, 
-                        s2, 
+      para_clean_PUS_mv(mu,
+                        s2,
                         clust);
-      
+
       // acceleration step
       accelerate_PUS_mv(data,
                         mu,
@@ -397,11 +402,11 @@ Rcpp::List cPUS_mv(arma::mat data,
                         k0,
                         S0,
                         n0);
-      
-      // sample the probability vector 
+
+      // sample the probability vector
       // from Dirichlet distribution
       ptilde = rdirich_mass(freq_vec(clust), mass);
-      
+
       // simulate the required values
       simu_trunc_PUS_mv(mutemp,
                         s2temp,
@@ -412,7 +417,7 @@ Rcpp::List cPUS_mv(arma::mat data,
                         S0,
                         n0,
                         napprox);
-      
+
       // joint the existent parameters with
       // the simulated new ones
       arma::mat mujoin = arma::join_cols(mu, mutemp);
@@ -421,7 +426,7 @@ Rcpp::List cPUS_mv(arma::mat data,
       arma::vec index = arma::linspace(0, nkpt - 1, nkpt);
       arma::vec probjoin = arma::join_cols(ptilde.elem(arma::find(index < nkpt - 1)),
                                            ptilde[nkpt - 1] * freqtemp / napprox);
-      
+
       // update cluster allocations
       clust_update_PUS_mv(data,
                           mujoin,
@@ -433,7 +438,7 @@ Rcpp::List cPUS_mv(arma::mat data,
                           new_val);
       mu = mujoin;
       s2 = s2join;
-      
+
       // if the burn-in phase is complete
       if(iter >= nburn){
         result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
@@ -446,10 +451,14 @@ Rcpp::List cPUS_mv(arma::mat data,
                                  mujoin,
                                  s2join,
                                  probjoin);
-          result_dens.row(iter - nburn) = arma::trans(dens);
+          if(light_dens){
+            result_dens += dens;
+          } else {
+            result_dens.row(iter - nburn) = arma::trans(dens);
+          }
         }
       }
-      
+
       if(print_message){
         // print the current completed work
         if((iter + 1) % nupd == 0){
@@ -463,10 +472,10 @@ Rcpp::List cPUS_mv(arma::mat data,
   } else if(process == 1){
     for(int iter = 0; iter < niter; iter++){
       // clean parameter objects
-      para_clean_PUS_mv(mu, 
-                        s2, 
+      para_clean_PUS_mv(mu,
+                        s2,
                         clust);
-      
+
       // acceleration step
       accelerate_PUS_mv(data,
                         mu,
@@ -476,12 +485,12 @@ Rcpp::List cPUS_mv(arma::mat data,
                         k0,
                         S0,
                         n0);
-      
-      // sample the probability vector 
+
+      // sample the probability vector
       // from Dirichlet distribution
       arma::vec temp_freq = freq_vec(clust);
       ptilde = rdirich_mass(temp_freq - sigma_PY, mass + sigma_PY * temp_freq.n_elem);
-      
+
       // simulate the required values
       simu_trunc_PY_mv(mutemp,
                         s2temp,
@@ -491,9 +500,9 @@ Rcpp::List cPUS_mv(arma::mat data,
                         k0,
                         S0,
                         n0,
-                        napprox, 
+                        napprox,
                         sigma_PY);
-      
+
       // joint the existent parameters with
       // the simulated new ones
       arma::mat mujoin = arma::join_cols(mu, mutemp);
@@ -502,7 +511,7 @@ Rcpp::List cPUS_mv(arma::mat data,
       arma::vec index = arma::linspace(0, nkpt - 1, nkpt);
       arma::vec probjoin = arma::join_cols(ptilde.elem(arma::find(index < nkpt - 1)),
                                            ptilde[nkpt - 1] * freqtemp / napprox);
-      
+
       // update cluster allocations
       clust_update_PUS_mv(data,
                           mujoin,
@@ -514,7 +523,7 @@ Rcpp::List cPUS_mv(arma::mat data,
                           new_val);
       mu = mujoin;
       s2 = s2join;
-      
+
       // if the burn-in phase is complete
       if(iter >= nburn){
         result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
@@ -527,10 +536,14 @@ Rcpp::List cPUS_mv(arma::mat data,
                                  mujoin,
                                  s2join,
                                  probjoin);
-          result_dens.row(iter - nburn) = arma::trans(dens);
+          if(light_dens){
+            result_dens += dens;
+          } else {
+            result_dens.row(iter - nburn) = arma::trans(dens);
+          }
         }
       }
-      
+
       if(print_message){
         // print the current completed work
         if((iter + 1) % nupd == 0){
@@ -546,7 +559,7 @@ Rcpp::List cPUS_mv(arma::mat data,
   if(print_message){
     Rcpp::Rcout << "\n" << "WoooW! Have you seen how fast am I?\n";
   }
-  
+
   Rcpp::List resu;
   if(out_param){
     resu["dens"]   = result_dens;

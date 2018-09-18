@@ -24,7 +24,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
 /*
  *   MPU - UNIVARIATE Marginal Polya Urn
- *   
+ *
  *   args:
  *   - data:      a vector of observations
  *   - grid:      vector to evaluate the density
@@ -41,7 +41,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  *   - out_dens:  if TRUE, return also the estimated density (default TRUE)
  *   - process:   if 0 DP, if 1 PY
  *   - sigma_PY:  second parameter of PY
- *    
+ *
  *   output, list:
  *   - dens:  matrix, each row a density evaluated on the grid
  *   - clust: matrix, each row an allocation
@@ -66,19 +66,19 @@ Rcpp::List MPU(arma::vec data,
               int process = 0,
               double sigma_PY = 0,
               bool print_message = 1){
-  
+
   if(nupd == 0){
     nupd = (int) (niter / 10);
   }
   int n = data.n_elem;
-  
-  // initialize results objects 
+
+  // initialize results objects
   arma::mat result_clust(niter - nburn, n);
   std::list<arma::vec> result_mu(niter - nburn);
   std::list<arma::vec> result_s2(niter - nburn);
   std::list<arma::vec> result_probs(niter - nburn);
   arma::mat result_dens(niter - nburn, grid.n_elem);
-  
+
   // initialize required object inside the loop
   arma::vec clust(n);
   arma::vec mu(1);
@@ -86,21 +86,21 @@ Rcpp::List MPU(arma::vec data,
   arma::vec dens(grid);
   arma::vec new_val(niter);
   arma::vec n_clust(niter - nburn);
-  
+
   // fill the initialized quantity
   clust.fill(0);
   mu.fill(m0);
   s2.fill(b0 / (a0 - 1));
   new_val.fill(0);
   n_clust.fill(0);
-  
-  
+
+
   int start_s = clock();
   int current_s;
   // strarting loop
   if(process == 0){
     for(int iter = 0; iter < niter; iter++){
-      
+
       // accelerating!!!
       accelerate_MPU(data,
                      mu,
@@ -110,7 +110,7 @@ Rcpp::List MPU(arma::vec data,
                      k0,
                      a0,
                      b0);
-      
+
       // update cluster allocation
       clust_update_MPU(data,
                        mu,
@@ -119,16 +119,16 @@ Rcpp::List MPU(arma::vec data,
                        mass,
                        m0,
                        k0,
-                       a0, 
+                       a0,
                        b0,
                        iter,
                        new_val);
-      
+
       // clean parameter objects
       para_clean_MPU(mu,
                      s2,
                      clust);
-        
+
       // if the burn-in phase is complete
       if(iter >= nburn){
         result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
@@ -142,10 +142,10 @@ Rcpp::List MPU(arma::vec data,
                               mu,
                               s2,
                               tab_freq);
-          result_dens.row(iter - nburn) = arma::trans(dens); 
+          result_dens.row(iter - nburn) = arma::trans(dens);
         }
       }
-      
+
       if(print_message){
         // print the current completed work
         if((iter + 1) % nupd == 0){
@@ -156,10 +156,10 @@ Rcpp::List MPU(arma::vec data,
       }
       Rcpp::checkUserInterrupt();
     }
-  } 
+  }
   else if(process == 1){
     for(int iter = 0; iter < niter; iter++){
-      
+
       // accelerating!!!
       accelerate_MPU(data,
                      mu,
@@ -169,7 +169,7 @@ Rcpp::List MPU(arma::vec data,
                      k0,
                      a0,
                      b0);
-      
+
       // update cluster allocation
       clust_update_MPU_PY(data,
                           mu,
@@ -178,17 +178,17 @@ Rcpp::List MPU(arma::vec data,
                           mass,
                           m0,
                           k0,
-                          a0, 
+                          a0,
                           b0,
                           iter,
                           new_val,
                           sigma_PY);
-      
+
       // clean parameter objects
       para_clean_MPU(mu,
                      s2,
                      clust);
-      
+
       // if the burn-in phase is complete
       if(iter >= nburn){
         result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
@@ -202,10 +202,10 @@ Rcpp::List MPU(arma::vec data,
                               mu,
                               s2,
                               tab_freq);
-          result_dens.row(iter - nburn) = arma::trans(dens); 
+          result_dens.row(iter - nburn) = arma::trans(dens);
         }
       }
-      
+
       if(print_message){
         // print the current completed work
         if((iter + 1) % nupd == 0){
@@ -221,7 +221,7 @@ Rcpp::List MPU(arma::vec data,
   if(print_message){
     Rcpp::Rcout << "\n" << "WoooW! Have you seen how fast am I?\n";
   }
-  
+
   Rcpp::List resu;
   if(out_param){
     resu["dens"]   = result_dens;
@@ -243,14 +243,14 @@ Rcpp::List MPU(arma::vec data,
 }
 
 /*
- *   cPUS_mv - MULTIVARIATE Conditional Polya Urn scheme 
- *   
+ *   cPUS_mv - MULTIVARIATE Conditional Polya Urn scheme
+ *
  *   args:
  *   - data:      a matrix of observations
  *   - grid:      matrix to evaluate the density
  *   - niter:     number of iterations
  *   - nburn:     number of burn-in iterations
- *   - m0:        vector of location's prior distribution 
+ *   - m0:        vector of location's prior distribution
  *   - k0:        double of NIG on scale of location distribution
  *   - S0:        matrix of Inverse Wishart distribution
  *   - n0:        degree of freedom of Inverse Wishart distribution
@@ -263,7 +263,7 @@ Rcpp::List MPU(arma::vec data,
  *   - out_dens:  if TRUE, return also the estimated density (default TRUE)
  *   - process:   if 0 DP, if 1 PY
  *   - sigma_PY:  second parameter of PY
- *    
+ *
  *   output, list:
  *   - dens:  matrix, each row a density evaluated on the grid
  *   - clust: matrix, each row an allocation
@@ -287,42 +287,46 @@ Rcpp::List MPU_mv(arma::mat data,
                   bool out_dens = 1,
                   int process = 0,
                   double sigma_PY = 0,
-                  bool print_message = 1){
-  
+                  bool print_message = 1,
+                  bool light_dens = 1){
+
   if(nupd == 0){
     nupd = (int) (niter / 10);
   }
   int n = data.n_rows;
   int d = data.n_cols;
-  
-  // initialize results objects 
+
+  // initialize results objects
   arma::mat result_clust(niter - nburn, n);
   std::list<arma::mat> result_mu(niter - nburn);
   std::list<arma::cube> result_s2(niter - nburn);
   std::list<arma::vec> result_probs(niter - nburn);
-  arma::mat result_dens(niter - nburn, grid.n_rows);
+  arma::mat result_dens(grid.n_rows, 1);
+  if(!light_dens){
+    result_dens.resize(niter - nburn, grid.n_rows);
+  }
   arma::vec n_clust(niter - nburn);
-  
+
   // initialize required object inside the loop
   arma::vec clust(n);
   arma::mat mu(1,d);
   arma::cube s2(d,d,1);
   arma::vec dens(grid.n_rows);
   arma::vec new_val(niter);
-  
+
   // fill the initialized quantity
   clust.fill(0);
   mu.row(0) = arma::trans(m0);
   s2.slice(0) = S0 / (n0 - d - 1);
   new_val.fill(0);
   n_clust.fill(0);
-  
+
   int start_s = clock();
   int current_s;
   // strarting loop
   if(process == 0){
     for(int iter = 0; iter < niter; iter++){
-      
+
       // accelerating!!!
       accelerate_MPU_mv(data,
                         mu,
@@ -332,7 +336,7 @@ Rcpp::List MPU_mv(arma::mat data,
                         k0,
                         S0,
                         n0);
-      
+
       // update cluster allocation
       clust_update_MPU_mv(data,
                           mu,
@@ -341,16 +345,16 @@ Rcpp::List MPU_mv(arma::mat data,
                           mass,
                           m0,
                           k0,
-                          S0, 
+                          S0,
                           n0,
                           iter,
                           new_val);
-      
+
       // clean parameter objects
       para_clean_MPU_mv(mu,
                         s2,
                         clust);
-      
+
       // if the burn-in phase is complete
       if(iter >= nburn){
         result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
@@ -364,10 +368,14 @@ Rcpp::List MPU_mv(arma::mat data,
                                  mu,
                                  s2,
                                  tab_freq);
-          result_dens.row(iter - nburn) = arma::trans(dens);
+          if(light_dens){
+            result_dens += dens;
+          } else {
+            result_dens.row(iter - nburn) = arma::trans(dens);
+          }
         }
       }
-      
+
       if(print_message){
         // print the current completed work
         if((iter + 1) % nupd == 0){
@@ -378,10 +386,10 @@ Rcpp::List MPU_mv(arma::mat data,
       }
       Rcpp::checkUserInterrupt();
     }
-  } 
+  }
   else if(process == 1){
     for(int iter = 0; iter < niter; iter++){
-      
+
       // accelerating!!!
       accelerate_MPU_mv(data,
                         mu,
@@ -391,7 +399,7 @@ Rcpp::List MPU_mv(arma::mat data,
                         k0,
                         S0,
                         n0);
-      
+
       // update cluster allocation
       clust_update_MPU_PY_mv(data,
                              mu,
@@ -400,17 +408,17 @@ Rcpp::List MPU_mv(arma::mat data,
                              mass,
                              m0,
                              k0,
-                             S0, 
+                             S0,
                              n0,
                              iter,
                              new_val,
                              sigma_PY);
-      
+
       // clean parameter objects
       para_clean_MPU_mv(mu,
                         s2,
                         clust);
-      
+
       // if the burn-in phase is complete
       if(iter >= nburn){
         result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
@@ -424,10 +432,14 @@ Rcpp::List MPU_mv(arma::mat data,
                                  mu,
                                  s2,
                                  tab_freq);
-          result_dens.row(iter - nburn) = arma::trans(dens);
+          if(light_dens){
+            result_dens += dens;
+          } else {
+            result_dens.row(iter - nburn) = arma::trans(dens);
+          }
         }
       }
-      
+
       if(print_message){
         // print the current completed work
         if((iter + 1) % nupd == 0){
@@ -443,7 +455,7 @@ Rcpp::List MPU_mv(arma::mat data,
   if(print_message){
     Rcpp::Rcout << "\n" << "WoooW! Have you seen how fast am I?\n";
   }
-  
+
   Rcpp::List resu;
   if(out_param){
     resu["dens"]   = result_dens;
