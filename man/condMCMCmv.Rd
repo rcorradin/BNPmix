@@ -6,7 +6,7 @@
 conditional Polya urn scheme or Slice sampler}
 \usage{
 condMCMCmv(data, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL,
-  S0 = NULL, n0 = NULL, mass = 1, method = "CPU", napprox = 100,
+  S0 = NULL, n0 = NULL, mass = 1, method = "ICS", napprox = 100,
   nupd = 1000, out_param = F, out_dens = TRUE, process = "DP",
   sigma_PY = 0, print_message = TRUE, light_dens = TRUE)
 }
@@ -37,7 +37,15 @@ condMCMCmv(data, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL,
 
 \item{out_param}{If TRUE, save the parameters for each iteration, default FALSE.}
 
-\item{out_dens}{If TRUE, save the parameters for each iteration, default TRUE}
+\item{out_dens}{If TRUE, return also the estimated density, default TRUE}
+
+\item{process}{Dirichlet process ("DP") or Pitman-Yor process ("PY"), default "DP"}
+
+\item{sigma_PY}{Discount parameter of the Pitman-Yor process, default 0}
+
+\item{print_message}{If TRUE print the status of the estimation, default TRUE}
+
+\item{light_dens}{If TRUE return only the mean of the estimated densities, default TRUE}
 }
 \value{
 A modCond class object contain the estimated density for each iterations, the allocations for each iterations. If out_param is TRUE, also the parameters.

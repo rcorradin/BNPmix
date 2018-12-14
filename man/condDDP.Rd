@@ -2,13 +2,13 @@
 % Please edit documentation in R/condDDP.R
 \name{condDDP}
 \alias{condDDP}
-\title{Estimate an univariate Dependent Dirichlet process mixture model with Gaussian kernel using the 
+\title{Estimate an univariate Dependent Dirichlet process mixture model with Gaussian kernel using the
 conditional Polya urn scheme}
 \usage{
 condDDP(data, group, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL,
-  a0 = NULL, b0 = NULL, mass = 1, wei = 0.5, napprox = 100,
+  a0 = NULL, b0 = NULL, mass = 1, wei = 0.5, napprox = 10,
   n_approx_unif = 1000, nupd = 1000, out_dens = TRUE,
-  print_message = TRUE)
+  print_message = TRUE, light_dens = FALSE)
 }
 \arguments{
 \item{data}{A dataset (vector).}
@@ -47,7 +47,7 @@ condDDP(data, group, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL,
 A modCond class object contain the estimated density for each iterations, the allocations for each iterations. If out_param is TRUE, also the parameters.
 }
 \description{
-Estimate an univariate Dependent Dirichlet process mixture model with Gaussian kernel using the 
+Estimate an univariate Dependent Dirichlet process mixture model with Gaussian kernel using the
 conditional Polya urn scheme
 }
 \examples{
@@ -55,7 +55,7 @@ set.seed(42)
 data_toy <- c(rnorm(50, -4, 1), rnorm(100, 0, 1), rnorm(50, 4, 1))
 group_toy <- c(rep(1,100), rep(2,100))
 grid <- seq(-7, 7, length.out = 50)
-est_model <- condDDP(data = data_toy, group = group_toy, grid = grid, niter = 10000, 
+est_model <- condDDP(data = data_toy, group = group_toy, grid = grid, niter = 10000,
                      nburn = 1000, napprox = 100, a0 = 4)
 plot(est_model)
 

@@ -3,14 +3,21 @@
 
 // NON-Uniform discrete distribution
 int rintnunif(arma::vec weights);
-  
-// normalized freq + mass 
+
+// NON-Uniform discrete distribution - log
+int rintnunif_log(arma::vec lweights);
+
+// normalized freq + mass
 int rintnunifw(arma::vec freq,
                double mass);
 
 // Dirichlet
-arma::vec rdirich_mass(arma::vec freq, 
+arma::vec rdirich_mass(arma::vec freq,
                        double mass);
+
+// Dirichlet + sum gamma
+arma::vec rdirich_mass_tot(arma::vec freq,
+                 double mass);
 
 // univariate t student density
 double dt_ls(double x,
@@ -18,7 +25,7 @@ double dt_ls(double x,
              double mu,
              double sigma);
 
-// multivariate t student density 
+// multivariate t student density
 double dt_ls_mv(arma::vec x,
                 double df,
                 arma::vec mean,

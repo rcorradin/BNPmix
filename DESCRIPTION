@@ -5,9 +5,10 @@ Version: 0.1.0
 Date: 2018-06-06
 Author: Riccardo Corradin
 Maintainer: Riccardo Corradin <riccardo.corradin@gmail.com>
-Description: A package containing different algorithms based on a conditional approach to estimate Dirichlet process mixtures model
-License: LGPL-3 | file license
-Depends: R (>= 3.3.0), ggplot2
-Imports: Rcpp (>= 0.12.13), ggplot2
-LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 6.1.0
+Description: A package containing different algorithms to estimate Dirichlet process mixtures model and Pitman-Yor mixture models. Estimation could be done via importance conditional sampler, slice sampler or marginal sampler. The package contains also the procedures to estimate via importance conditional sampler a GM-DDP model.
+License: LGPL-3 | file LICENSE
+Import: ggplot2, methods
+Depends: R (>= 3.3.0), Rcpp(>= 0.12.13)
+LinkingTo: RcppArmadillo, Rcpp(>= 0.12.13)
+RoxygenNote: 6.1.1
+Encoding: UTF-8

@@ -1,5 +1,7 @@
-#' @export modCondmv
-modCondMv <- setClass(Class = "modCondMv", 
+#' A class
+#' @export modCondMv
+
+modCondMv <- setClass(Class = "modCondMv",
                       slots = c(density   = "matrix",
                                 grideval  = "matrix",
                                 clust     = "matrix",
@@ -9,7 +11,6 @@ modCondMv <- setClass(Class = "modCondMv",
                                 niter     = "numeric",
                                 nburn     = "numeric",
                                 nnew      = "numeric",
-                                nclust    = "numeric",
                                 tot_time  = "numeric"),
                       prototype = list(density  = matrix(0,0,0),
                                        grideval = matrix(0,0,0),
@@ -20,12 +21,13 @@ modCondMv <- setClass(Class = "modCondMv",
                                        niter    = numeric(),
                                        nburn    = numeric(),
                                        nnew     = numeric(),
-                                       nclust   = numeric(),
                                        tot_time = numeric()))
 #-----------------------------------------------------------------------
 
+#' A class
 #' @export modCond
-modCond <- setClass(Class = "modCond", 
+
+modCond <- setClass(Class = "modCond",
                     slots = c(density   = "matrix",
                               grideval  = "numeric",
                               clust     = "matrix",
@@ -35,7 +37,6 @@ modCond <- setClass(Class = "modCond",
                               niter     = "numeric",
                               nburn     = "numeric",
                               nnew      = "numeric",
-                              nclust    = "numeric",
                               tot_time  = "numeric"),
                     prototype = list(density  = matrix(0,0,0),
                                      grideval = numeric(),
@@ -46,36 +47,38 @@ modCond <- setClass(Class = "modCond",
                                      niter    = numeric(),
                                      nburn    = numeric(),
                                      nnew     = numeric(),
-                                     nclust   = numeric(),
                                      tot_time = numeric()))
 
 #-----------------------------------------------------------------------
 
+#' A class
 #' @export modCondDep
-modCond <- setClass(Class = "modCondDep", 
+
+modCondDep <- setClass(Class = "modCondDep",
                     slots = c(density   = "array",
                               grideval  = "numeric",
                               clust     = "matrix",
                               zeta      = "matrix",
                               niter     = "numeric",
                               nburn     = "numeric",
-                              nnew      = "numeric",
                               nclust    = "numeric",
                               tot_time  = "numeric",
-                              group     = "numeric"),
+                              group     = "numeric",
+                              wvals     = "matrix",
+                              vvals     = "matrix"),
                     prototype = list(density  = array(0,0),
                                      grideval = numeric(),
                                      clust    = matrix(0,0,0),
                                      zeta     = matrix(0,0,0),
                                      niter    = numeric(),
                                      nburn    = numeric(),
-                                     nnew     = numeric(),
                                      nclust   = numeric(),
                                      tot_time = numeric(),
-                                     group    = numeric()))
+                                     group    = numeric(),
+                                     wvals    = matrix(0,0,0),
+                                     vvals    = matrix(0,0,0)))
 
 #-----------------------------------------------------------------------
 
-setGeneric("acfplot", function(x, ...) standardGeneric("acfplot"))
 setGeneric("trace_ngr", function(x, ...) standardGeneric("trace_ngr"))
 setGeneric("trace_obs", function(x, ...) standardGeneric("trace_obs"))

@@ -17,7 +17,7 @@
  */
 
 #include "RcppArmadillo.h"
-#include "distributions.hpp"
+#include "Distributions.h"
 // [[Rcpp::depends("RcppArmadillo")]]
 
 /*

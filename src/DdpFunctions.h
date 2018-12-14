@@ -14,11 +14,11 @@ void accelerate_DDP(arma::vec data,
                     int ngr);
 
 void para_clean_DDP(arma::field<arma::vec> &mu,
-                    arma::field<arma::vec> &s2,
-                    arma::vec &clust,
-                    arma::vec group,
-                    arma::vec zeta,
-                    int ngr);
+                     arma::field<arma::vec> &s2,
+                     arma::vec &clust,
+                     arma::vec group,
+                     arma::vec zeta,
+                     int ngr);
 
 void simu_trunc_DDP(arma::field<arma::vec> &mutemp,
                     arma::field<arma::vec> &s2temp,
@@ -34,26 +34,14 @@ void simu_trunc_DDP(arma::field<arma::vec> &mutemp,
 
 void clust_update_DDP(arma::vec data,
                       arma::vec group,
-                      arma::vec zeta,
-                      arma::field<arma::vec> mujoin,
-                      arma::field<arma::vec> s2join,
-                      arma::field<arma::vec> probjoin,
+                      arma::vec &zeta,
+                      arma::field<arma::vec> mujoin_complete,
+                      arma::field<arma::vec> s2join_complete,
+                      arma::field<arma::vec> probjoin_complete,
                       arma::vec &clust,
                       arma::vec max_val,
                       int iter,
-                      int ngr,
-                      arma::vec &new_val);
-
-void zeta_update_DDP(arma::vec &zeta,
-                     arma::vec group,
-                     arma::vec &clust,
-                     arma::field<arma::vec> &mu,
-                     arma::field<arma::vec> &s2,
-                     arma::field<arma::vec> &ptilde,
-                     arma::vec w,
-                     double mass,
-                     double wei,
-                     int ngr);  
+                      int ngr);
 
 void update_w_DDP(arma::vec &w,
                   double mass,

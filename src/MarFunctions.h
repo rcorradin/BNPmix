@@ -1,7 +1,7 @@
-#ifndef MPU_H
-#define MPU_H
+#ifndef MAR_H
+#define MAR_H
 
-void accelerate_MPU(arma::vec data,
+void accelerate_MAR(arma::vec data,
                     arma::vec &mu,
                     arma::vec &s2,
                     arma::vec clust,
@@ -10,7 +10,7 @@ void accelerate_MPU(arma::vec data,
                     double a0,
                     double b0);
 
-void accelerate_MPU_mv(arma::mat data,
+void accelerate_MAR_mv(arma::mat data,
                        arma::mat &mu,
                        arma::cube &s2,
                        arma::vec clust,
@@ -19,40 +19,40 @@ void accelerate_MPU_mv(arma::mat data,
                        arma::mat S0,
                        double n0);
 
-void para_clean_MPU(arma::vec &mu,
+void para_clean_MAR(arma::vec &mu,
                     arma::vec &s2,
                     arma::vec &clust);
 
-void para_clean_MPU_mv(arma::mat &mu,
+void para_clean_MAR_mv(arma::mat &mu,
                        arma::cube &s2,
                        arma::vec &clust);
 
-void clust_update_MPU(arma::vec data,
+void clust_update_MAR(arma::vec data,
                       arma::vec &mu,
                       arma::vec &s2,
                       arma::vec &clust,
                       double mass,
                       double m0,
                       double k0,
-                      double a0, 
+                      double a0,
                       double b0,
                       int iter,
                       arma::vec &new_val);
 
-void clust_update_MPU_PY(arma::vec data,
+void clust_update_MAR_PY(arma::vec data,
                          arma::vec &mu,
                          arma::vec &s2,
                          arma::vec &clust,
                          double mass,
                          double m0,
                          double k0,
-                         double a0, 
+                         double a0,
                          double b0,
                          int iter,
                          arma::vec &new_val,
                          double sigma_PY);
 
-void clust_update_MPU_mv(arma::mat data,
+void clust_update_MAR_mv(arma::mat data,
                          arma::mat &mu,
                          arma::cube &s2,
                          arma::vec &clust,
@@ -64,7 +64,7 @@ void clust_update_MPU_mv(arma::mat data,
                          int iter,
                          arma::vec &new_val);
 
-void clust_update_MPU_PY_mv(arma::mat data,
+void clust_update_MAR_PY_mv(arma::mat data,
                             arma::mat &mu,
                             arma::cube &s2,
                             arma::vec &clust,

@@ -17,31 +17,32 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
 
 #include "RcppArmadillo.h"
-#include "distributions.hpp"
-#include "common_utilities.hpp"
-#include "cPUS_functions.hpp"
+#include "Distributions.h"
+#include "CommonUtilities.h"
+#include "IcsFunctions.h"
 // [[Rcpp::depends("RcppArmadillo")]]
 
 /*
- *   cPUS - UNIVARIATE Conditional Polya Urn scheme
+ *   cICS - UNIVARIATE Conditional Polya Urn scheme
  *
  *   args:
- *   - data:      a vector of observations
- *   - grid:      vector to evaluate the density
- *   - niter:     number of iterations
- *   - nburn:     number of burn-in iterations
- *   - m0:        expectation of location component
- *   - k0:        tuning parameter of variance of location component
- *   - a0, b0:    parameters of scale component
- *   - mass:      mass of Dirichlet process
- *   - napprox:   number of approximating values
- *   - nupd:      number of iterations to show current updating
- *                (default niter/10)
- *   - out_param: if TRUE, return also the location and scale paramteres lists
- *                (default FALSE)
- *   - out_dens:  if TRUE, return also the estimated density (default TRUE)
- *   - process:   if 0 DP, if 1 PY
- *   - sigma_PY:  second parameter of PY
+ *   - data:          a vector of observations
+ *   - grid:          vector to evaluate the density
+ *   - niter:         number of iterations
+ *   - nburn:         number of burn-in iterations
+ *   - m0:            expectation of location component
+ *   - k0:            tuning parameter of variance of location component
+ *   - a0, b0:        parameters of scale component
+ *   - mass:          mass of Dirichlet process
+ *   - napprox:       number of approximating values
+ *   - nupd:          number of iterations to show current updating
+ *                    (default niter/10)
+ *   - out_param:     if TRUE, return also the location and scale paramteres lists
+ *                    (default FALSE)
+ *   - out_dens:      if TRUE, return also the estimated density (default TRUE)
+ *   - process:       if 0 DP, if 1 PY
+ *   - sigma_PY:      second parameter of PY
+ *   - print_message: print the status
  *
  *   output, list:
  *   - dens:  matrix, each row a density evaluated on the grid
@@ -52,7 +53,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  */
 
 //[[Rcpp::export]]
-Rcpp::List cPUS(arma::vec data,
+Rcpp::List cICS(arma::vec data,
                 arma::vec grid,
                 int niter,
                 int nburn,
@@ -80,6 +81,7 @@ Rcpp::List cPUS(arma::vec data,
   std::list<arma::vec> result_s2;
   std::list<arma::vec> result_probs;
   arma::mat result_dens(niter - nburn, grid.n_elem);
+  // TEMP
 
   // initialize required object inside the loop
   arma::vec clust(n);
@@ -111,12 +113,12 @@ Rcpp::List cPUS(arma::vec data,
     for(int iter = 0; iter < niter; iter++){
 
       // clean parameter objects
-      para_clean_PUS(mu,
+      para_clean_ICS(mu,
                      s2,
                      clust);
 
       // acceleration step
-      accelerate_PUS(data,
+      accelerate_ICS(data,
                      mu,
                      s2,
                      clust,
@@ -130,7 +132,7 @@ Rcpp::List cPUS(arma::vec data,
       ptilde = rdirich_mass(freq_vec(clust), mass);
 
       // simulate the required values
-      simu_trunc_PUS(mutemp,
+      simu_trunc_ICS(mutemp,
                      s2temp,
                      freqtemp,
                      mass,
@@ -150,7 +152,7 @@ Rcpp::List cPUS(arma::vec data,
                                            ptilde[nkpt - 1] * freqtemp / napprox);
 
       // update cluster allocations
-      clust_update_PUS(data,
+      clust_update_ICS(data,
                        mujoin,
                        s2join,
                        probjoin,
@@ -158,6 +160,7 @@ Rcpp::List cPUS(arma::vec data,
                        mu.n_elem,
                        iter,
                        new_val);
+
       mu = mujoin;
       s2 = s2join;
 
@@ -191,12 +194,12 @@ Rcpp::List cPUS(arma::vec data,
     for(int iter = 0; iter < niter; iter++){
 
       // clean parameter objects
-      para_clean_PUS(mu,
+      para_clean_ICS(mu,
                      s2,
                      clust);
 
       // acceleration step
-      accelerate_PUS(data,
+      accelerate_ICS(data,
                      mu,
                      s2,
                      clust,
@@ -232,7 +235,7 @@ Rcpp::List cPUS(arma::vec data,
                                            ptilde[nkpt - 1] * freqtemp / napprox);
 
       // update cluster allocations
-      clust_update_PUS(data,
+      clust_update_ICS(data,
                        mujoin,
                        s2join,
                        probjoin,
@@ -240,6 +243,7 @@ Rcpp::List cPUS(arma::vec data,
                        mu.n_elem,
                        iter,
                        new_val);
+
       mu = mujoin;
       s2 = s2join;
 
@@ -272,7 +276,7 @@ Rcpp::List cPUS(arma::vec data,
   }
   int end_s = clock();
   if(print_message){
-    Rcpp::Rcout << "\n" << "WoooW! Have you seen how fast am I?\n";
+    Rcpp::Rcout << "\n" << "Estimation done in " << double(end_s-start_s)/CLOCKS_PER_SEC << " seconds\n";
   }
 
   Rcpp::List resu;
@@ -283,39 +287,40 @@ Rcpp::List cPUS(arma::vec data,
     resu["s2"]     = result_s2;
     resu["probs"]  = result_probs;
     resu["newval"] = new_val;
-    resu["nclust"] = n_clust;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
   } else {
     resu["dens"]   = result_dens;
     resu["clust"]  = result_clust;
     resu["newval"] = new_val;
-    resu["nclust"] = n_clust;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
   }
   return resu;
 }
 
 /*
- *   cPUS_mv - MULTIVARIATE Conditional Polya Urn scheme
+ *   cICS_mv - MULTIVARIATE Conditional Polya Urn scheme
  *
  *   args:
- *   - data:      a matrix of observations
- *   - grid:      matrix to evaluate the density
- *   - niter:     number of iterations
- *   - nburn:     number of burn-in iterations
- *   - m0:        vector of location's prior distribution
- *   - k0:        double of NIG on scale of location distribution
- *   - S0:        matrix of Inverse Wishart distribution
- *   - n0:        degree of freedom of Inverse Wishart distribution
- *   - mass:      mass of Dirichlet process
- *   - napprox:   number of approximating values
- *   - nupd:      number of iterations to show current updating
- *                (default niter/10)
- *   - out_param: if TRUE, return also the location and scale paramteres lists
- *                (default FALSE)
- *   - out_dens:  if TRUE, return also the estimated density (default TRUE)
- *   - process:   if 0 DP, if 1 PY
- *   - sigma_PY:  second parameter of PY
+ *   - data:          a matrix of observations
+ *   - grid:          matrix to evaluate the density
+ *   - niter:         number of iterations
+ *   - nburn:         number of burn-in iterations
+ *   - m0:            vector of location's prior distribution
+ *   - k0:            double of NIG on scale of location distribution
+ *   - S0:            matrix of Inverse Wishart distribution
+ *   - n0:            degree of freedom of Inverse Wishart distribution
+ *   - mass:          mass of Dirichlet process
+ *   - napprox:       number of approximating values
+ *   - nupd:          number of iterations to show current updating
+ *                    (default niter/10)
+ *   - out_param:     if TRUE, return also the location and scale paramteres lists
+ *                    (default FALSE)
+ *   - out_dens:      if TRUE, return also the estimated density (default TRUE)
+ *   - process:       if 0 DP, if 1 PY
+ *   - sigma_PY:      second parameter of PY
+ *   - print_message: print the status
+ *   - light_dent:    if 1 return only the posterior mean of the estimated density
+ *
  *
  *   output, list:
  *   - dens:  matrix, each row a density evaluated on the grid
@@ -326,7 +331,7 @@ Rcpp::List cPUS(arma::vec data,
  */
 
 //[[Rcpp::export]]
-Rcpp::List cPUS_mv(arma::mat data,
+Rcpp::List cICS_mv(arma::mat data,
                    arma::mat grid,
                    int niter,
                    int nburn,
@@ -389,12 +394,12 @@ Rcpp::List cPUS_mv(arma::mat data,
   if(process == 0){
     for(int iter = 0; iter < niter; iter++){
       // clean parameter objects
-      para_clean_PUS_mv(mu,
+      para_clean_ICS_mv(mu,
                         s2,
                         clust);
 
       // acceleration step
-      accelerate_PUS_mv(data,
+      accelerate_ICS_mv(data,
                         mu,
                         s2,
                         clust,
@@ -408,7 +413,7 @@ Rcpp::List cPUS_mv(arma::mat data,
       ptilde = rdirich_mass(freq_vec(clust), mass);
 
       // simulate the required values
-      simu_trunc_PUS_mv(mutemp,
+      simu_trunc_ICS_mv(mutemp,
                         s2temp,
                         freqtemp,
                         mass,
@@ -428,7 +433,7 @@ Rcpp::List cPUS_mv(arma::mat data,
                                            ptilde[nkpt - 1] * freqtemp / napprox);
 
       // update cluster allocations
-      clust_update_PUS_mv(data,
+      clust_update_ICS_mv(data,
                           mujoin,
                           s2join,
                           probjoin,
@@ -436,6 +441,7 @@ Rcpp::List cPUS_mv(arma::mat data,
                           mu.n_elem,
                           iter,
                           new_val);
+
       mu = mujoin;
       s2 = s2join;
 
@@ -471,13 +477,14 @@ Rcpp::List cPUS_mv(arma::mat data,
     }
   } else if(process == 1){
     for(int iter = 0; iter < niter; iter++){
+
       // clean parameter objects
-      para_clean_PUS_mv(mu,
+      para_clean_ICS_mv(mu,
                         s2,
                         clust);
 
       // acceleration step
-      accelerate_PUS_mv(data,
+      accelerate_ICS_mv(data,
                         mu,
                         s2,
                         clust,
@@ -513,7 +520,7 @@ Rcpp::List cPUS_mv(arma::mat data,
                                            ptilde[nkpt - 1] * freqtemp / napprox);
 
       // update cluster allocations
-      clust_update_PUS_mv(data,
+      clust_update_ICS_mv(data,
                           mujoin,
                           s2join,
                           probjoin,
@@ -521,6 +528,7 @@ Rcpp::List cPUS_mv(arma::mat data,
                           mu.n_elem,
                           iter,
                           new_val);
+
       mu = mujoin;
       s2 = s2join;
 
@@ -557,24 +565,30 @@ Rcpp::List cPUS_mv(arma::mat data,
   }
   int end_s = clock();
   if(print_message){
-    Rcpp::Rcout << "\n" << "WoooW! Have you seen how fast am I?\n";
+    Rcpp::Rcout << "\n" << "Estimation done in " << double(end_s-start_s)/CLOCKS_PER_SEC << " seconds\n";
   }
 
   Rcpp::List resu;
   if(out_param){
-    resu["dens"]   = result_dens;
+    if(light_dens){
+      resu["dens"]   = result_dens / (niter - nburn);
+    } else {
+      resu["dens"]   = result_dens;
+    }
     resu["clust"]  = result_clust;
     resu["mu"]     = result_mu;
     resu["s2"]     = result_s2;
     resu["probs"]  = result_probs;
     resu["newval"] = new_val;
-    resu["nclust"] = n_clust;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
   } else {
-    resu["dens"]   = result_dens;
+    if(light_dens){
+      resu["dens"]   = result_dens / (niter - nburn);
+    } else {
+      resu["dens"]   = result_dens;
+    }
     resu["clust"]  = result_clust;
     resu["newval"] = new_val;
-    resu["nclust"] = n_clust;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
   }
   return resu;

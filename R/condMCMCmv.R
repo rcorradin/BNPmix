@@ -17,7 +17,11 @@
 #' @param napprox Number of approximating value for the conditioning distribution via "CPU" method, default 100.
 #' @param nupd How frequently show the curren state of the estimation (number of iterations) - default 1000.
 #' @param out_param If TRUE, save the parameters for each iteration, default FALSE.
-#' @param out_dens If TRUE, save the parameters for each iteration, default TRUE
+#' @param out_dens If TRUE, return also the estimated density, default TRUE
+#' @param process Dirichlet process ("DP") or Pitman-Yor process ("PY"), default "DP"
+#' @param sigma_PY Discount parameter of the Pitman-Yor process, default 0
+#' @param print_message If TRUE print the status of the estimation, default TRUE
+#' @param light_dens If TRUE return only the mean of the estimated densities, default TRUE
 #'
 #' @return A modCond class object contain the estimated density for each iterations, the allocations for each iterations. If out_param is TRUE, also the parameters.
 #'
@@ -32,9 +36,10 @@
 #'
 
 condMCMCmv <- function(data, grid = NULL, niter, nburn,  m0 = NULL, k0 = NULL,
-                       S0 = NULL, n0 = NULL, mass = 1, method = "CPU",
+                       S0 = NULL, n0 = NULL, mass = 1, method = "ICS",
                        napprox = 100, nupd = 1000, out_param = F, out_dens = TRUE,
-                       process = "DP", sigma_PY = 0, print_message = TRUE, light_dens = TRUE){
+                       process = "DP", sigma_PY = 0, print_message = TRUE,
+                       light_dens = TRUE){
 
   if(is.null(grid)) grid <- matrix(0, ncol = ncol(data))
   grid_use <- as.matrix(grid)
@@ -51,12 +56,12 @@ condMCMCmv <- function(data, grid = NULL, niter, nburn,  m0 = NULL, k0 = NULL,
   if(is.null(S0)) S0 <- diag(1, ncol(data))
   if(is.null(n0)) n0 <- ncol(data) + 2
 
-  if(method == "CPU"){
+  if(method == "ICS"){
     if(process == "DP"){
-      est_model <- cPUS_mv(data, grid_use, niter, nburn, m0, k0, S0, n0,
+      est_model <- cICS_mv(data, grid_use, niter, nburn, m0, k0, S0, n0,
                            mass, napprox, nupd, out_param, out_dens, 0, sigma_PY, print_message, light_dens)
     } else if(process == "PY"){
-      est_model <- cPUS_mv(data, grid_use, niter, nburn, m0, k0, S0, n0,
+      est_model <- cICS_mv(data, grid_use, niter, nburn, m0, k0, S0, n0,
                            mass, napprox, nupd, out_param, out_dens, 1, sigma_PY, print_message, light_dens)
     }
   } else if(method == "SLI"){
@@ -67,12 +72,12 @@ condMCMCmv <- function(data, grid = NULL, niter, nburn,  m0 = NULL, k0 = NULL,
       est_model <- cSLI_mv(data, grid_use, niter, nburn, m0, k0, S0, n0,
                            mass, nupd, out_param, out_dens, 1, sigma_PY, print_message, light_dens)
     }
-  } else if(method == "MPU"){
+  } else if(method == "MAR"){
     if(process == "DP"){
-      est_model <- MPU_mv(data, grid_use, niter, nburn, m0, k0, S0, n0,
+      est_model <- MAR_mv(data, grid_use, niter, nburn, m0, k0, S0, n0,
                            mass, nupd, out_param, out_dens, 0, sigma_PY, print_message, light_dens)
     } else if(process == "PY"){
-      est_model <- MPU_mv(data, grid_use, niter, nburn, m0, k0, S0, n0,
+      est_model <- MAR_mv(data, grid_use, niter, nburn, m0, k0, S0, n0,
                            mass, nupd, out_param, out_dens, 1, sigma_PY, print_message, light_dens)
     }
   }
@@ -86,7 +91,6 @@ condMCMCmv <- function(data, grid = NULL, niter, nburn,  m0 = NULL, k0 = NULL,
                     niter = niter,
                     nburn = nburn,
                     nnew = as.vector(est_model$newval),
-                    nclust = as.vector(est_model$nclust),
                     tot_time = est_model$time)
     }else{
       output <- new(Class = "modCondMv",
@@ -94,7 +98,6 @@ condMCMCmv <- function(data, grid = NULL, niter, nburn,  m0 = NULL, k0 = NULL,
                     niter = niter,
                     nburn = nburn,
                     nnew = as.vector(est_model$newval),
-                    nclust = as.vector(est_model$nclust),
                     tot_time = est_model$time)
     }
   } else {
@@ -109,7 +112,6 @@ condMCMCmv <- function(data, grid = NULL, niter, nburn,  m0 = NULL, k0 = NULL,
                     niter = niter,
                     nburn = nburn,
                     nnew = as.vector(est_model$newval),
-                    nclust = as.vector(est_model$nclust),
                     tot_time = est_model$time)
     }else{
       output <- new(Class = "modCondMv",
@@ -120,7 +122,6 @@ condMCMCmv <- function(data, grid = NULL, niter, nburn,  m0 = NULL, k0 = NULL,
                     niter = niter,
                     nburn = nburn,
                     nnew = as.vector(est_model$newval),
-                    nclust = as.vector(est_model$nclust),
                     tot_time = est_model$time)
     }
   }
@@ -143,25 +144,22 @@ setMethod(f = "plot",
 
               if(dimension[1] == dimension[2]){
                 plot_df_use <- aggregate(plot_df, by = list(plot_df[[dimension[1]]]), FUN = sum)
-                ggplot2::ggplot(plot_df_use, aes(x = Group.1, y = V1)) +
-                  theme_bw() +
-                  theme(axis.ticks = element_blank(),
-                        axis.title.x = element_blank(),
-                        axis.title.y = element_blank()) +
-                  geom_ribbon(aes(ymin = V2, ymax = V3), alpha = 0.3, fill = col) +
-                  geom_line(aes(x = Group.1, y = V1), size= 1, color = col)
+                ggplot2::ggplot(plot_df_use, mapping = ggplot2::aes(x = Group.1, y = V1)) +
+                  ggplot2::theme_bw() +
+                  ggplot2::theme(axis.ticks = ggplot2::element_blank(),
+                                  axis.title.x = ggplot2::element_blank(),
+                                  axis.title.y = ggplot2::element_blank()) +
+                  ggplot2::geom_ribbon(mapping = ggplot2::aes(ymin = V2, ymax = V3), alpha = 0.3, fill = col) +
+                  ggplot2::geom_line(mapping = ggplot2::aes(x = Group.1, y = V1), size= 1, color = col)
 
-                # geom_line(aes(x = Group.1, y = V1), size=.5, col = col) +
-                # geom_line(aes(x = Group.1, y = V2), size=.5, linetype="dashed", col = col) +
-                # geom_line(aes(x = Group.1, y = V3), size=.5, linetype="dashed", col = col)
               }else{
                 plot_df_use <- aggregate(plot_df, by = list(plot_df[[dimension[1]]],plot_df[[dimension[2]]]), FUN = sum)
-                ggplot2::ggplot(data = plot_df_use, mapping = aes(x = Group.1, y = Group.2, z = V1)) +
-                  stat_contour(data = plot_df_use, mapping = aes(x = Group.1, y = Group.2, z = V1), bins = 10, col = col) +
-                  theme_bw() +
-                  theme(axis.ticks = element_blank(),
-                        axis.title.x = element_blank(),
-                        axis.title.y = element_blank())
+                ggplot2::ggplot(data = plot_df_use, mapping = ggplot2::aes(x = Group.1, y = Group.2, z = V1)) +
+                  ggplot2::stat_contour(data = plot_df_use, mapping = ggplot2::aes(x = Group.1, y = Group.2, z = V1), bins = 10, col = col) +
+                  ggplot2::theme_bw() +
+                  ggplot2::theme(axis.ticks = ggplot2::element_blank(),
+                                  axis.title.x = ggplot2::element_blank(),
+                                  axis.title.y = ggplot2::element_blank())
               }
             } else {
               plot_df <- as.data.frame(cbind(x@grideval, x@density))
@@ -169,40 +167,24 @@ setMethod(f = "plot",
 
               if(dimension[1] == dimension[2]){
                 plot_df_use <- aggregate(plot_df, by = list(plot_df[[dimension[1]]]), FUN = sum)
-                ggplot2::ggplot(data = plot_df_use, aes(x = Group.1, y = V1)) +
-                  theme_bw() +
-                  theme(axis.ticks = element_blank(),
-                        axis.title.x = element_blank(),
-                        axis.title.y = element_blank()) +
-                  geom_line(aes(x = Group.1, y = V1), size= 1, color = col)
+                ggplot2::ggplot(data = plot_df_use, mapping = ggplot2::aes(x = Group.1, y = V1)) +
+                  ggplot2::theme_bw() +
+                  ggplot2::theme(axis.ticks = ggplot2::element_blank(),
+                        axis.title.x = ggplot2::element_blank(),
+                        axis.title.y = ggplot2::element_blank()) +
+                  ggplot2::geom_line(mapping = ggplot2::aes(x = Group.1, y = V1), size= 1, color = col)
 
                 # geom_line(aes(x = Group.1, y = V1), size=.5, col = col) +
                 # geom_line(aes(x = Group.1, y = V2), size=.5, linetype="dashed", col = col) +
                 # geom_line(aes(x = Group.1, y = V3), size=.5, linetype="dashed", col = col)
               }else{
                 plot_df_use <- aggregate(plot_df, by = list(plot_df[[dimension[1]]],plot_df[[dimension[2]]]), FUN = sum)
-                ggplot2::ggplot(data = plot_df_use, mapping = aes(x = Group.1, y = Group.2, z = V1)) +
-                  stat_contour(data = plot_df_use, mapping = aes(x = Group.1, y = Group.2, z = V1), bins = 10, col = col) +
-                  theme_bw() +
-                  theme(axis.ticks = element_blank(),
-                        axis.title.x = element_blank(),
-                        axis.title.y = element_blank())
+                ggplot2::ggplot(data = plot_df_use, mapping = ggplot2::aes(x = Group.1, y = Group.2, z = V1)) +
+                  ggplot2::stat_contour(data = plot_df_use, mapping = ggplot2::aes(x = Group.1, y = Group.2, z = V1), bins = 10, col = col) +
+                  ggplot2::theme_bw() +
+                  ggplot2::theme(axis.ticks = ggplot2::element_blank(),
+                        axis.title.x = ggplot2::element_blank(),
+                        axis.title.y = ggplot2::element_blank())
               }
             }
-          })
-
-setMethod(f = "acfplot",
-          signature(x = "modCondMv"),
-          definition = function(x, maxlag = 30, alpha = 0.95){
-            stopifnot(class(x) == "modCondMv")
-
-            acf_temp <- acf(x = apply(x@clust, 1, function(y) length(unique(y))), lag.max = maxlag, plot = FALSE)
-            conf.lims <- c(-1,1)*qnorm((1 + alpha)/2)/sqrt(acf_temp$n.used)
-            plot_db <- data.frame(acf_temp$lag, acf_temp$acf)
-            ggplot2::ggplot(plot_db, aes(x=acf_temp.lag, y = acf_temp.acf)) + scale_x_continuous(breaks=seq(0,maxlag + 1,round(maxlag / 4))) +
-                            theme_bw() +
-                            geom_hline(yintercept=conf.lims, lty=2, col='blue') +
-                            labs(y="Autocorrelations", x="Lag", title= "") +
-                            geom_segment(aes(xend=acf_temp.lag, yend=0)) + geom_point()
-
           })

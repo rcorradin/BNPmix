@@ -17,30 +17,31 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
 
 #include "RcppArmadillo.h"
-#include "distributions.hpp"
-#include "common_utilities.hpp"
-#include "MPU_functions.hpp"
+#include "Distributions.h"
+#include "CommonUtilities.h"
+#include "MarFunctions.h"
 // [[Rcpp::depends("RcppArmadillo")]]
 
 /*
- *   MPU - UNIVARIATE Marginal Polya Urn
+ *   MAR - UNIVARIATE Marginal Polya Urn
  *
  *   args:
- *   - data:      a vector of observations
- *   - grid:      vector to evaluate the density
- *   - niter:     number of iterations
- *   - nburn:     number of burn-in iterations
- *   - m0:        expectation of location component
- *   - k0:        tuning parameter of variance of location component
- *   - a0, b0:    parameters of scale component
- *   - mass:      mass of Dirichlet process
- *   - nupd:      number of iterations to show current updating
- *                (default niter/10)
- *   - out_param: if TRUE, return also the location and scale paramteres lists
- *                (default FALSE)
- *   - out_dens:  if TRUE, return also the estimated density (default TRUE)
- *   - process:   if 0 DP, if 1 PY
- *   - sigma_PY:  second parameter of PY
+ *   - data:          a vector of observations
+ *   - grid:          vector to evaluate the density
+ *   - niter:         number of iterations
+ *   - nburn:         number of burn-in iterations
+ *   - m0:            expectation of location component
+ *   - k0:            tuning parameter of variance of location component
+ *   - a0, b0:        parameters of scale component
+ *   - mass:          mass of Dirichlet process
+ *   - nupd:          number of iterations to show current updating
+ *                    (default niter/10)
+ *   - out_param:     if TRUE, return also the location and scale paramteres lists
+ *                    (default FALSE)
+ *   - out_dens:      if TRUE, return also the estimated density (default TRUE)
+ *   - process:       if 0 DP, if 1 PY
+ *   - sigma_PY:      second parameter of PY
+ *   - print_message: print the status
  *
  *   output, list:
  *   - dens:  matrix, each row a density evaluated on the grid
@@ -51,7 +52,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  */
 
 //[[Rcpp::export]]
-Rcpp::List MPU(arma::vec data,
+Rcpp::List MAR(arma::vec data,
               arma::vec grid,
               int niter,
               int nburn,
@@ -102,7 +103,7 @@ Rcpp::List MPU(arma::vec data,
     for(int iter = 0; iter < niter; iter++){
 
       // accelerating!!!
-      accelerate_MPU(data,
+      accelerate_MAR(data,
                      mu,
                      s2,
                      clust,
@@ -112,7 +113,7 @@ Rcpp::List MPU(arma::vec data,
                      b0);
 
       // update cluster allocation
-      clust_update_MPU(data,
+      clust_update_MAR(data,
                        mu,
                        s2,
                        clust,
@@ -125,7 +126,7 @@ Rcpp::List MPU(arma::vec data,
                        new_val);
 
       // clean parameter objects
-      para_clean_MPU(mu,
+      para_clean_MAR(mu,
                      s2,
                      clust);
 
@@ -161,7 +162,7 @@ Rcpp::List MPU(arma::vec data,
     for(int iter = 0; iter < niter; iter++){
 
       // accelerating!!!
-      accelerate_MPU(data,
+      accelerate_MAR(data,
                      mu,
                      s2,
                      clust,
@@ -171,7 +172,7 @@ Rcpp::List MPU(arma::vec data,
                      b0);
 
       // update cluster allocation
-      clust_update_MPU_PY(data,
+      clust_update_MAR_PY(data,
                           mu,
                           s2,
                           clust,
@@ -185,7 +186,7 @@ Rcpp::List MPU(arma::vec data,
                           sigma_PY);
 
       // clean parameter objects
-      para_clean_MPU(mu,
+      para_clean_MAR(mu,
                      s2,
                      clust);
 
@@ -219,7 +220,7 @@ Rcpp::List MPU(arma::vec data,
   }
   int end_s = clock();
   if(print_message){
-    Rcpp::Rcout << "\n" << "WoooW! Have you seen how fast am I?\n";
+    Rcpp::Rcout << "\n" << "Estimation done in " << double(end_s-start_s)/CLOCKS_PER_SEC << " seconds\n";
   }
 
   Rcpp::List resu;
@@ -230,39 +231,38 @@ Rcpp::List MPU(arma::vec data,
     resu["s2"]     = result_s2;
     resu["probs"]  = result_probs;
     resu["newval"] = new_val;
-    resu["nclust"] = n_clust;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
   } else {
     resu["dens"]   = result_dens;
     resu["clust"]  = result_clust;
     resu["newval"] = new_val;
-    resu["nclust"] = n_clust;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
   }
   return resu;
 }
 
 /*
- *   cPUS_mv - MULTIVARIATE Conditional Polya Urn scheme
+ *   MAR_mv - MULTIVARIATE marginal scheme
  *
  *   args:
- *   - data:      a matrix of observations
- *   - grid:      matrix to evaluate the density
- *   - niter:     number of iterations
- *   - nburn:     number of burn-in iterations
- *   - m0:        vector of location's prior distribution
- *   - k0:        double of NIG on scale of location distribution
- *   - S0:        matrix of Inverse Wishart distribution
- *   - n0:        degree of freedom of Inverse Wishart distribution
- *   - mass:      mass of Dirichlet process
- *   - napprox:   number of approximating values
- *   - nupd:      number of iterations to show current updating
- *                (default niter/10)
- *   - out_param: if TRUE, return also the location and scale paramteres lists
- *                (default FALSE)
- *   - out_dens:  if TRUE, return also the estimated density (default TRUE)
- *   - process:   if 0 DP, if 1 PY
- *   - sigma_PY:  second parameter of PY
+ *   - data:          a matrix of observations
+ *   - grid:          matrix to evaluate the density
+ *   - niter:         number of iterations
+ *   - nburn:         number of burn-in iterations
+ *   - m0:            vector of location's prior distribution
+ *   - k0:            double of NIG on scale of location distribution
+ *   - S0:            matrix of Inverse Wishart distribution
+ *   - n0:            degree of freedom of Inverse Wishart distribution
+ *   - mass:          mass of Dirichlet process
+ *   - nupd:          number of iterations to show current updating
+ *                    (default niter/10)
+ *   - out_param:     if TRUE, return also the location and scale paramteres lists
+ *                    (default FALSE)
+ *   - out_dens:      if TRUE, return also the estimated density (default TRUE)
+ *   - process:       if 0 DP, if 1 PY
+ *   - sigma_PY:      second parameter of PY
+ *   - print_message: print the status
+ *   - light_dent:    if 1 return only the posterior mean of the estimated density
  *
  *   output, list:
  *   - dens:  matrix, each row a density evaluated on the grid
@@ -273,7 +273,7 @@ Rcpp::List MPU(arma::vec data,
  */
 
 //[[Rcpp::export]]
-Rcpp::List MPU_mv(arma::mat data,
+Rcpp::List MAR_mv(arma::mat data,
                   arma::mat grid,
                   int niter,
                   int nburn,
@@ -327,8 +327,8 @@ Rcpp::List MPU_mv(arma::mat data,
   if(process == 0){
     for(int iter = 0; iter < niter; iter++){
 
-      // accelerating!!!
-      accelerate_MPU_mv(data,
+      // accelerating
+      accelerate_MAR_mv(data,
                         mu,
                         s2,
                         clust,
@@ -338,7 +338,7 @@ Rcpp::List MPU_mv(arma::mat data,
                         n0);
 
       // update cluster allocation
-      clust_update_MPU_mv(data,
+      clust_update_MAR_mv(data,
                           mu,
                           s2,
                           clust,
@@ -351,7 +351,7 @@ Rcpp::List MPU_mv(arma::mat data,
                           new_val);
 
       // clean parameter objects
-      para_clean_MPU_mv(mu,
+      para_clean_MAR_mv(mu,
                         s2,
                         clust);
 
@@ -390,8 +390,8 @@ Rcpp::List MPU_mv(arma::mat data,
   else if(process == 1){
     for(int iter = 0; iter < niter; iter++){
 
-      // accelerating!!!
-      accelerate_MPU_mv(data,
+      // accelerating
+      accelerate_MAR_mv(data,
                         mu,
                         s2,
                         clust,
@@ -401,7 +401,7 @@ Rcpp::List MPU_mv(arma::mat data,
                         n0);
 
       // update cluster allocation
-      clust_update_MPU_PY_mv(data,
+      clust_update_MAR_PY_mv(data,
                              mu,
                              s2,
                              clust,
@@ -415,7 +415,7 @@ Rcpp::List MPU_mv(arma::mat data,
                              sigma_PY);
 
       // clean parameter objects
-      para_clean_MPU_mv(mu,
+      para_clean_MAR_mv(mu,
                         s2,
                         clust);
 
@@ -453,24 +453,30 @@ Rcpp::List MPU_mv(arma::mat data,
   }
   int end_s = clock();
   if(print_message){
-    Rcpp::Rcout << "\n" << "WoooW! Have you seen how fast am I?\n";
+    Rcpp::Rcout << "\n" << "Estimation done in " << double(end_s-start_s)/CLOCKS_PER_SEC << " seconds\n";
   }
 
   Rcpp::List resu;
   if(out_param){
-    resu["dens"]   = result_dens;
+    if(light_dens){
+      resu["dens"]   = result_dens / (niter - nburn);
+    } else {
+      resu["dens"]   = result_dens;
+    }
     resu["clust"]  = result_clust;
     resu["mu"]     = result_mu;
     resu["s2"]     = result_s2;
     resu["probs"]  = result_probs;
     resu["newval"] = new_val;
-    resu["nclust"] = n_clust;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
   } else {
-    resu["dens"]   = result_dens;
+    if(light_dens){
+      resu["dens"]   = result_dens / (niter - nburn);
+    } else {
+      resu["dens"]   = result_dens;
+    }
     resu["clust"]  = result_clust;
     resu["newval"] = new_val;
-    resu["nclust"] = n_clust;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
   }
   return resu;

@@ -17,9 +17,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 */
 
 #include "RcppArmadillo.h"
-#include "distributions.hpp"
-#include "common_utilities.hpp"
-#include "cSLI_functions.hpp"
+#include "Distributions.h"
+#include "CommonUtilities.h"
+#include "SliFunctions.h"
 // [[Rcpp::depends("RcppArmadillo")]]
 
 /*
@@ -262,13 +262,11 @@ Rcpp::List cSLI(arma::vec data,
     resu["s2"]     = result_s2;
     resu["probs"]  = result_probs;
     resu["newval"] = new_val;
-    resu["nclust"] = n_clust;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
   } else {
     resu["dens"]   = result_dens;
     resu["clust"]  = result_clust;
     resu["newval"] = new_val;
-    resu["nclust"] = n_clust;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
   }
   return resu;
@@ -529,19 +527,25 @@ Rcpp::List cSLI_mv(arma::mat data,
 
   Rcpp::List resu;
   if(out_param){
-    resu["dens"]   = result_dens;
+    if(light_dens){
+      resu["dens"]   = result_dens / (niter - nburn);
+    } else {
+      resu["dens"]   = result_dens;
+    }
     resu["clust"]  = result_clust;
     resu["mu"]     = result_mu;
     resu["s2"]     = result_s2;
     resu["probs"]  = result_probs;
     resu["newval"] = new_val;
-    resu["nclust"] = n_clust;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
   } else {
-    resu["dens"]   = result_dens;
+    if(light_dens){
+      resu["dens"]   = result_dens / (niter - nburn);
+    } else {
+      resu["dens"]   = result_dens;
+    }
     resu["clust"]  = result_clust;
     resu["newval"] = new_val;
-    resu["nclust"] = n_clust;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
   }
   return resu;

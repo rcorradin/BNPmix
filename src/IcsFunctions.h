@@ -1,7 +1,7 @@
-#ifndef cPUS_H
-#define cPUS_H
+#ifndef cICS_H
+#define cICS_H
 
-void accelerate_PUS(arma::vec data,
+void accelerate_ICS(arma::vec data,
                     arma::vec &mu,
                     arma::vec &s2,
                     arma::vec clust,
@@ -10,7 +10,7 @@ void accelerate_PUS(arma::vec data,
                     double a0,
                     double b0);
 
-void accelerate_PUS_mv(arma::mat data,
+void accelerate_ICS_mv(arma::mat data,
                        arma::mat &mu,
                        arma::cube &s2,
                        arma::vec clust,
@@ -19,15 +19,15 @@ void accelerate_PUS_mv(arma::mat data,
                        arma::mat S0,
                        double n0);
 
-void para_clean_PUS(arma::vec &mu,
+void para_clean_ICS(arma::vec &mu,
                     arma::vec &s2,
                     arma::vec &clust);
 
-void para_clean_PUS_mv(arma::mat &mu,
+void para_clean_ICS_mv(arma::mat &mu,
                        arma::cube &s2,
                        arma::vec &clust);
 
-void simu_trunc_PUS(arma::vec &mutemp,
+void simu_trunc_ICS(arma::vec &mutemp,
                     arma::vec &s2temp,
                     arma::vec &freqtemp,
                     double mass,
@@ -59,7 +59,7 @@ void simu_trunc_PY_mv(arma::mat &mutemp,
                        int napprox,
                        double sigma_PY);
 
-void simu_trunc_PUS_mv(arma::mat &mutemp,
+void simu_trunc_ICS_mv(arma::mat &mutemp,
                        arma::cube &s2temp,
                        arma::vec &freqtemp,
                        double mass,
@@ -69,7 +69,7 @@ void simu_trunc_PUS_mv(arma::mat &mutemp,
                        double n0,
                        int napprox);
 
-void clust_update_PUS(arma::vec data,
+void clust_update_ICS(arma::vec data,
                       arma::vec mujoin,
                       arma::vec s2join,
                       arma::vec probjoin,
@@ -78,7 +78,7 @@ void clust_update_PUS(arma::vec data,
                       int iter,
                       arma::vec &new_val);
 
-void clust_update_PUS_mv(arma::mat data,
+void clust_update_ICS_mv(arma::mat data,
                          arma::mat mujoin,
                          arma::cube s2join,
                          arma::vec probjoin,
