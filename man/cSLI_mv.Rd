@@ -28,8 +28,6 @@
 
 \item{out_dens}{if TRUE, return also the estimated density (default TRUE)}
 
-\item{process}{if 0 DP, if 1 PY}
-
 \item{sigma_PY}{second parameter of PY}
 
 \item{print_message}{print the status}

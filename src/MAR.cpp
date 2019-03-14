@@ -56,7 +56,6 @@ Rcpp::List MAR(arma::vec data,
               int nupd = 0,
               bool out_param = 0,
               bool out_dens = 1,
-              int process = 0,
               double sigma_PY = 0,
               bool print_message = 1){
 
@@ -71,6 +70,7 @@ Rcpp::List MAR(arma::vec data,
   std::list<arma::vec> result_s2(niter - nburn);
   std::list<arma::vec> result_probs(niter - nburn);
   arma::mat result_dens(niter - nburn, grid.n_elem);
+  result_dens.fill(0);
 
   // initialize required object inside the loop
   arma::vec clust(n);
@@ -87,129 +87,70 @@ Rcpp::List MAR(arma::vec data,
   new_val.fill(0);
   n_clust.fill(0);
 
-
+  // time quantities
   int start_s = clock();
   int current_s;
+
   // strarting loop
-  if(process == 0){
-    for(arma::uword iter = 0; iter < niter; iter++){
+  for(arma::uword iter = 0; iter < niter; iter++){
 
-      // accelerating!!!
-      accelerate_MAR(data,
-                     mu,
-                     s2,
-                     clust,
-                     m0,
-                     k0,
-                     a0,
-                     b0);
+    // accelerating!!!
+    accelerate_MAR(data,
+                   mu,
+                   s2,
+                   clust,
+                   m0,
+                   k0,
+                   a0,
+                   b0);
 
-      // update cluster allocation
-      clust_update_MAR(data,
-                       mu,
-                       s2,
-                       clust,
-                       mass,
-                       m0,
-                       k0,
-                       a0,
-                       b0,
-                       iter,
-                       new_val);
+    // update cluster allocation
+    clust_update_MAR_PY(data,
+                        mu,
+                        s2,
+                        clust,
+                        mass,
+                        m0,
+                        k0,
+                        a0,
+                        b0,
+                        iter,
+                        new_val,
+                        sigma_PY);
 
-      // clean parameter objects
-      para_clean_MAR(mu,
-                     s2,
-                     clust);
+    // clean parameter objects
+    para_clean_MAR(mu,
+                   s2,
+                   clust);
 
-      // if the burn-in phase is complete
-      if(iter >= nburn){
-        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
-        result_mu.push_back(mu);
-        result_s2.push_back(s2);
-        arma::vec tab_freq = freq_vec(clust);
-        result_probs.push_back(tab_freq);
-        n_clust(iter - nburn) = tab_freq.n_elem;
-        if(out_dens){
-          dens = eval_density(grid,
-                              mu,
-                              s2,
-                              tab_freq);
-          result_dens.row(iter - nburn) = arma::trans(dens);
-        }
+    // if the burn-in phase is complete
+    if(iter >= nburn){
+      result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
+      result_mu.push_back(mu);
+      result_s2.push_back(s2);
+      arma::vec tab_freq = freq_vec(clust);
+      result_probs.push_back(tab_freq);
+      n_clust(iter - nburn) = tab_freq.n_elem;
+      if(out_dens){
+        dens = eval_density(grid,
+                            mu,
+                            s2,
+                            tab_freq);
+        result_dens.row(iter - nburn) = arma::trans(dens);
       }
-
-      if(print_message){
-        // print the current completed work
-        if((iter + 1) % nupd == 0){
-          current_s = clock();
-          Rcpp::Rcout << "Completed:\t" << (iter + 1) << "/" << niter << " - in " <<
-            double(current_s-start_s)/CLOCKS_PER_SEC << " sec\n";
-        }
-      }
-      Rcpp::checkUserInterrupt();
     }
-  }
-  else if(process == 1){
-    for(arma::uword iter = 0; iter < niter; iter++){
 
-      // accelerating!!!
-      accelerate_MAR(data,
-                     mu,
-                     s2,
-                     clust,
-                     m0,
-                     k0,
-                     a0,
-                     b0);
-
-      // update cluster allocation
-      clust_update_MAR_PY(data,
-                          mu,
-                          s2,
-                          clust,
-                          mass,
-                          m0,
-                          k0,
-                          a0,
-                          b0,
-                          iter,
-                          new_val,
-                          sigma_PY);
-
-      // clean parameter objects
-      para_clean_MAR(mu,
-                     s2,
-                     clust);
-
-      // if the burn-in phase is complete
-      if(iter >= nburn){
-        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
-        result_mu.push_back(mu);
-        result_s2.push_back(s2);
-        arma::vec tab_freq = freq_vec(clust);
-        result_probs.push_back(tab_freq);
-        n_clust(iter - nburn) = tab_freq.n_elem;
-        if(out_dens){
-          dens = eval_density(grid,
-                              mu,
-                              s2,
-                              tab_freq);
-          result_dens.row(iter - nburn) = arma::trans(dens);
-        }
+    if(print_message){
+      // print the current completed work
+      if((iter + 1) % nupd == 0){
+        current_s = clock();
+        Rcpp::Rcout << "Completed:\t" << (iter + 1) << "/" << niter << " - in " <<
+          double(current_s-start_s)/CLOCKS_PER_SEC << " sec\n";
       }
-
-      if(print_message){
-        // print the current completed work
-        if((iter + 1) % nupd == 0){
-          current_s = clock();
-          Rcpp::Rcout << "Completed:\t" << (iter + 1) << "/" << niter << " - in " <<
-            double(current_s-start_s)/CLOCKS_PER_SEC << " sec\n";
-        }
-      }
-      Rcpp::checkUserInterrupt();
     }
+    Rcpp::checkUserInterrupt();
   }
+
   int end_s = clock();
   if(print_message){
     Rcpp::Rcout << "\n" << "Estimation done in " << double(end_s-start_s)/CLOCKS_PER_SEC << " seconds\n";
@@ -250,7 +191,6 @@ Rcpp::List MAR(arma::vec data,
 //' @param nupd number of iterations to show current updating
 //' @param out_param if TRUE, return also the location and scale paramteres lists
 //' @param out_dens if TRUE, return also the estimated density (default TRUE)
-//' @param process if 0 DP, if 1 PY
 //' @param sigma_PY second parameter of PY
 //' @param print_message print the status
 //' @param light_dens if TRUE return only the posterior mean of the density
@@ -288,6 +228,8 @@ Rcpp::List MAR_mv(arma::mat data,
   if(!light_dens){
     result_dens.resize(niter - nburn, grid.n_rows);
   }
+  result_dens.fill(0);
+
   arma::vec n_clust(niter - nburn);
 
   // initialize required object inside the loop
@@ -304,136 +246,74 @@ Rcpp::List MAR_mv(arma::mat data,
   new_val.fill(0);
   n_clust.fill(0);
 
+  // time quantities
   int start_s = clock();
   int current_s;
+
   // strarting loop
-  if(process == 0){
-    for(arma::uword iter = 0; iter < niter; iter++){
+  for(arma::uword iter = 0; iter < niter; iter++){
 
-      // accelerating
-      accelerate_MAR_mv(data,
-                        mu,
-                        s2,
-                        clust,
-                        m0,
-                        k0,
-                        S0,
-                        n0);
+    // accelerating
+    accelerate_MAR_mv(data,
+                      mu,
+                      s2,
+                      clust,
+                      m0,
+                      k0,
+                      S0,
+                      n0);
 
-      // update cluster allocation
-      clust_update_MAR_mv(data,
-                          mu,
-                          s2,
-                          clust,
-                          mass,
-                          m0,
-                          k0,
-                          S0,
-                          n0,
-                          iter,
-                          new_val);
+    // update cluster allocation
+    clust_update_MAR_PY_mv(data,
+                           mu,
+                           s2,
+                           clust,
+                           mass,
+                           m0,
+                           k0,
+                           S0,
+                           n0,
+                           iter,
+                           new_val,
+                           sigma_PY);
 
-      // clean parameter objects
-      para_clean_MAR_mv(mu,
-                        s2,
-                        clust);
+    // clean parameter objects
+    para_clean_MAR_mv(mu,
+                      s2,
+                      clust);
 
-      // if the burn-in phase is complete
-      if(iter >= nburn){
-        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
-        result_mu.push_back(mu);
-        result_s2.push_back(s2);
-        arma::vec tab_freq = freq_vec(clust);
-        result_probs.push_back(tab_freq);
-        n_clust(iter - nburn) = tab_freq.n_elem;
-        if(out_dens){
-          dens = eval_density_mv(grid,
-                                 mu,
-                                 s2,
-                                 tab_freq);
-          if(light_dens){
-            result_dens += dens;
-          } else {
-            result_dens.row(iter - nburn) = arma::trans(dens);
-          }
+    // if the burn-in phase is complete
+    if(iter >= nburn){
+      result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
+      result_mu.push_back(mu);
+      result_s2.push_back(s2);
+      arma::vec tab_freq = freq_vec(clust);
+      result_probs.push_back(tab_freq);
+      n_clust(iter - nburn) = tab_freq.n_elem;
+      if(out_dens){
+        dens = eval_density_mv(grid,
+                               mu,
+                               s2,
+                               tab_freq);
+        if(light_dens){
+          result_dens += dens;
+        } else {
+          result_dens.row(iter - nburn) = arma::trans(dens);
         }
       }
-
-      if(print_message){
-        // print the current completed work
-        if((iter + 1) % nupd == 0){
-          current_s = clock();
-          Rcpp::Rcout << "Completed:\t" << (iter + 1) << "/" << niter << " - in " <<
-            double(current_s-start_s)/CLOCKS_PER_SEC << " sec\n";
-        }
-      }
-      Rcpp::checkUserInterrupt();
     }
-  }
-  else if(process == 1){
-    for(arma::uword iter = 0; iter < niter; iter++){
 
-      // accelerating
-      accelerate_MAR_mv(data,
-                        mu,
-                        s2,
-                        clust,
-                        m0,
-                        k0,
-                        S0,
-                        n0);
-
-      // update cluster allocation
-      clust_update_MAR_PY_mv(data,
-                             mu,
-                             s2,
-                             clust,
-                             mass,
-                             m0,
-                             k0,
-                             S0,
-                             n0,
-                             iter,
-                             new_val,
-                             sigma_PY);
-
-      // clean parameter objects
-      para_clean_MAR_mv(mu,
-                        s2,
-                        clust);
-
-      // if the burn-in phase is complete
-      if(iter >= nburn){
-        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
-        result_mu.push_back(mu);
-        result_s2.push_back(s2);
-        arma::vec tab_freq = freq_vec(clust);
-        result_probs.push_back(tab_freq);
-        n_clust(iter - nburn) = tab_freq.n_elem;
-        if(out_dens){
-          dens = eval_density_mv(grid,
-                                 mu,
-                                 s2,
-                                 tab_freq);
-          if(light_dens){
-            result_dens += dens;
-          } else {
-            result_dens.row(iter - nburn) = arma::trans(dens);
-          }
-        }
+    if(print_message){
+      // print the current completed work
+      if((iter + 1) % nupd == 0){
+        current_s = clock();
+        Rcpp::Rcout << "Completed:\t" << (iter + 1) << "/" << niter << " - in " <<
+          double(current_s-start_s)/CLOCKS_PER_SEC << " sec\n";
       }
-
-      if(print_message){
-        // print the current completed work
-        if((iter + 1) % nupd == 0){
-          current_s = clock();
-          Rcpp::Rcout << "Completed:\t" << (iter + 1) << "/" << niter << " - in " <<
-            double(current_s-start_s)/CLOCKS_PER_SEC << " sec\n";
-        }
-      }
-      Rcpp::checkUserInterrupt();
     }
+    Rcpp::checkUserInterrupt();
   }
+
   int end_s = clock();
   if(print_message){
     Rcpp::Rcout << "\n" << "Estimation done in " << double(end_s-start_s)/CLOCKS_PER_SEC << " seconds\n";

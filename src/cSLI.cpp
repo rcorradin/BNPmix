@@ -39,7 +39,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 //' @param nupd number of iterations to show current updating
 //' @param out_param if TRUE, return also the location and scale paramteres lists
 //' @param out_dens if TRUE, return also the estimated density (default TRUE)
-//' @param process if 0 DP, if 1 PY
 //' @param sigma_PY second parameter of PY
 //' @param print_message print the status
 
@@ -56,7 +55,6 @@ Rcpp::List cSLI(arma::vec data,
                 int nupd = 0,
                 bool out_param = 0,
                 bool out_dens = 1,
-                int process = 0,
                 double sigma_PY = 0,
                 bool print_message = 1){
 
@@ -73,6 +71,7 @@ Rcpp::List cSLI(arma::vec data,
   arma::mat result_dens(niter - nburn, grid.n_elem);
   arma::vec new_val(niter);
   arma::vec n_clust(niter - nburn);
+  result_dens.fill(0);
 
   arma::vec clust(n);
   clust.fill(0);
@@ -88,181 +87,96 @@ Rcpp::List cSLI(arma::vec data,
   mu.fill(m0);
   s2.fill(b0 / (a0 - 1));
 
+  // time quantities
   int start_s = clock();
   int current_s;
+
   // strarting loop
-  if(process== 0){
-    for(arma::uword iter = 0; iter < niter; iter++){
+  for(arma::uword iter = 0; iter < niter; iter++){
 
-      // update the parameters
-      accelerate_SLI(data,
-                     mu,
-                     s2,
-                     v,
-                     w,
-                     clust,
-                     m0,
-                     k0,
-                     a0,
-                     b0,
-                     mass);
+    // update the parameters
+    accelerate_SLI_PY(data,
+                      mu,
+                      s2,
+                      v,
+                      w,
+                      clust,
+                      m0,
+                      k0,
+                      a0,
+                      b0,
+                      mass,
+                      sigma_PY);
 
-      int old_length = mu.n_elem;
+    int old_length = mu.n_elem;
 
-      // update the stick breaking weights
-      update_u_SLI(clust,
-                   w,
-                   u);
+    // update the stick breaking weights
+    update_u_SLI(clust,
+                 w,
+                 u);
 
-      // extend the stick breaking representation
-      grow_param_SLI(mu,
-                     s2,
-                     v,
-                     w,
-                     u,
-                     m0,
-                     k0,
-                     a0,
-                     b0,
-                     mass,
-                     n);
+    // extend the stick breaking representation
+    grow_param_SLI_PY(mu,
+                      s2,
+                      v,
+                      w,
+                      u,
+                      m0,
+                      k0,
+                      a0,
+                      b0,
+                      mass,
+                      n,
+                      sigma_PY);
 
-      // update the allocation
-      update_cluster_SLI(data,
-                         mu,
-                         s2,
-                         clust,
-                         w,
-                         u,
-                         old_length,
-                         iter,
-                         new_val);
+    // update the allocation
+    update_cluster_SLI(data,
+                       mu,
+                       s2,
+                       clust,
+                       w,
+                       u,
+                       old_length,
+                       iter,
+                       new_val);
 
-      // save the results
-      if(iter >= nburn){
-        result_mu.push_back(mu);
-        result_s2.push_back(s2);
-        result_probs.push_back(w);
-        n_clust(iter - nburn) = w.n_elem;
-        if(out_dens){
-          result_dens.row(iter - nburn) = arma::trans(eval_density(grid,
-                                                      mu,
-                                                      s2,
-                                                      w));
-        }
+    // save the results
+    if(iter >= nburn){
+      result_mu.push_back(mu);
+      result_s2.push_back(s2);
+      result_probs.push_back(w);
+      n_clust(iter - nburn) = w.n_elem;
+      if(out_dens){
+        result_dens.row(iter - nburn) = arma::trans(eval_density(grid, mu, s2, w));
       }
-
-      // clean the parameters
-      para_clean_SLI(mu,
-                     s2,
-                     clust,
-                     v,
-                     w);
-
-      // save the results
-      if(iter >= nburn){
-        result_clust.row(iter - nburn) = arma::trans(clust);
-      }
-
-      if(print_message){
-        // print the current completed work
-        if((iter + 1) % nupd == 0){
-          current_s = clock();
-          Rcpp::Rcout << "Completed:\t" << (iter + 1) << "/" << niter << " - in " <<
-            double(current_s-start_s)/CLOCKS_PER_SEC << " sec\n";
-        }
-      }
-      Rcpp::checkUserInterrupt();
     }
-  } else if(process == 1){
-    for(arma::uword iter = 0; iter < niter; iter++){
 
-      // update the parameters
-      accelerate_SLI_PY(data,
-                        mu,
-                        s2,
-                        v,
-                        w,
-                        clust,
-                        m0,
-                        k0,
-                        a0,
-                        b0,
-                        mass,
-                        sigma_PY);
+    // clean the parameters
+    para_clean_SLI(mu,
+                   s2,
+                   clust,
+                   v,
+                   w);
 
-      int old_length = mu.n_elem;
-
-      // update the stick breaking weights
-      update_u_SLI(clust,
-                   w,
-                   u);
-
-      // extend the stick breaking representation
-      grow_param_SLI_PY(mu,
-                        s2,
-                        v,
-                        w,
-                        u,
-                        m0,
-                        k0,
-                        a0,
-                        b0,
-                        mass,
-                        n,
-                        sigma_PY);
-
-      // update the allocation
-      update_cluster_SLI(data,
-                         mu,
-                         s2,
-                         clust,
-                         w,
-                         u,
-                         old_length,
-                         iter,
-                         new_val);
-
-      // save the results
-      if(iter >= nburn){
-        result_mu.push_back(mu);
-        result_s2.push_back(s2);
-        result_probs.push_back(w);
-        n_clust(iter - nburn) = w.n_elem;
-        if(out_dens){
-          result_dens.row(iter - nburn) = arma::trans(eval_density(grid,
-                                                      mu,
-                                                      s2,
-                                                      w));
-        }
-      }
-
-      // clean the parameters
-      para_clean_SLI(mu,
-                     s2,
-                     clust,
-                     v,
-                     w);
-
-      // save the results
-      if(iter >= nburn){
-        result_clust.row(iter - nburn) = arma::trans(clust);
-      }
-
-      if(print_message){
-        // print the current completed work
-        if((iter + 1) % nupd == 0){
-          current_s = clock();
-          Rcpp::Rcout << "Completed:\t" << (iter + 1) << "/" << niter << " - in " <<
-            double(current_s-start_s)/CLOCKS_PER_SEC << " sec\n";
-        }
-      }
-      Rcpp::checkUserInterrupt();
+    // save the results
+    if(iter >= nburn){
+      result_clust.row(iter - nburn) = arma::trans(clust);
     }
+
+    if(print_message){
+      // print the current completed work
+      if((iter + 1) % nupd == 0){
+        current_s = clock();
+        Rcpp::Rcout << "Completed:\t" << (iter + 1) << "/" << niter << " - in " <<
+          double(current_s-start_s)/CLOCKS_PER_SEC << " sec\n";
+      }
+    }
+    Rcpp::checkUserInterrupt();
   }
+
   int end_s = clock();
   if(print_message){
-    Rcpp::Rcout << "\n" << "WoooW! Have you seen how fast am I?\n";
+    Rcpp::Rcout << "\n" << "Estimation done in " << double(end_s-start_s)/CLOCKS_PER_SEC << " seconds\n";
   }
 
   Rcpp::List resu;
@@ -300,7 +214,6 @@ Rcpp::List cSLI(arma::vec data,
 //' @param nupd number of iterations to show current updating
 //' @param out_param if TRUE, return also the location and scale paramteres lists
 //' @param out_dens if TRUE, return also the estimated density (default TRUE)
-//' @param process if 0 DP, if 1 PY
 //' @param sigma_PY second parameter of PY
 //' @param print_message print the status
 //' @param light_dens if TRUE return only the posterior mean of the density
@@ -339,7 +252,7 @@ Rcpp::List cSLI_mv(arma::mat data,
   if(!light_dens){
     result_dens.resize(niter - nburn, grid.n_rows);
   }
-
+  result_dens.fill(0);
 
   // initialize required object inside the loop
   arma::vec clust(n);
@@ -359,191 +272,104 @@ Rcpp::List cSLI_mv(arma::mat data,
   new_val.fill(0);
   n_clust.fill(0);
 
+  // time quantities
   int start_s = clock();
   int current_s;
+
   // strarting loop
-  if(process == 0){
-    for(arma::uword iter = 0; iter < niter; iter++){
+  for(arma::uword iter = 0; iter < niter; iter++){
 
-      // update the parameters
-      accelerate_SLI_mv(data,
-                        mu,
-                        s2,
-                        v,
-                        w,
-                        clust,
-                        m0,
-                        k0,
-                        S0,
-                        n0,
-                        mass);
+    // update the parameters
+    accelerate_SLI_PY_mv(data,
+                         mu,
+                         s2,
+                         v,
+                         w,
+                         clust,
+                         m0,
+                         k0,
+                         S0,
+                         n0,
+                         mass,
+                         sigma_PY);
 
-      int old_length = mu.n_elem;
+    int old_length = mu.n_elem;
 
-      // update the stick breaking weights
-      update_u_SLI(clust,
-                   w,
-                   u);
+    // update the stick breaking weights
+    update_u_SLI(clust,
+                 w,
+                 u);
 
-      // extend the stick breaking representation
-      grow_param_SLI_mv(mu,
-                        s2,
-                        v,
-                        w,
-                        u,
-                        m0,
-                        k0,
-                        S0,
-                        n0,
-                        mass,
-                        n);
+    // extend the stick breaking representation
+    grow_param_SLI_PY_mv(mu,
+                         s2,
+                         v,
+                         w,
+                         u,
+                         m0,
+                         k0,
+                         S0,
+                         n0,
+                         mass,
+                         n,
+                         sigma_PY);
 
-      // update the allocation
-      update_cluster_SLI_mv(data,
-                            mu,
-                            s2,
-                            clust,
-                            w,
-                            u,
-                            old_length,
-                            iter,
-                            new_val);
+    // update the allocation
+    update_cluster_SLI_mv(data,
+                          mu,
+                          s2,
+                          clust,
+                          w,
+                          u,
+                          old_length,
+                          iter,
+                          new_val);
 
-      // save the results
-      if(iter >= nburn){
-        result_mu.push_back(mu);
-        result_s2.push_back(s2);
-        result_probs.push_back(w);
-        n_clust(iter - nburn) = w.n_elem;
-        if(out_dens){
-          dens = eval_density_mv(grid,
-                                 mu,
-                                 s2,
-                                 w);
-          if(light_dens){
-            result_dens += dens;
-          } else {
-            result_dens.row(iter - nburn) = arma::trans(dens);
-          }
+    // save the results
+    if(iter >= nburn){
+      result_mu.push_back(mu);
+      result_s2.push_back(s2);
+      result_probs.push_back(w);
+      n_clust(iter - nburn) = w.n_elem;
+      if(out_dens){
+        dens = eval_density_mv(grid,
+                               mu,
+                               s2,
+                               w);
+        if(light_dens){
+          result_dens += dens;
+        } else {
+          result_dens.row(iter - nburn) = arma::trans(dens);
         }
       }
-
-      // clean the parameters
-      para_clean_SLI_mv(mu,
-                        s2,
-                        clust,
-                        v,
-                        w);
-
-      // save the results
-      if(iter >= nburn){
-        result_clust.row(iter - nburn) = arma::trans(clust);
-      }
-
-      if(print_message){
-        // print the current completed work
-        if((iter + 1) % nupd == 0){
-          current_s = clock();
-          Rcpp::Rcout << "Completed:\t" << (iter + 1) << "/" << niter << " - in " <<
-            double(current_s-start_s)/CLOCKS_PER_SEC << " sec\n";
-        }
-      }
-      Rcpp::checkUserInterrupt();
     }
-  } else if(process == 1){
-    for(arma::uword iter = 0; iter < niter; iter++){
 
-      // update the parameters
-      accelerate_SLI_PY_mv(data,
-                           mu,
-                           s2,
-                           v,
-                           w,
-                           clust,
-                           m0,
-                           k0,
-                           S0,
-                           n0,
-                           mass,
-                           sigma_PY);
+    // clean the parameters
+    para_clean_SLI_mv(mu,
+                      s2,
+                      clust,
+                      v,
+                      w);
 
-      int old_length = mu.n_elem;
-
-      // update the stick breaking weights
-      update_u_SLI(clust,
-                   w,
-                   u);
-
-      // extend the stick breaking representation
-      grow_param_SLI_PY_mv(mu,
-                           s2,
-                           v,
-                           w,
-                           u,
-                           m0,
-                           k0,
-                           S0,
-                           n0,
-                           mass,
-                           n,
-                           sigma_PY);
-
-      // update the allocation
-      update_cluster_SLI_mv(data,
-                            mu,
-                            s2,
-                            clust,
-                            w,
-                            u,
-                            old_length,
-                            iter,
-                            new_val);
-
-      // save the results
-      if(iter >= nburn){
-        result_mu.push_back(mu);
-        result_s2.push_back(s2);
-        result_probs.push_back(w);
-        n_clust(iter - nburn) = w.n_elem;
-        if(out_dens){
-          dens = eval_density_mv(grid,
-                                 mu,
-                                 s2,
-                                 w);
-          if(light_dens){
-            result_dens += dens;
-          } else {
-            result_dens.row(iter - nburn) = arma::trans(dens);
-          }
-        }
-      }
-
-      // clean the parameters
-      para_clean_SLI_mv(mu,
-                        s2,
-                        clust,
-                        v,
-                        w);
-
-      // save the results
-      if(iter >= nburn){
-        result_clust.row(iter - nburn) = arma::trans(clust);
-      }
-
-      if(print_message){
-        // print the current completed work
-        if((iter + 1) % nupd == 0){
-          current_s = clock();
-          Rcpp::Rcout << "Completed:\t" << (iter + 1) << "/" << niter << " - in " <<
-            double(current_s-start_s)/CLOCKS_PER_SEC << " sec\n";
-        }
-      }
-      Rcpp::checkUserInterrupt();
+    // save the results
+    if(iter >= nburn){
+      result_clust.row(iter - nburn) = arma::trans(clust);
     }
+
+    if(print_message){
+      // print the current completed work
+      if((iter + 1) % nupd == 0){
+        current_s = clock();
+        Rcpp::Rcout << "Completed:\t" << (iter + 1) << "/" << niter << " - in " <<
+          double(current_s-start_s)/CLOCKS_PER_SEC << " sec\n";
+      }
+    }
+    Rcpp::checkUserInterrupt();
   }
+
   int end_s = clock();
   if(print_message){
-    Rcpp::Rcout << "\n" << "WoooW! Have you seen how fast am I?\n";
+    Rcpp::Rcout << "\n" << "Estimation done in " << double(end_s-start_s)/CLOCKS_PER_SEC << " seconds\n";
   }
 
   Rcpp::List resu;

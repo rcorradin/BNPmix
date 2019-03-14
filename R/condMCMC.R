@@ -2,8 +2,14 @@
 #' @export condMCMC
 #'
 #' @title MCMC for univariate Pitman-Yor mixtures
-#' @description Function to estimate an univariate Pitman-Yor process mixture model with Gaussian kernel. Three possible
-#' sampling strategies: importance conditional sampler, slice sampler and marginal sampler.
+#' @description The condMCMC function estimate a univariate Pitman-Yor process mixture model
+#' with Gaussian kernel. Three possible sampling strategies: importance conditional sampler,
+#' slice sampler and marginal sampler.
+#'
+#' The models are of the form \deqn{\tilde f(x) = \int k(x, \theta) \tilde p (d \theta)} where
+#' \eqn{k(x, \theta)} is an univariate gaussian kernel function, \eqn{\tilde p} is distributed as a Pitman-Yor
+#' process with total mass \eqn{\vartheta}, discount parameter \eqn{\sigma} and normal-inverse-gamma base measure \eqn{P_0}, i.e.
+#' \deqn{P_0 \sim N(\mu; m_0, k_0 \sigma^2) \times IG(\sigma^2; a_0, b_0).}
 #'
 #' @param data A dataset (vector).
 #' @param grid A grid to evaluate the estimated density (vector).
@@ -25,13 +31,14 @@
 #' @param print_message If TRUE print the status of the estimation, default TRUE.
 #'
 #' @return A modCond class object contain the estimated density for each iterations,
-#' the allocations for each iterations. If out_param is TRUE, also the parameters.
+#' the allocations for each iterations. If out_param is TRUE, also the parameters for each iteration.
 #'
 #' @examples
 #' data_toy <- c(rnorm(100, -3, 1), rnorm(100, 3, 1))
 #' grid <- seq(-7, 7, length.out = 50)
 #' est_model <- condMCMC(data = data_toy, grid = grid, niter = 1000,
 #'                       nburn = 100, napprox = 100, nupd = 100)
+#' summary(est_model)
 #' plot(est_model)
 #'
 
@@ -41,6 +48,7 @@ condMCMC <- function(data, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL,
                      process = "DP", sigma_PY = 0, print_message = TRUE){
 
   if(is.null(grid)) grid <- 0
+  if(process == "DP") sigma_PY <- 0
 
   grid_use <- as.vector(grid)
   if(length(dim(data)) > 1){
@@ -52,104 +60,66 @@ condMCMC <- function(data, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL,
   if(is.null(b0)) b0 <- 1
 
   if(method == "ICS"){
-    if(process == "DP"){
-      est_model <- cICS(data, grid_use, niter, nburn, m0, k0, a0, b0, mass,
-                        napprox, nupd, out_param, out_dens, 0, sigma_PY, print_message)
-    } else if(process == "PY"){
-      est_model <- cICS(data, grid_use, niter, nburn, m0, k0, a0, b0, mass,
-                        napprox, nupd, out_param, out_dens, 1, sigma_PY, print_message)
-    }
+
+    # call the ICS univariate function
+    est_model <- cICS(data, grid_use, niter, nburn, m0, k0, a0, b0, mass,
+                      napprox, nupd, out_param, out_dens, sigma_PY, print_message)
   } else if(method == "SLI"){
-    if(process == "DP"){
-      est_model <- cSLI(data, grid_use, niter, nburn, m0, k0, a0, b0,
-                        mass, nupd, out_param, out_dens, 0, sigma_PY, print_message)
-    } else if(process == "PY"){
-      est_model <- cSLI(data, grid_use, niter, nburn, m0, k0, a0, b0,
-                        mass, nupd, out_param, out_dens, 1, sigma_PY, print_message)
-    }
+
+    # call the SLI univariate function
+    est_model <- cSLI(data, grid_use, niter, nburn, m0, k0, a0, b0,
+                      mass, nupd, out_param, out_dens, sigma_PY, print_message)
   } else if(method == "MAR"){
-    if(process == "DP"){
-      est_model <- MAR(data, grid_use, niter, nburn, m0, k0, a0, b0,
-                       mass, nupd, out_param, out_dens, 0, sigma_PY, print_message)
-    } else if(process == "PY"){
-      est_model <- MAR(data, grid_use, niter, nburn, m0, k0, a0, b0,
-                        mass, nupd, out_param, out_dens, 1, sigma_PY, print_message)
-    }
+
+    # call the MAR univariate function
+    est_model <- MAR(data, grid_use, niter, nburn, m0, k0, a0, b0,
+                     mass, nupd, out_param, out_dens, sigma_PY, print_message)
   }
 
   if(!isTRUE(out_param)){
     if(isTRUE(out_dens)){
-      output <- new(Class = "modCond",
-                    density = est_model$dens,
-                    grideval = grid_use,
-                    clust = est_model$clust,
-                    niter = niter,
-                    nburn = nburn,
-                    nnew = as.vector(est_model$newval),
-                    tot_time = est_model$time)
+      output <- modCond(density = est_model$dens,
+                        grideval = grid_use,
+                        clust = est_model$clust,
+                        niter = niter,
+                        nburn = nburn,
+                        nnew = as.vector(est_model$newval),
+                        tot_time = est_model$time,
+                        univariate = TRUE)
     }else{
-      output <- new(Class = "modCond",
-                    clust = est_model$clust,
-                    niter = niter,
-                    nburn = nburn,
-                    nnew = as.vector(est_model$newval),
-                    tot_time = est_model$time)
+      output <- modCond(clust = est_model$clust,
+                        niter = niter,
+                        nburn = nburn,
+                        nnew = as.vector(est_model$newval),
+                        tot_time = est_model$time,
+                        univariate = TRUE)
     }
   } else {
     if(isTRUE(out_dens)){
-      output <- new(Class = "modCond",
-                    density = est_model$dens,
-                    grideval = grid_use,
-                    clust = est_model$clust,
-                    mean = est_model$mu,
-                    sigma2 = est_model$s2,
-                    probs = est_model$probs,
-                    niter = niter,
-                    nburn = nburn,
-                    nnew = as.vector(est_model$newval),
-                    tot_time = est_model$time)
+      output <- modCond(density = est_model$dens,
+                        grideval = grid_use,
+                        clust = est_model$clust,
+                        mean = est_model$mu,
+                        sigma2 = est_model$s2,
+                        probs = est_model$probs,
+                        niter = niter,
+                        nburn = nburn,
+                        nnew = as.vector(est_model$newval),
+                        tot_time = est_model$time,
+                        univariate = TRUE)
     }else{
-      output <- new(Class = "modCond",
-                    clust = est_model$clust,
-                    mean = est_model$mu,
-                    sigma2 = est_model$s2,
-                    probs = est_model$probs,
-                    niter = niter,
-                    nburn = nburn,
-                    nnew = as.vector(est_model$newval),
-                    tot_time = est_model$time)
+      output <- modCond(clust = est_model$clust,
+                        mean = est_model$mu,
+                        sigma2 = est_model$s2,
+                        probs = est_model$probs,
+                        niter = niter,
+                        nburn = nburn,
+                        nnew = as.vector(est_model$newval),
+                        tot_time = est_model$time,
+                        univariate = TRUE)
     }
   }
 
+
   return(output)
 }
-
-# METHODS for class modCond ------------------------------------------------------------------------------
-
-#' @title modCond object plot
-#' @description \code{plot} method for class \code{modCond}.
-#'
-#' @param x object of class \code{modCond}.
-#' @param col the color of the density.
-
-setMethod(f = "plot",
-          signature(x = "modCond"),
-          definition = function(x, col = "#0037c4"){
-            with(x, {
-                 stopifnot(class(x) == "modCond")
-
-                 if(length(dim(x@density)) == 2){
-                   plot_df <- as.data.frame(cbind(x@grideval, colMeans(x@density)))
-                 } else {
-                   plot_df <- as.data.frame(cbind(x@grideval, x@density))
-                 }
-
-                 names(plot_df) = c("V1", "V2")
-                 ggplot2::ggplot(plot_df, mapping = ggplot2::aes(x = V1, y = V2)) +
-                   ggplot2::theme_bw() +
-                   ggplot2::theme(axis.ticks = ggplot2::element_blank(),
-                                  axis.title.x = ggplot2::element_blank(),
-                                  axis.title.y = ggplot2::element_blank()) +
-                   ggplot2::geom_line(mapping = ggplot2::aes(x = V1, y = V2), size= 1, color = col)
-            })
-          })

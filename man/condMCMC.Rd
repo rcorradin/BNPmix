@@ -47,17 +47,24 @@ importance conditional sampler/slice sampler/marginal sampler, default "ICS".}
 }
 \value{
 A modCond class object contain the estimated density for each iterations,
-the allocations for each iterations. If out_param is TRUE, also the parameters.
+the allocations for each iterations. If out_param is TRUE, also the parameters for each iteration.
 }
 \description{
-Function to estimate an univariate Pitman-Yor process mixture model with Gaussian kernel. Three possible
-sampling strategies: importance conditional sampler, slice sampler and marginal sampler.
+The condMCMC function estimate a univariate Pitman-Yor process mixture model
+with Gaussian kernel. Three possible sampling strategies: importance conditional sampler,
+slice sampler and marginal sampler.
+
+The models are of the form \deqn{\tilde f(x) = \int k(x, \theta) \tilde p (d \theta)} where
+\eqn{k(x, \theta)} is an univariate gaussian kernel function, \eqn{\tilde p} is distributed as a Pitman-Yor
+process with total mass \eqn{\vartheta}, discount parameter \eqn{\sigma} and normal-inverse-gamma base measure \eqn{P_0}, i.e.
+\deqn{P_0 \sim N(\mu; m_0, k_0 \sigma^2) \times IG(\sigma^2; a_0, b_0).}
 }
 \examples{
 data_toy <- c(rnorm(100, -3, 1), rnorm(100, 3, 1))
 grid <- seq(-7, 7, length.out = 50)
 est_model <- condMCMC(data = data_toy, grid = grid, niter = 1000,
                       nburn = 100, napprox = 100, nupd = 100)
+summary(est_model)
 plot(est_model)
 
 }

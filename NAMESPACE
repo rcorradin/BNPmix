@@ -1,6 +1,20 @@
-useDynLib(BNPmix)
+useDynLib(BNPmix, .registration = TRUE)
 importFrom(methods, new)
 importFrom(ggplot2, ggplot, theme, theme_bw, element_blank, aes, geom_line,stat_contour, facet_wrap, guides)
 importFrom(stats, aggregate, quantile)
-exportPattern("^[[:alpha:]]+")
 
+export(condMCMC)
+export(condMCMCmv)
+export(condDDP)
+
+export(cDDP)
+export(cICS)
+export(cSLI)
+export(MAR)
+export(cICS_mv)
+export(cSLI_mv)
+export(MAR_mv)
+
+export(modCond)
+S3method(plot, modCond)
+S3method(summary, modCond)

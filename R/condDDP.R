@@ -33,6 +33,7 @@
 #' grid <- seq(-7, 7, length.out = 50)
 #' est_model <- condDDP(data = data_toy, group = group_toy, grid = grid, niter = 1000,
 #'                      nburn = 100, napprox = 100, nupd = 100)
+#' summary(est_model)
 #' plot(est_model)
 #'
 
@@ -76,75 +77,43 @@ condDDP <- function(data, group, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL
 
   if(isTRUE(out_dens)){
     if(light_dens == TRUE){
-      output <- new(Class = "modCondDep",
-                    density = est_model$dens[,,1],
-                    grideval = grid_use,
-                    clust = est_model$clust,
-                    group_log = est_model$group_log,
-                    niter = niter,
-                    nburn = nburn,
-                    nclust = as.vector(est_model$nclust),
-                    tot_time = est_model$time,
-                    group = group,
-                    wvals = est_model$wvals)
+      output <- modCond(density = est_model$dens[,,1],
+                        grideval = grid_use,
+                        clust = est_model$clust,
+                        group_log = est_model$group_log,
+                        niter = niter,
+                        nburn = nburn,
+                        nclust = as.vector(est_model$nclust),
+                        tot_time = est_model$time,
+                        group = group,
+                        wvals = est_model$wvals,
+                        dep = TRUE)
     } else {
-      output <- new(Class = "modCondDep",
-                    density = est_model$dens,
-                    grideval = grid_use,
-                    clust = est_model$clust,
-                    group_log = est_model$group_log,
-                    niter = niter,
-                    nburn = nburn,
-                    nclust = as.vector(est_model$nclust),
-                    tot_time = est_model$time,
-                    group = group,
-                    wvals = est_model$wvals)
+      output <- modCond(density = est_model$dens,
+                        grideval = grid_use,
+                        clust = est_model$clust,
+                        group_log = est_model$group_log,
+                        niter = niter,
+                        nburn = nburn,
+                        nclust = as.vector(est_model$nclust),
+                        tot_time = est_model$time,
+                        group = group,
+                        wvals = est_model$wvals,
+                        dep = TRUE)
     }
 
   }else{
-    output <- new(Class = "modCondDep",
-                  clust = est_model$clust,
-                  group_log = est_model$group_log,
-                  niter = niter,
-                  nburn = nburn,
-                  # nnew = as.vector(est_model$newval),
-                  nclust = as.vector(est_model$nclust),
-                  tot_time = est_model$time,
-                  group = group,
-                  wvals = est_model$wvals)
+    output <- modCond(clust = est_model$clust,
+                      group_log = est_model$group_log,
+                      niter = niter,
+                      nburn = nburn,
+                      nclust = as.vector(est_model$nclust),
+                      tot_time = est_model$time,
+                      group = group,
+                      wvals = est_model$wvals,
+                      dep = TRUE)
   }
 
   return(output)
 }
-
-# METHODS for class modCond ------------------------------------------------------------------------------
-
-#' @title modCondDep object plot
-#' @description \code{plot} method for class \code{modCondDep}
-#'
-#' @param x object of class \code{modCondDep}.
-#' @param ncol number of column in the final plot.
-
-setMethod(f = "plot",
-          signature(x = "modCondDep"),
-          definition = function(x, ncol = 1){
-            with(x, {
-
-              stopifnot(class(x) == "modCondDep")
-
-              ngr <- length(unique(x@group))
-              plot_df <- as.data.frame(cbind(rep(x@grideval, ngr), as.vector(apply(x@density, c(1,2), mean)),
-                                             as.vector(sapply(1:ngr, function(y) rep(paste("Group ", y), length(x@grideval)))) ))
-              plot_df[,1:2] <- as.data.frame(cbind(rep(x@grideval, ngr), as.vector(apply(x@density, c(1,2), mean))))
-
-              ggplot2::ggplot(plot_df, mapping = ggplot2::aes(x = V1, y = V2, color = V3)) +
-                ggplot2::theme_bw() +
-                ggplot2::theme(axis.ticks = ggplot2::element_blank(),
-                               axis.title.x = ggplot2::element_blank(),
-                               axis.title.y = ggplot2::element_blank()) +
-                ggplot2::geom_line() +
-                ggplot2::facet_wrap(~ factor(V3), ncol = 1) +
-                ggplot2::guides(fill=FALSE, color=FALSE)
-            })
-          })
 

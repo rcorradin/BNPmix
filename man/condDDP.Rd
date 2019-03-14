@@ -61,6 +61,7 @@ group_toy <- c(rep(1,100), rep(2,100))
 grid <- seq(-7, 7, length.out = 50)
 est_model <- condDDP(data = data_toy, group = group_toy, grid = grid, niter = 1000,
                      nburn = 100, napprox = 100, nupd = 100)
+summary(est_model)
 plot(est_model)
 
 }
