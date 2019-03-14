@@ -30,6 +30,7 @@ int rintnunif(arma::vec weights){
       return k;
     }
   }
+  return -1;
 }
 
 // NON-Uniform discrete distribution - log
@@ -47,6 +48,7 @@ int rintnunif_log(arma::vec lweights){
       return k;
     }
   }
+  return -1;
 }
 
 // normalized freq + mass
@@ -63,6 +65,7 @@ int rintnunifw(arma::vec freq,
       return k;
     }
   }
+  return -1;
 }
 
 // Dirichlet distribution

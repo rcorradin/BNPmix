@@ -4,8 +4,8 @@
 \name{BNPmix-package}
 \alias{BNPmix}
 \alias{BNPmix-package}
-\title{BNPmix: Algorithms for Dirichlet process mixtures}
+\title{BNPmix: Algorithms for Pitman-Yor process mixtures}
 \description{
-A package containing different algorithms to estimate Dirichlet process mixtures model and Pitman-Yor mixture models. Estimation could be done via importance conditional sampler, slice sampler or marginal sampler. The package contains also the procedures to estimate via importance conditional sampler a GM-DDP model.
+A package containing different algorithms to estimate Pitman-Yor process mixtures model and Pitman-Yor mixture models. Estimation could be done via importance conditional sampler, slice sampler or marginal sampler. The package contains also the procedures to estimate via importance conditional sampler a GM-DDP model.
 }
 \keyword{internal}

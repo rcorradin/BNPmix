@@ -22,32 +22,27 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 #include "SliFunctions.h"
 // [[Rcpp::depends("RcppArmadillo")]]
 
-/*
- *   cSLI - Univariate Conditional Slice sampler
- *
- *   args:
- *   - data:      a vector of observations
- *   - grid:      vector to evaluate the density
- *   - niter:     number of iterations
- *   - nburn:     number of burn-in iterations
- *   - m0:        expectation of location component
- *   - k0:        tuning parameter of variance of location component
- *   - a0, b0:    parameters of scale component
- *   - mass:      mass of Dirichlet process
- *   - nupd:      number of iterations to show current updating
- *                (default niter/10)
- *   - out_param: if TRUE, return also the location and scale paramteres lists
- *                (default FALSE)
- *   - out_dens:  if TRUE, return also the estimated density (default TRUE)
- *   - sigma_PY:   second parameter PY
- *
- *   output, list:
- *   - dens:  matrix, each row a density evaluated on the grid
- *   - clust: matrix, each row an allocation
- *   - mu:    list, each element a locations vector
- *   - s2:    list, each element a scale vector
- *   - probs: list, each element a probabilities vector
- */
+//' @export cSLI
+//' @name cSLI
+//' @title C++ function to estimate Pitman-Yor univariate mixtures via slice sampler
+//'
+//'
+//' @param data a vector of observations
+//' @param grid vector to evaluate the density
+//' @param niter number of iterations
+//' @param nburn number of burn-in iterations
+//' @param m0 expectation of location component
+//' @param k0 tuning parameter of variance of location component
+//' @param a0 parameter of scale component
+//' @param b0 parameter of scale component
+//' @param mass mass of Dirichlet process
+//' @param nupd number of iterations to show current updating
+//' @param out_param if TRUE, return also the location and scale paramteres lists
+//' @param out_dens if TRUE, return also the estimated density (default TRUE)
+//' @param process if 0 DP, if 1 PY
+//' @param sigma_PY second parameter of PY
+//' @param print_message print the status
+
 //[[Rcpp::export]]
 Rcpp::List cSLI(arma::vec data,
                 arma::vec grid,
@@ -97,14 +92,9 @@ Rcpp::List cSLI(arma::vec data,
   int current_s;
   // strarting loop
   if(process== 0){
-    for(int iter = 0; iter < niter; iter++){
+    for(arma::uword iter = 0; iter < niter; iter++){
 
-      para_clean_SLI(mu,
-                     s2,
-                     clust,
-                     v,
-                     w);
-
+      // update the parameters
       accelerate_SLI(data,
                      mu,
                      s2,
@@ -119,10 +109,12 @@ Rcpp::List cSLI(arma::vec data,
 
       int old_length = mu.n_elem;
 
+      // update the stick breaking weights
       update_u_SLI(clust,
                    w,
                    u);
 
+      // extend the stick breaking representation
       grow_param_SLI(mu,
                      s2,
                      v,
@@ -135,6 +127,7 @@ Rcpp::List cSLI(arma::vec data,
                      mass,
                      n);
 
+      // update the allocation
       update_cluster_SLI(data,
                          mu,
                          s2,
@@ -145,10 +138,8 @@ Rcpp::List cSLI(arma::vec data,
                          iter,
                          new_val);
 
-
+      // save the results
       if(iter >= nburn){
-
-        result_clust.row(iter - nburn) = arma::trans(clust);
         result_mu.push_back(mu);
         result_s2.push_back(s2);
         result_probs.push_back(w);
@@ -159,6 +150,18 @@ Rcpp::List cSLI(arma::vec data,
                                                       s2,
                                                       w));
         }
+      }
+
+      // clean the parameters
+      para_clean_SLI(mu,
+                     s2,
+                     clust,
+                     v,
+                     w);
+
+      // save the results
+      if(iter >= nburn){
+        result_clust.row(iter - nburn) = arma::trans(clust);
       }
 
       if(print_message){
@@ -172,14 +175,9 @@ Rcpp::List cSLI(arma::vec data,
       Rcpp::checkUserInterrupt();
     }
   } else if(process == 1){
-    for(int iter = 0; iter < niter; iter++){
+    for(arma::uword iter = 0; iter < niter; iter++){
 
-      para_clean_SLI(mu,
-                     s2,
-                     clust,
-                     v,
-                     w);
-
+      // update the parameters
       accelerate_SLI_PY(data,
                         mu,
                         s2,
@@ -195,10 +193,12 @@ Rcpp::List cSLI(arma::vec data,
 
       int old_length = mu.n_elem;
 
+      // update the stick breaking weights
       update_u_SLI(clust,
                    w,
                    u);
 
+      // extend the stick breaking representation
       grow_param_SLI_PY(mu,
                         s2,
                         v,
@@ -212,6 +212,7 @@ Rcpp::List cSLI(arma::vec data,
                         n,
                         sigma_PY);
 
+      // update the allocation
       update_cluster_SLI(data,
                          mu,
                          s2,
@@ -222,10 +223,8 @@ Rcpp::List cSLI(arma::vec data,
                          iter,
                          new_val);
 
-
+      // save the results
       if(iter >= nburn){
-
-        result_clust.row(iter - nburn) = arma::trans(clust);
         result_mu.push_back(mu);
         result_s2.push_back(s2);
         result_probs.push_back(w);
@@ -236,6 +235,18 @@ Rcpp::List cSLI(arma::vec data,
                                                       s2,
                                                       w));
         }
+      }
+
+      // clean the parameters
+      para_clean_SLI(mu,
+                     s2,
+                     clust,
+                     v,
+                     w);
+
+      // save the results
+      if(iter >= nburn){
+        result_clust.row(iter - nburn) = arma::trans(clust);
       }
 
       if(print_message){
@@ -272,34 +283,28 @@ Rcpp::List cSLI(arma::vec data,
   return resu;
 }
 
+//' @export cSLI_mv
+//' @name cSLI_mv
+//' @title C++ function to estimate Pitman-Yor multivariate mixtures via slice sampler
+//'
+//'
+//' @param data a matrix of observations
+//' @param grid matrix of points to evaluate the density
+//' @param niter number of iterations
+//' @param nburn number of burn-in iterations
+//' @param m0 expectation of location component
+//' @param k0 tuning parameter of variance of location component
+//' @param S0 parameter of scale component
+//' @param n0 parameter of scale component
+//' @param mass mass of Dirichlet process
+//' @param nupd number of iterations to show current updating
+//' @param out_param if TRUE, return also the location and scale paramteres lists
+//' @param out_dens if TRUE, return also the estimated density (default TRUE)
+//' @param process if 0 DP, if 1 PY
+//' @param sigma_PY second parameter of PY
+//' @param print_message print the status
+//' @param light_dens if TRUE return only the posterior mean of the density
 
-/*
-*   cSLI_mv - MULTIVARIATE Conditional Slice sampler
-*
-*   args:
-*   - data:      a vector of observations
-*   - grid:      vector to evaluate the density
-*   - niter:     number of iterations
-*   - nburn:     number of burn-in iterations
-*   - m0:        expectation of location component
-*   - k0:        tuning parameter of variance of location component
-*   - a0, b0:    parameters of scale component
-*   - mass:      mass of Dirichlet process
-*   - nupd:      number of iterations to show current updating
-*                (default niter/10)
-*   - out_param: if TRUE, return also the location and scale paramteres lists
-*                (default FALSE)
-*   - out_dens:  if TRUE, return also the estimated density (default TRUE)
-*   - process:   if 0 DP, if 1 PY
-*   - sigma_PY:  second parameter of PY
-*
-*   output, list:
-*   - dens:  matrix, each row a density evaluated on the grid
-*   - clust: matrix, each row an allocation
-*   - mu:    list, each element a locations vector
-*   - s2:    list, each element a scale vector
-*   - probs: list, each element a probabilities vectorarma::vec new_val(niter);
-*/
 //[[Rcpp::export]]
 Rcpp::List cSLI_mv(arma::mat data,
                    arma::mat grid,
@@ -358,14 +363,9 @@ Rcpp::List cSLI_mv(arma::mat data,
   int current_s;
   // strarting loop
   if(process == 0){
-    for(int iter = 0; iter < niter; iter++){
+    for(arma::uword iter = 0; iter < niter; iter++){
 
-      para_clean_SLI_mv(mu,
-                        s2,
-                        clust,
-                        v,
-                        w);
-
+      // update the parameters
       accelerate_SLI_mv(data,
                         mu,
                         s2,
@@ -380,10 +380,12 @@ Rcpp::List cSLI_mv(arma::mat data,
 
       int old_length = mu.n_elem;
 
+      // update the stick breaking weights
       update_u_SLI(clust,
                    w,
                    u);
 
+      // extend the stick breaking representation
       grow_param_SLI_mv(mu,
                         s2,
                         v,
@@ -396,6 +398,7 @@ Rcpp::List cSLI_mv(arma::mat data,
                         mass,
                         n);
 
+      // update the allocation
       update_cluster_SLI_mv(data,
                             mu,
                             s2,
@@ -406,10 +409,8 @@ Rcpp::List cSLI_mv(arma::mat data,
                             iter,
                             new_val);
 
-
+      // save the results
       if(iter >= nburn){
-
-        result_clust.row(iter - nburn) = arma::trans(clust);
         result_mu.push_back(mu);
         result_s2.push_back(s2);
         result_probs.push_back(w);
@@ -427,6 +428,18 @@ Rcpp::List cSLI_mv(arma::mat data,
         }
       }
 
+      // clean the parameters
+      para_clean_SLI_mv(mu,
+                        s2,
+                        clust,
+                        v,
+                        w);
+
+      // save the results
+      if(iter >= nburn){
+        result_clust.row(iter - nburn) = arma::trans(clust);
+      }
+
       if(print_message){
         // print the current completed work
         if((iter + 1) % nupd == 0){
@@ -438,14 +451,9 @@ Rcpp::List cSLI_mv(arma::mat data,
       Rcpp::checkUserInterrupt();
     }
   } else if(process == 1){
-    for(int iter = 0; iter < niter; iter++){
+    for(arma::uword iter = 0; iter < niter; iter++){
 
-      para_clean_SLI_mv(mu,
-                        s2,
-                        clust,
-                        v,
-                        w);
-
+      // update the parameters
       accelerate_SLI_PY_mv(data,
                            mu,
                            s2,
@@ -461,10 +469,12 @@ Rcpp::List cSLI_mv(arma::mat data,
 
       int old_length = mu.n_elem;
 
+      // update the stick breaking weights
       update_u_SLI(clust,
                    w,
                    u);
 
+      // extend the stick breaking representation
       grow_param_SLI_PY_mv(mu,
                            s2,
                            v,
@@ -478,6 +488,7 @@ Rcpp::List cSLI_mv(arma::mat data,
                            n,
                            sigma_PY);
 
+      // update the allocation
       update_cluster_SLI_mv(data,
                             mu,
                             s2,
@@ -488,10 +499,8 @@ Rcpp::List cSLI_mv(arma::mat data,
                             iter,
                             new_val);
 
-
+      // save the results
       if(iter >= nburn){
-
-        result_clust.row(iter - nburn) = arma::trans(clust);
         result_mu.push_back(mu);
         result_s2.push_back(s2);
         result_probs.push_back(w);
@@ -507,6 +516,18 @@ Rcpp::List cSLI_mv(arma::mat data,
             result_dens.row(iter - nburn) = arma::trans(dens);
           }
         }
+      }
+
+      // clean the parameters
+      para_clean_SLI_mv(mu,
+                        s2,
+                        clust,
+                        v,
+                        w);
+
+      // save the results
+      if(iter >= nburn){
+        result_clust.row(iter - nburn) = arma::trans(clust);
       }
 
       if(print_message){

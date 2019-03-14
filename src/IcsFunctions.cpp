@@ -47,7 +47,7 @@ void accelerate_ICS(arma::vec data,
                 double k0,
                 double a0,
                 double b0){
-  for(int j = 0; j < mu.n_elem; j++){
+  for(arma::uword j = 0; j < mu.n_elem; j++){
     int nj = sum(clust == j);
     arma::vec tdata = data.elem(arma::find(clust == j));
 
@@ -88,7 +88,7 @@ void accelerate_ICS_mv(arma::mat data,
                        arma::mat S0,
                        double n0){
   // loop over the different clusters
-  for(int j = 0; j < mu.n_rows; j++){
+  for(arma::uword j = 0; j < mu.n_rows; j++){
     // initialize itra cluster quantities
     int nj = sum(clust == j);
     arma::mat tdata = data.rows(arma::find(clust == j));
@@ -126,13 +126,13 @@ void para_clean_ICS(arma::vec &mu,
   int k = mu.n_elem;
 
   // for all the used parameters
-  for(int i = 0; i < k; i++){
+  for(arma::uword i = 0; i < k; i++){
 
     // if a cluster is empty
     if((int) arma::sum(clust == i) == 0){
 
       // find the last full cluster, then swap
-      for(int j = k; j > i; j--){
+      for(arma::uword j = k; j > i; j--){
         if((int) arma::sum(clust == j) != 0){
 
           // swap the correpsonding elements
@@ -154,7 +154,7 @@ void para_clean_ICS(arma::vec &mu,
 
   // reduce dimensions
   int u_bound = 0;
-  for(int i = 0; i < k; i++){
+  for(arma::uword i = 0; i < k; i++){
     if(arma::accu(clust == i) > 0){
       u_bound += 1;
     }
@@ -184,13 +184,13 @@ void para_clean_ICS_mv(arma::mat &mu,
   int k = mu.n_rows;
 
   // for all the used parameters
-  for(int i = 0; i < k; i++){
+  for(arma::uword i = 0; i < k; i++){
 
     // if a cluster is empty
     if((int) arma::sum(clust == i) == 0){
 
       // find the last full cluster, then swap
-      for(int j = k; j > i; j--){
+      for(arma::uword j = k; j > i; j--){
         if((int) arma::sum(clust == j) != 0){
 
           // swap the corresponding elements
@@ -205,7 +205,7 @@ void para_clean_ICS_mv(arma::mat &mu,
 
   // reduce dimensions
   int u_bound = 0;
-  for(int i = 0; i < k; i++){
+  for(arma::uword i = 0; i < k; i++){
     if(arma::accu(clust == i) > 0){
       u_bound += 1;
     }
@@ -214,124 +214,6 @@ void para_clean_ICS_mv(arma::mat &mu,
   // resize object to the correct dimension
   mu.resize(u_bound,mu.n_cols);
   s2.resize(s2.n_rows, s2.n_cols, u_bound);
-}
-
-/*
- * Simulate finite distribution - UNIVARIATE conditional Polya Urn Scheme
- *
- * args:
- * - mutemp:      mean values for each temp component
- * - s2temp:      variance values for temp each component
- * - freqtemp:    frequency values for temp each component
- * - mass:        mass of Dirichlet process
- * - m0:          mean of location's prior distribution (scalar)
- * - k0:          parameter of NIG on scale of location distribution (scalar)
- * - a0:          shape of prior Gamma distribution on the scale component (scalar)
- * - b0:          rate of prior Gamma distribution on the scale component (scalar)
- * - napprox:     number of approximating values
- *
- * Void function.
-*/
-
-void simu_trunc_ICS(arma::vec &mutemp,
-                    arma::vec &s2temp,
-                    arma::vec &freqtemp,
-                    double mass,
-                    double m0,
-                    double k0,
-                    double a0,
-                    double b0,
-                    int napprox){
-  // By independence of atoms and jumps, sample
-  // the jumps, then the entire vector of atoms
-  // resize the objects to size 1
-  freqtemp.resize(1);
-
-  // initialize the first element
-  freqtemp.fill(1);
-  int k = 1;
-
-  // generate napprox values with ties
-  for(int j = 1; j < napprox; j++){
-
-    int temp_cl = rintnunifw(freqtemp, mass);
-    if(temp_cl < (k - 1)){
-
-      // if is an existing one, increase the freq
-      freqtemp[temp_cl] += 1;
-    } else {
-
-      // if is a new one, generate the new parameters
-      freqtemp.resize(k + 1);
-      freqtemp[k] = 1;
-      k += 1;
-    }
-  }
-
-  // sampling the corresponding atoms
-  mutemp.resize(k);
-  s2temp.resize(k);
-  s2temp = 1.0 / arma::randg(k, arma::distr_param(a0, 1.0 / b0));
-  mutemp = arma::randn(k) % sqrt(k0 * s2temp) + m0;
-}
-
-/*
- * Simulate finite distribution - MULTIVARIATE conditional Polya Urn Scheme
- *
- * args:
- * - mutemp:      mean values for each temp component
- * - s2temp:      variance values for temp each component
- * - freqtemp:    frequency values for temp each component
- * - mass:        mass of Dirichlet process
- * - m0:          vector of location's prior distribution
- * - k0:          double of NIG on scale of location distribution
- * - S0:          matrix of Inverse Wishart distribution
- * - n0:          degree of freedom of Inverse Wishart distribution
- * - napprox:     number of approximating values
- *
- * Void function.
- */
-
-void simu_trunc_ICS_mv(arma::mat &mutemp,
-                       arma::cube &s2temp,
-                       arma::vec &freqtemp,
-                       double mass,
-                       arma::vec m0,
-                       double k0,
-                       arma::mat S0,
-                       double n0,
-                       int napprox){
-
-  // resize the objects to size 1
-  freqtemp.resize(1);
-
-  // initialize the first element
-  freqtemp.fill(1);
-  int k = 1;
-
-  // generate napprox values with ties
-  for(int j = 1; j < napprox; j++){
-    int temp_cl = rintnunifw(freqtemp, mass);
-    if(temp_cl < (k - 1)){
-
-      // if is an existing one, increase the freq
-      freqtemp[temp_cl] += 1;
-    } else {
-
-      // if is a new one, generate the new parameters
-      freqtemp.resize(k + 1);
-      freqtemp[k] = 1;
-      k += 1;
-    }
-  }
-
-  // sample the corresponding atoms
-  mutemp.resize(k, mutemp.n_cols);
-  s2temp.resize(s2temp.n_rows, s2temp.n_cols, k);
-  for(int j = 0; j < k; j++){
-    s2temp.slice(j) = arma::inv(arma::wishrnd(arma::inv(S0), n0));
-    mutemp.row(j) = arma::trans(arma::mvnrnd(m0, s2temp.slice(j)/k0));
-  }
 }
 
 /*
@@ -373,7 +255,7 @@ void simu_trunc_PY(arma::vec &mutemp,
   int k = 1;
 
   // generate napprox values with ties
-  for(int j = 1; j < napprox; j++){
+  for(arma::uword j = 1; j < napprox; j++){
 
     int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
 
@@ -436,7 +318,7 @@ void simu_trunc_PY_mv(arma::mat &mutemp,
   int k = 1;
 
   // generate napprox values with ties
-  for(int j = 1; j < napprox; j++){
+  for(arma::uword j = 1; j < napprox; j++){
     int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
     if(temp_cl < (k - 1)){
 
@@ -455,7 +337,7 @@ void simu_trunc_PY_mv(arma::mat &mutemp,
 
   mutemp.resize(k, mutemp.n_cols);
   s2temp.resize(s2temp.n_rows, s2temp.n_cols, k);
-  for(int j = 0; j < k; j++){
+  for(arma::uword j = 0; j < k; j++){
     s2temp.slice(j) = arma::inv(arma::wishrnd(arma::inv(S0), n0));
     mutemp.row(j) = arma::trans(arma::mvnrnd(m0, s2temp.slice(j)/k0));
   }
@@ -493,10 +375,10 @@ void clust_update_ICS(arma::vec data,
   arma::vec probs_upd(k);
 
   // loop over the observations
-  for(int i = 0; i < n; i++){
+  for(arma::uword i = 0; i < n; i++){
 
     // loop over the components
-    for(int j = 0; j < k; j++){
+    for(arma::uword j = 0; j < k; j++){
       probs_upd[j] = probjoin[j] * arma::normpdf(data[i], mujoin[j], sqrt(s2join[j]));
     }
 
@@ -540,10 +422,10 @@ void clust_update_ICS_mv(arma::mat data,
   arma::vec probs_upd(k);
 
   // loop over the observations
-  for(int i = 0; i < n; i++){
+  for(arma::uword i = 0; i < n; i++){
 
     // loop over the components
-    for(int j = 0; j < k; j++){
+    for(arma::uword j = 0; j < k; j++){
       arma::mat rooti  = arma::trans(arma::inv(trimatu(arma::chol(s2join.slice(j)))));
       arma::vec cdata  = rooti * arma::trans(data.row(i) - mujoin.row(j)) ;
       double out       = - (d / 2.0) * log(2.0 * M_PI) - 0.5 * arma::sum(cdata%cdata) +

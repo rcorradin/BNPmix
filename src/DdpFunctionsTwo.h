@@ -95,4 +95,9 @@ void update_v_DDP2(arma::vec &v,
                    int ngr,
                    int ngrc);
 
+void update_wei_griddy(double &wei,
+                       double mass,
+                       arma::vec vals,
+                       arma::vec grid);
+
 #endif

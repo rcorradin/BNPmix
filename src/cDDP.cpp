@@ -22,33 +22,29 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 #include "DdpFunctions.h"
 // [[Rcpp::depends("RcppArmadillo")]]
 
-/*
-*   cPUS - UNIVARIATE Conditional dependent Dirichlet process sampler (DDP)
-*
-*   args:
-*   - data:      a vector of observations
-*   - group:     a vector of groups
-*   - grid:      vector to evaluate the density
-*   - niter:     number of iterations
-*   - nburn:     number of burn-in iterations
-*   - m0:        expectation of location component
-*   - k0:        tuning parameter of variance of location component
-*   - a0, b0:    parameters of scale component
-*   - mass:      mass of Dirichlet process
-*   - napprox:   number of approximating values
-*   - nupd:      number of iterations to show current updating
-*                (default niter/10)
-*   - out_dens:  if TRUE, return also the estimated density (default TRUE)
-*   - process:   if 0 DP, if 1 PY
-*   - sigma_PY:  second parameter of PY
-*
-*   output, list:
-*   - dens:  matrix, each row a density evaluated on the grid
-*   - clust: matrix, each row an allocation
-*   - mu:    list, each element a locations vector
-*   - s2:    list, each element a scale vector
-*   - probs: list, each element a probabilities vector
-*/
+//' @export cDDP
+//' @name cDDP
+//' @title C++ function to estimate DDP models with 1 grouping variables
+//'
+//'
+//' @param data a vector of observations.
+//' @param group group allocation of the data.
+//' @param ngr number of groups.
+//' @param grid vector to evaluate the density.
+//' @param niter number of iterations.
+//' @param nburn number of burn-in iterations.
+//' @param m0 expectation of location component.
+//' @param k0 tuning parameter of variance of location component.
+//' @param a0 parameter of scale component.
+//' @param b0 parameter of scale component.
+//' @param mass mass of Dirichlet process.
+//' @param wei prior weight of the specific processes.
+//' @param napprox number of approximating values.
+//' @param n_approx_unif number of approximating values of the importance step for the weights updating.
+//' @param nupd number of iterations to show current updating.
+//' @param out_dens if TRUE, return also the estimated density (default TRUE).
+//' @param print_message print the status.
+//' @param light_dens if TRUE return only the posterior mean of the density
 
 //[[Rcpp::export]]
 Rcpp::List cDDP(arma::vec data,
@@ -78,16 +74,17 @@ Rcpp::List cDDP(arma::vec data,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  arma::mat result_zeta(niter - nburn, n);
+  arma::mat result_group_log(niter - nburn, n);
   arma::cube result_dens(grid.n_elem, ngr, 1);
   if(!light_dens){
     result_dens.resize(grid.n_elem, ngr, niter - nburn);
   }
   arma::mat res_wei(niter - nburn, ngr);
+  result_dens.fill(0);
 
   // initialize required object inside the loop
   arma::vec clust(n);
-  arma::vec zeta(group);
+  arma::vec group_log(group);
   arma::field<arma::vec> mu(ngr + 1);
   arma::field<arma::vec> s2(ngr + 1);
   arma::field<arma::vec> mutemp(ngr + 1);
@@ -103,7 +100,7 @@ Rcpp::List cDDP(arma::vec data,
   arma::field<arma::vec> mujoin(ngr + 1);
   arma::field<arma::vec> s2join(ngr + 1);
   arma::field<arma::vec> probjoin(ngr + 1);
-  arma::vec max_val(ngr + 1);
+  arma::vec max_val(ngr);
   arma::vec w(ngr);
 
   // fill the initialized quantity
@@ -133,7 +130,6 @@ Rcpp::List cDDP(arma::vec data,
   n_clust.fill(0);
   clust.fill(0);
 
-
   int start_s = clock();
   int current_s;
 
@@ -143,35 +139,41 @@ Rcpp::List cDDP(arma::vec data,
   // LOOP
   //
 
-  for(int iter = 0; iter < niter; iter++){
+  for(arma::uword iter = 0; iter < niter; iter++){
 
     //clean parameter objects
     para_clean_DDP(mu,
                     s2,
                     clust,
                     group,
-                    zeta,
+                    group_log,
                     ngr);
 
     // sample the probability vector
     // from Dirichlet distribution
     for(arma::uword g = 0; g <= ngr; g++){
-      if(any(zeta == g)){
+      if(any(group_log == g)){
         if(g != 0){
-          ptilde(g) = rdirich_mass_tot(freq_vec(clust.elem(arma::find(zeta == g))), mass * wei);
+          ptilde(g) = rdirich_mass(freq_vec(clust.elem(arma::find(group_log == g))), mass * wei);
         } else {
-          ptilde(g) = rdirich_mass_tot(freq_vec(clust.elem(arma::find(zeta == g))), mass * (1 - wei));
+          ptilde(g) = rdirich_mass(freq_vec(clust.elem(arma::find(group_log == g))), mass * (1 - wei));
         }
-
       } else {
-        ptilde(g).resize(2);
-        ptilde(g).fill(1.0);
-        if( g != 0){
-          ptilde(g)(1) = arma::randg(1, arma::distr_param(mass * wei, 1.0))[0];
-        } else {
-          ptilde(g)(1) = arma::randg(1, arma::distr_param(mass * (1 - wei), 1.0))[0];
-        }
+
+        ptilde(g).resize(1);
+        double temp = arma::randg(1, arma::distr_param(1.0, 1.0))[0];
+        double temp2 = arma::randg(1, arma::distr_param(mass * wei, 1.0))[0];
+        ptilde(g)(0) =  temp2 / ( temp + temp2);
+
+        // ptilde(g).resize(1);
+        // ptilde(g).fill(1);
+        // if( g != 0){
+        //   ptilde(g)(1) = arma::randg(1, arma::distr_param(mass * wei, 1.0))[0];
+        // } else {
+        //   ptilde(g)(1) = arma::randg(1, arma::distr_param(mass * (1 - wei), 1.0))[0];
+        // }
       }
+
     }
 
     // update w
@@ -179,7 +181,7 @@ Rcpp::List cDDP(arma::vec data,
                   mass,
                   wei,
                   n_approx_unif,
-                  zeta,
+                  group_log,
                   clust,
                   group,
                   ngr);
@@ -187,7 +189,7 @@ Rcpp::List cDDP(arma::vec data,
     // acceleration step
     accelerate_DDP(data,
                     group,
-                    zeta,
+                    group_log,
                     mu,
                     s2,
                     clust,
@@ -214,20 +216,20 @@ Rcpp::List cDDP(arma::vec data,
     // the simulated new ones
     for(arma::uword g = 0; g <= ngr; g++){
 
-      if(any(zeta == g)){
+      if(any(group_log == g)){
         // if(g != 0){
-        //   ptilde(g) = rdirich_mass_tot(freq_vec(clust.elem(arma::find(zeta == g))), mass * wei);
+        //   ptilde(g) = rdirich_mass_tot(freq_vec(clust.elem(arma::find(group_log == g))), mass * wei);
         // } else {
-        //   ptilde(g) = rdirich_mass_tot(freq_vec(clust.elem(arma::find(zeta == g))), mass * (1 - wei));
+        //   ptilde(g) = rdirich_mass_tot(freq_vec(clust.elem(arma::find(group_log == g))), mass * (1 - wei));
         // }
 
         mujoin(g) = arma::join_cols(mu(g), mutemp(g));
         s2join(g) = arma::join_cols(s2(g), s2temp(g));
         int nkpt = ptilde(g).n_elem - 1;
-        arma::vec index = arma::regspace(0, nkpt - 1);
-        probjoin(g) = arma::join_cols(ptilde(g).elem(arma::find(index < nkpt- 1)),
-                 ptilde(g)[nkpt - 1] * freqtemp(g) / napprox);
-        max_val(g) = mu(g).n_elem;
+        arma::vec index = arma::regspace(0, nkpt);
+        probjoin(g) = arma::join_cols(ptilde(g).elem(arma::find(index < nkpt)),
+                 ptilde(g)(nkpt) * freqtemp(g) / napprox);
+        // max_val(g) = mu(g).n_elem;
 
       } else {
         ptilde(g).resize(2);
@@ -236,9 +238,10 @@ Rcpp::List cDDP(arma::vec data,
         mujoin(g) = mutemp(g);
         s2join(g) = s2temp(g);
         probjoin(g) = freqtemp(g) / napprox;
-        max_val(g)  = 0;
+        // max_val(g)  = 0;
 
       }
+
     }
 
     for(arma::uword g = 1; g <= ngr; g++){
@@ -253,7 +256,7 @@ Rcpp::List cDDP(arma::vec data,
     // update cluster allocations
     clust_update_DDP(data,
                       group,
-                      zeta,
+                      group_log,
                       mujoin_complete,
                       s2join_complete,
                       probjoin_complete,
@@ -268,9 +271,9 @@ Rcpp::List cDDP(arma::vec data,
     // if the burn-in phase is complete
     if(iter >= nburn){
 
-      // save clust and zeta in the export objects
+      // save clust and group_log in the export objects
       result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
-      result_zeta.row(iter - nburn)  = arma::trans(arma::conv_to<arma::vec>::from(zeta));
+      result_group_log.row(iter - nburn)  = arma::trans(arma::conv_to<arma::vec>::from(group_log));
 
       // compute the density for each urn
       for(arma::uword g = 0; g < ngr; g++){
@@ -280,8 +283,8 @@ Rcpp::List cDDP(arma::vec data,
           dens.col(g) = eval_density(grid, mujoin_complete(g),
                    s2join_complete(g), probjoin_complete(g));
 
-          // dens.col(g-1) = sum(group == g && zeta == g) / sum(group == g) * eval_density(grid, mujoin(g),
-          //          s2join(g), probjoin(g)) + (1 - sum(group == g && zeta == g) / sum(group == g)) *
+          // dens.col(g-1) = sum(group == g && group_log == g) / sum(group == g) * eval_density(grid, mujoin(g),
+          //          s2join(g), probjoin(g)) + (1 - sum(group == g && group_log == g) / sum(group == g)) *
           //            eval_density(grid, mujoin(0), s2join(0), probjoin(0));
         }
       }
@@ -321,7 +324,7 @@ Rcpp::List cDDP(arma::vec data,
     resu["dens"]   = result_dens;
   }
   resu["clust"]  = result_clust;
-  resu["zeta"]   = result_zeta;
+  resu["group_log"]   = result_group_log;
   // resu["newval"] = new_val;
   resu["nclust"] = n_clust;
   resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;

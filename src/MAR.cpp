@@ -22,34 +22,26 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 #include "MarFunctions.h"
 // [[Rcpp::depends("RcppArmadillo")]]
 
-/*
- *   MAR - UNIVARIATE Marginal Polya Urn
- *
- *   args:
- *   - data:          a vector of observations
- *   - grid:          vector to evaluate the density
- *   - niter:         number of iterations
- *   - nburn:         number of burn-in iterations
- *   - m0:            expectation of location component
- *   - k0:            tuning parameter of variance of location component
- *   - a0, b0:        parameters of scale component
- *   - mass:          mass of Dirichlet process
- *   - nupd:          number of iterations to show current updating
- *                    (default niter/10)
- *   - out_param:     if TRUE, return also the location and scale paramteres lists
- *                    (default FALSE)
- *   - out_dens:      if TRUE, return also the estimated density (default TRUE)
- *   - process:       if 0 DP, if 1 PY
- *   - sigma_PY:      second parameter of PY
- *   - print_message: print the status
- *
- *   output, list:
- *   - dens:  matrix, each row a density evaluated on the grid
- *   - clust: matrix, each row an allocation
- *   - mu:    list, each element a locations vector
- *   - s2:    list, each element a scale vector
- *   - probs: list, each element a probabilities vector
- */
+//' @export MAR
+//' @name MAR
+//' @title C++ function to estimate Pitman-Yor univariate mixtures via marginal sampler
+//'
+//'
+//' @param data a vector of observations
+//' @param grid vector to evaluate the density
+//' @param niter number of iterations
+//' @param nburn number of burn-in iterations
+//' @param m0 expectation of location component
+//' @param k0 tuning parameter of variance of location component
+//' @param a0 parameter of scale component
+//' @param b0 parameter of scale component
+//' @param mass mass of Dirichlet process
+//' @param nupd number of iterations to show current updating
+//' @param out_param if TRUE, return also the location and scale paramteres lists
+//' @param out_dens if TRUE, return also the estimated density (default TRUE)
+//' @param process if 0 DP, if 1 PY
+//' @param sigma_PY second parameter of PY
+//' @param print_message print the status
 
 //[[Rcpp::export]]
 Rcpp::List MAR(arma::vec data,
@@ -100,7 +92,7 @@ Rcpp::List MAR(arma::vec data,
   int current_s;
   // strarting loop
   if(process == 0){
-    for(int iter = 0; iter < niter; iter++){
+    for(arma::uword iter = 0; iter < niter; iter++){
 
       // accelerating!!!
       accelerate_MAR(data,
@@ -159,7 +151,7 @@ Rcpp::List MAR(arma::vec data,
     }
   }
   else if(process == 1){
-    for(int iter = 0; iter < niter; iter++){
+    for(arma::uword iter = 0; iter < niter; iter++){
 
       // accelerating!!!
       accelerate_MAR(data,
@@ -241,36 +233,27 @@ Rcpp::List MAR(arma::vec data,
   return resu;
 }
 
-/*
- *   MAR_mv - MULTIVARIATE marginal scheme
- *
- *   args:
- *   - data:          a matrix of observations
- *   - grid:          matrix to evaluate the density
- *   - niter:         number of iterations
- *   - nburn:         number of burn-in iterations
- *   - m0:            vector of location's prior distribution
- *   - k0:            double of NIG on scale of location distribution
- *   - S0:            matrix of Inverse Wishart distribution
- *   - n0:            degree of freedom of Inverse Wishart distribution
- *   - mass:          mass of Dirichlet process
- *   - nupd:          number of iterations to show current updating
- *                    (default niter/10)
- *   - out_param:     if TRUE, return also the location and scale paramteres lists
- *                    (default FALSE)
- *   - out_dens:      if TRUE, return also the estimated density (default TRUE)
- *   - process:       if 0 DP, if 1 PY
- *   - sigma_PY:      second parameter of PY
- *   - print_message: print the status
- *   - light_dent:    if 1 return only the posterior mean of the estimated density
- *
- *   output, list:
- *   - dens:  matrix, each row a density evaluated on the grid
- *   - clust: matrix, each row an allocation
- *   - mu:    list, each element a locations matrix
- *   - s2:    list, each element a scale cube
- *   - probs: list, each element a probabilities vector
- */
+//' @export MAR_mv
+//' @name MAR_mv
+//' @title C++ function to estimate Pitman-Yor multivariate mixtures via marginal sampler
+//'
+//'
+//' @param data a matrix of observations
+//' @param grid matrix of points to evaluate the density
+//' @param niter number of iterations
+//' @param nburn number of burn-in iterations
+//' @param m0 expectation of location component
+//' @param k0 tuning parameter of variance of location component
+//' @param S0 parameter of scale component
+//' @param n0 parameter of scale component
+//' @param mass mass of Dirichlet process
+//' @param nupd number of iterations to show current updating
+//' @param out_param if TRUE, return also the location and scale paramteres lists
+//' @param out_dens if TRUE, return also the estimated density (default TRUE)
+//' @param process if 0 DP, if 1 PY
+//' @param sigma_PY second parameter of PY
+//' @param print_message print the status
+//' @param light_dens if TRUE return only the posterior mean of the density
 
 //[[Rcpp::export]]
 Rcpp::List MAR_mv(arma::mat data,
@@ -325,7 +308,7 @@ Rcpp::List MAR_mv(arma::mat data,
   int current_s;
   // strarting loop
   if(process == 0){
-    for(int iter = 0; iter < niter; iter++){
+    for(arma::uword iter = 0; iter < niter; iter++){
 
       // accelerating
       accelerate_MAR_mv(data,
@@ -388,7 +371,7 @@ Rcpp::List MAR_mv(arma::mat data,
     }
   }
   else if(process == 1){
-    for(int iter = 0; iter < niter; iter++){
+    for(arma::uword iter = 0; iter < niter; iter++){
 
       // accelerating
       accelerate_MAR_mv(data,

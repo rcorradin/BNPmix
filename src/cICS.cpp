@@ -22,35 +22,28 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 #include "IcsFunctions.h"
 // [[Rcpp::depends("RcppArmadillo")]]
 
-/*
- *   cICS - UNIVARIATE Conditional Polya Urn scheme
- *
- *   args:
- *   - data:          a vector of observations
- *   - grid:          vector to evaluate the density
- *   - niter:         number of iterations
- *   - nburn:         number of burn-in iterations
- *   - m0:            expectation of location component
- *   - k0:            tuning parameter of variance of location component
- *   - a0, b0:        parameters of scale component
- *   - mass:          mass of Dirichlet process
- *   - napprox:       number of approximating values
- *   - nupd:          number of iterations to show current updating
- *                    (default niter/10)
- *   - out_param:     if TRUE, return also the location and scale paramteres lists
- *                    (default FALSE)
- *   - out_dens:      if TRUE, return also the estimated density (default TRUE)
- *   - process:       if 0 DP, if 1 PY
- *   - sigma_PY:      second parameter of PY
- *   - print_message: print the status
- *
- *   output, list:
- *   - dens:  matrix, each row a density evaluated on the grid
- *   - clust: matrix, each row an allocation
- *   - mu:    list, each element a locations vector
- *   - s2:    list, each element a scale vector
- *   - probs: list, each element a probabilities vector
- */
+
+//' @export cICS
+//' @name cICS
+//' @title C++ function to estimate Pitman-Yor univariate mixtures via importance conditional sampler
+//'
+//'
+//' @param data a vector of observations
+//' @param grid vector to evaluate the density
+//' @param niter number of iterations
+//' @param nburn number of burn-in iterations
+//' @param m0 expectation of location component
+//' @param k0 tuning parameter of variance of location component
+//' @param a0 parameter of scale component
+//' @param b0 parameter of scale component
+//' @param mass mass of Dirichlet process
+//' @param napprox number of approximating values
+//' @param nupd number of iterations to show current updating
+//' @param out_param if TRUE, return also the location and scale paramteres lists
+//' @param out_dens if TRUE, return also the estimated density (default TRUE)
+//' @param process if 0 DP, if 1 PY
+//' @param sigma_PY second parameter of PY
+//' @param print_message print the status
 
 //[[Rcpp::export]]
 Rcpp::List cICS(arma::vec data,
@@ -110,12 +103,7 @@ Rcpp::List cICS(arma::vec data,
   int current_s;
   // strarting loop
   if(process == 0){
-    for(int iter = 0; iter < niter; iter++){
-
-      // clean parameter objects
-      para_clean_ICS(mu,
-                     s2,
-                     clust);
+    for(arma::uword iter = 0; iter < niter; iter++){
 
       // acceleration step
       accelerate_ICS(data,
@@ -166,7 +154,6 @@ Rcpp::List cICS(arma::vec data,
 
       // if the burn-in phase is complete
       if(iter >= nburn){
-        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
         result_mu.push_back(mu);
         result_s2.push_back(s2);
         result_probs.push_back(probjoin);
@@ -180,6 +167,16 @@ Rcpp::List cICS(arma::vec data,
         }
       }
 
+      // clean parameter objects
+      para_clean_ICS(mu,
+                     s2,
+                     clust);
+
+      // if the burn-in phase is complete
+      if(iter >= nburn){
+        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
+      }
+
       if(print_message){
         // print the current completed work
         if((iter + 1) % nupd == 0){
@@ -191,12 +188,7 @@ Rcpp::List cICS(arma::vec data,
       Rcpp::checkUserInterrupt();
     }
   } else if(process == 1){
-    for(int iter = 0; iter < niter; iter++){
-
-      // clean parameter objects
-      para_clean_ICS(mu,
-                     s2,
-                     clust);
+    for(arma::uword iter = 0; iter < niter; iter++){
 
       // acceleration step
       accelerate_ICS(data,
@@ -249,7 +241,6 @@ Rcpp::List cICS(arma::vec data,
 
       // if the burn-in phase is complete
       if(iter >= nburn){
-        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
         result_mu.push_back(mu);
         result_s2.push_back(s2);
         result_probs.push_back(probjoin);
@@ -261,6 +252,16 @@ Rcpp::List cICS(arma::vec data,
                               probjoin);
           result_dens.row(iter - nburn) = arma::trans(dens);
         }
+      }
+
+      // clean parameter objects
+      para_clean_ICS(mu,
+                     s2,
+                     clust);
+
+      // if the burn-in phase is complete
+      if(iter >= nburn){
+        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
       }
 
       if(print_message){
@@ -297,38 +298,28 @@ Rcpp::List cICS(arma::vec data,
   return resu;
 }
 
-/*
- *   cICS_mv - MULTIVARIATE Conditional Polya Urn scheme
- *
- *   args:
- *   - data:          a matrix of observations
- *   - grid:          matrix to evaluate the density
- *   - niter:         number of iterations
- *   - nburn:         number of burn-in iterations
- *   - m0:            vector of location's prior distribution
- *   - k0:            double of NIG on scale of location distribution
- *   - S0:            matrix of Inverse Wishart distribution
- *   - n0:            degree of freedom of Inverse Wishart distribution
- *   - mass:          mass of Dirichlet process
- *   - napprox:       number of approximating values
- *   - nupd:          number of iterations to show current updating
- *                    (default niter/10)
- *   - out_param:     if TRUE, return also the location and scale paramteres lists
- *                    (default FALSE)
- *   - out_dens:      if TRUE, return also the estimated density (default TRUE)
- *   - process:       if 0 DP, if 1 PY
- *   - sigma_PY:      second parameter of PY
- *   - print_message: print the status
- *   - light_dent:    if 1 return only the posterior mean of the estimated density
- *
- *
- *   output, list:
- *   - dens:  matrix, each row a density evaluated on the grid
- *   - clust: matrix, each row an allocation
- *   - mu:    list, each element a locations matrix
- *   - s2:    list, each element a scale cube
- *   - probs: list, each element a probabilities vector
- */
+//' @export cICS_mv
+//' @name cICS_mv
+//' @title C++ function to estimate Pitman-Yor multivariate mixtures via importance conditional sampler
+//'
+//'
+//' @param data a matrix of observations
+//' @param grid matrix of points to evaluate the density
+//' @param niter number of iterations
+//' @param nburn number of burn-in iterations
+//' @param m0 expectation of location component
+//' @param k0 tuning parameter of variance of location component
+//' @param S0 parameter of scale component
+//' @param n0 parameter of scale component
+//' @param mass mass of Dirichlet process
+//' @param napprox number of approximating values
+//' @param nupd number of iterations to show current updating
+//' @param out_param if TRUE, return also the location and scale paramteres lists
+//' @param out_dens if TRUE, return also the estimated density (default TRUE)
+//' @param process if 0 DP, if 1 PY
+//' @param sigma_PY second parameter of PY
+//' @param print_message print the status
+//' @param light_dens if TRUE return only the posterior mean of the density
 
 //[[Rcpp::export]]
 Rcpp::List cICS_mv(arma::mat data,
@@ -341,6 +332,8 @@ Rcpp::List cICS_mv(arma::mat data,
                    double n0,
                    double mass,
                    int napprox,
+                   arma::vec uniquey,
+                   double upperbound,
                    int nupd = 0,
                    bool out_param = 0,
                    bool out_dens = 1,
@@ -357,13 +350,21 @@ Rcpp::List cICS_mv(arma::mat data,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::mat> result_mu(niter - nburn);
-  std::list<arma::cube> result_s2(niter - nburn);
-  std::list<arma::vec> result_probs(niter - nburn);
+  // arma::field<arma::mat> result_mu(niter - nburn);
+  // arma::field<arma::cube> result_s2(niter - nburn);
+  // arma::field<arma::vec> result_probs(niter - nburn);
+  std::list<arma::mat> result_mu;
+  std::list<arma::cube> result_s2;
+  std::list<arma::vec> result_probs;
   arma::mat result_dens(grid.n_rows,1);
   if(!light_dens){
     result_dens.resize(niter - nburn, grid.n_rows);
   }
+
+  // TEMP
+  int len_y = uniquey.n_elem;
+  arma::mat risk_result(niter - nburn, len_y);
+  // END TEMP
 
   arma::vec n_clust(niter - nburn);
 
@@ -392,11 +393,7 @@ Rcpp::List cICS_mv(arma::mat data,
   int current_s;
   // strarting loop
   if(process == 0){
-    for(int iter = 0; iter < niter; iter++){
-      // clean parameter objects
-      para_clean_ICS_mv(mu,
-                        s2,
-                        clust);
+    for(arma::uword iter = 0; iter < niter; iter++){
 
       // acceleration step
       accelerate_ICS_mv(data,
@@ -447,11 +444,17 @@ Rcpp::List cICS_mv(arma::mat data,
 
       // if the burn-in phase is complete
       if(iter >= nburn){
-        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
         result_mu.push_back(mu);
         result_s2.push_back(s2);
         result_probs.push_back(probjoin);
+        // result_mu(iter - nburn) = mu;
+        // result_s2(iter - nburn) = s2;
+        // result_probs(iter - nburn) = probjoin;
         n_clust(iter - nburn) = probjoin.n_elem;
+
+        // TEMP
+        risk_result.row(iter - nburn) = cond_dist(mu, s2, probjoin, uniquey, upperbound).t();
+
         if(out_dens){
           dens = eval_density_mv(grid,
                                  mujoin,
@@ -465,6 +468,21 @@ Rcpp::List cICS_mv(arma::mat data,
         }
       }
 
+      // clean parameter objects
+      para_clean_ICS_mv(mu,
+                        s2,
+                        clust);
+
+      // arma::vec prob_tmp = freq_vec(clust) / n;
+      // if the burn-in phase is complete
+      if(iter >= nburn){
+
+        // TEMP
+        // risk_result.row(iter - nburn) = cond_dist(mu, s2, probjoin, uniquey, upperbound).t();
+
+        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
+      }
+
       if(print_message){
         // print the current completed work
         if((iter + 1) % nupd == 0){
@@ -476,12 +494,7 @@ Rcpp::List cICS_mv(arma::mat data,
       Rcpp::checkUserInterrupt();
     }
   } else if(process == 1){
-    for(int iter = 0; iter < niter; iter++){
-
-      // clean parameter objects
-      para_clean_ICS_mv(mu,
-                        s2,
-                        clust);
+    for(arma::uword iter = 0; iter < niter; iter++){
 
       // acceleration step
       accelerate_ICS_mv(data,
@@ -497,6 +510,17 @@ Rcpp::List cICS_mv(arma::mat data,
       // from Dirichlet distribution
       arma::vec temp_freq = freq_vec(clust);
       ptilde = rdirich_mass(temp_freq - sigma_PY, mass + sigma_PY * temp_freq.n_elem);
+
+      // // TEMP
+      // arma::vec tvec = arma::unique(clust);
+      // int kn = tvec.n_elem;
+      // update_mass_disc(mass,
+      //                  sigma_PY,
+      //                  kn,
+      //                  clust,
+      //                  freqtemp,
+      //                  grid_param,
+      //                  ptilde);
 
       // simulate the required values
       simu_trunc_PY_mv(mutemp,
@@ -534,10 +558,16 @@ Rcpp::List cICS_mv(arma::mat data,
 
       // if the burn-in phase is complete
       if(iter >= nburn){
-        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
         result_mu.push_back(mu);
         result_s2.push_back(s2);
         result_probs.push_back(probjoin);
+        // result_mu(iter - nburn) = mu;
+        // result_s2(iter - nburn) = s2;
+        // result_probs(iter - nburn) = probjoin;
+
+        // TEMP
+        risk_result.row(iter - nburn) = cond_dist(mu, s2, probjoin, uniquey, upperbound).t();
+
         n_clust(iter - nburn) = probjoin.n_elem;
         if(out_dens){
           dens = eval_density_mv(grid,
@@ -550,6 +580,21 @@ Rcpp::List cICS_mv(arma::mat data,
             result_dens.row(iter - nburn) = arma::trans(dens);
           }
         }
+      }
+
+      // clean parameter objects
+      para_clean_ICS_mv(mu,
+                        s2,
+                        clust);
+
+      // arma::vec prob_tmp = freq_vec(clust) / n;
+      // if the burn-in phase is complete
+      if(iter >= nburn){
+
+        // TEMP
+        // risk_result.row(iter - nburn) = cond_dist(mu, s2, prob_tmp, uniquey, upperbound).t();
+
+        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
       }
 
       if(print_message){
@@ -575,6 +620,9 @@ Rcpp::List cICS_mv(arma::mat data,
     } else {
       resu["dens"]   = result_dens;
     }
+    // TEMP
+    resu["risk"] = risk_result;
+
     resu["clust"]  = result_clust;
     resu["mu"]     = result_mu;
     resu["s2"]     = result_s2;
@@ -587,6 +635,9 @@ Rcpp::List cICS_mv(arma::mat data,
     } else {
       resu["dens"]   = result_dens;
     }
+    // TEMP
+    resu["risk"] = risk_result;
+
     resu["clust"]  = result_clust;
     resu["newval"] = new_val;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;

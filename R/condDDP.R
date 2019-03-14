@@ -1,8 +1,9 @@
 #' @name condDDP
 #' @export condDDP
 #'
-#' @title Estimate an univariate Dependent Dirichlet process mixture model with Gaussian kernel using the
-#' conditional Polya urn scheme
+#' @title Conditional dependent Dirichlet process
+#' @title Estimate an univariate dependent Dirichlet process mixture model with Gaussian kernel using
+#' importance conditional sampler scheme.
 #'
 #' @param data A dataset (vector).
 #' @param group group for the observed data, same dimension as data.
@@ -18,18 +19,20 @@
 #' @param napprox Number of approximating value for the conditioning distribution via "CPU" method, default 100.
 #' @param n_approx_unif number of values used in the importance sampling step for the multivariate beta distribution.
 #' @param nupd How frequently show the curren state of the estimation (number of iterations) - default 1000.
-#' @param out_dens If TRUE, save the parameters for each iteration, default TRUE
-#' @param print_message Print the status of the estimation
+#' @param out_dens If TRUE, save the parameters for each iteration, default TRUE.
+#' @param print_message Print the status of the estimation.
+#' @param light_dens Return only the posterior mean of the densities.
 #'
-#' @return A modCond class object contain the estimated density for each iterations, the allocations for each iterations. If out_param is TRUE, also the parameters.
+#' @return A modCond class object contain the estimated density for each iterations,
+#' the allocations for each iterations. If out_param is TRUE, also the parameters.
 #'
 #' @examples
 #' set.seed(42)
 #' data_toy <- c(rnorm(50, -4, 1), rnorm(100, 0, 1), rnorm(50, 4, 1))
 #' group_toy <- c(rep(1,100), rep(2,100))
 #' grid <- seq(-7, 7, length.out = 50)
-#' est_model <- condDDP(data = data_toy, group = group_toy, grid = grid, niter = 10000,
-#'                      nburn = 1000, napprox = 100, a0 = 4)
+#' est_model <- condDDP(data = data_toy, group = group_toy, grid = grid, niter = 1000,
+#'                      nburn = 100, napprox = 100, nupd = 100)
 #' plot(est_model)
 #'
 
@@ -77,7 +80,7 @@ condDDP <- function(data, group, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL
                     density = est_model$dens[,,1],
                     grideval = grid_use,
                     clust = est_model$clust,
-                    zeta = est_model$zeta,
+                    group_log = est_model$group_log,
                     niter = niter,
                     nburn = nburn,
                     nclust = as.vector(est_model$nclust),
@@ -89,7 +92,7 @@ condDDP <- function(data, group, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL
                     density = est_model$dens,
                     grideval = grid_use,
                     clust = est_model$clust,
-                    zeta = est_model$zeta,
+                    group_log = est_model$group_log,
                     niter = niter,
                     nburn = nburn,
                     nclust = as.vector(est_model$nclust),
@@ -101,7 +104,7 @@ condDDP <- function(data, group, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL
   }else{
     output <- new(Class = "modCondDep",
                   clust = est_model$clust,
-                  zeta = est_model$zeta,
+                  group_log = est_model$group_log,
                   niter = niter,
                   nburn = nburn,
                   # nnew = as.vector(est_model$newval),
@@ -116,86 +119,32 @@ condDDP <- function(data, group, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL
 
 # METHODS for class modCond ------------------------------------------------------------------------------
 
+#' @title modCondDep object plot
+#' @description \code{plot} method for class \code{modCondDep}
+#'
+#' @param x object of class \code{modCondDep}.
+#' @param ncol number of column in the final plot.
+
 setMethod(f = "plot",
           signature(x = "modCondDep"),
-          definition = function(x, prob = c(0.1, 0.9), ncol = 1){
-            stopifnot(class(x) == "modCondDep")
-
-            ngr <- length(unique(x@group))
-            plot_df <- as.data.frame(cbind(rep(x@grideval, ngr), as.vector(apply(x@density, c(1,2), mean)),
-                                           as.vector(apply(x@density, c(1,2), function(y) quantile(y, probs = prob[1]))),
-                                           as.vector(apply(x@density, c(1,2), function(y) quantile(y, probs = prob[2]))),
-                                           as.vector(sapply(1:ngr, function(y) rep(paste("Group ", y), length(x@grideval)))) ))
-            plot_df[,1:4] <- as.data.frame(cbind(rep(x@grideval, ngr), as.vector(apply(x@density, c(1,2), mean)),
-                                           as.vector(apply(x@density, c(1,2), function(y) quantile(y, probs = prob[1]))),
-                                           as.vector(apply(x@density, c(1,2), function(y) quantile(y, probs = prob[2])))))
-
-            ggplot2::ggplot(plot_df, mapping = ggplot2::aes(x = V1, y = V2, color = V5)) +
-              ggplot2::theme_bw() +
-              ggplot2::theme(axis.ticks = ggplot2::element_blank(),
-                    axis.title.x = ggplot2::element_blank(),
-                    axis.title.y = ggplot2::element_blank()) +
-              ggplot2::geom_ribbon(mapping = ggplot2::aes(ymin = V3, ymax = V4, fill = V5), alpha = 0.3, color = NA) +
-              ggplot2::geom_line() +
-              ggplot2::facet_wrap(~ factor(V5), ncol = 1) +
-              ggplot2::guides(fill=FALSE, color=FALSE)
-
-          })
-
-
-setMethod(f = "trace_ngr",
-          signature(x = "modCondDep"),
           definition = function(x, ncol = 1){
-            stopifnot(class(x) == "modCondDep")
+            with(x, {
 
-            ngr <- length(unique(x@group))
-            niter <- nrow(x@clust)
-            nobs <- ncol(x@clust)
-            nclust <- c()
+              stopifnot(class(x) == "modCondDep")
 
-            for(i in 0:ngr){
-              nclust <- c(nclust, apply(cbind(x@clust, x@zeta), 1, function(y) length(unique(y[1:nobs][y[(nobs+1):(2*nobs)] == i])) ))
-            }
-            plot_df <- as.data.frame(cbind(rep(1:niter, ngr + 1), nclust,
-                                           as.vector(sapply(0:ngr, function(y) rep(paste("Group ", y), niter)))))
-            plot_df[,1:2] <- as.data.frame(cbind(rep(1:niter, ngr + 1), nclust))
-            plot_df <- rbind(plot_df[-c(1:niter),], plot_df[c(1:niter),])
-            colnames(plot_df) <- c("V1", "V2", "V3")
-            ggplot2::ggplot(plot_df, ggplot2::aes(x = V1, y = V2, color = V3)) +
-              ggplot2::theme_bw() +
-              ggplot2::theme(axis.ticks = ggplot2::element_blank(),
-                              axis.title.x = ggplot2::element_blank(),
-                              axis.title.y = ggplot2::element_blank()) +
-              ggplot2::geom_line() +
-              ggplot2::facet_wrap(~ factor(V3), ncol = 1) +
-              ggplot2::guides(fill=FALSE, color=FALSE)
-          })
+              ngr <- length(unique(x@group))
+              plot_df <- as.data.frame(cbind(rep(x@grideval, ngr), as.vector(apply(x@density, c(1,2), mean)),
+                                             as.vector(sapply(1:ngr, function(y) rep(paste("Group ", y), length(x@grideval)))) ))
+              plot_df[,1:2] <- as.data.frame(cbind(rep(x@grideval, ngr), as.vector(apply(x@density, c(1,2), mean))))
 
-setMethod(f = "trace_obs",
-          signature(x = "modCondDep"),
-          definition = function(x, ncol = 1){
-            stopifnot(class(x) == "modCondDep")
-
-            ngr <- length(unique(x@group))
-            niter <- nrow(x@clust)
-            nobs <- ncol(x@clust)
-            nobs_v <- c()
-
-            for(i in 0:ngr){
-              nobs_v <- c(nobs_v, apply(x@zeta, 1, function(y) sum(y == i)))
-            }
-            plot_df <- as.data.frame(cbind(rep(1:niter, ngr + 1), nobs_v,
-                                           as.vector(sapply(0:ngr, function(y) rep(paste("Group ", y), niter)))))
-            plot_df[,1:2] <- as.data.frame(cbind(rep(1:niter, ngr + 1), nobs_v))
-            plot_df <- rbind(plot_df[-c(1:niter),], plot_df[c(1:niter),])
-            colnames(plot_df) <- c("V1", "V2", "V3")
-            ggplot2::ggplot(plot_df, mapping = ggplot2::aes(x = V1, y = V2, color = V3)) +
-              ggplot2::theme_bw() +
-              ggplot2::theme(axis.ticks = ggplot2::element_blank(),
-                              axis.title.x = ggplot2::element_blank(),
-                              axis.title.y = ggplot2::element_blank()) +
-              ggplot2::geom_line() +
-              ggplot2::facet_wrap(~ factor(V3), ncol = 1) +
-              ggplot2::guides(fill=FALSE, color=FALSE)
+              ggplot2::ggplot(plot_df, mapping = ggplot2::aes(x = V1, y = V2, color = V3)) +
+                ggplot2::theme_bw() +
+                ggplot2::theme(axis.ticks = ggplot2::element_blank(),
+                               axis.title.x = ggplot2::element_blank(),
+                               axis.title.y = ggplot2::element_blank()) +
+                ggplot2::geom_line() +
+                ggplot2::facet_wrap(~ factor(V3), ncol = 1) +
+                ggplot2::guides(fill=FALSE, color=FALSE)
+            })
           })
 

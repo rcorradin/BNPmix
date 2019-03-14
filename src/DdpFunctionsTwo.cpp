@@ -772,3 +772,33 @@ void update_v_DDP2(arma::vec &v,
   v = arma::trans(uvals.row(index));
 }
 
+/*
+ * TEMP
+ * GRIDDY SAMPLER FOR r AND z
+ */
+
+void update_wei_griddy(double &wei,
+                       double mass,
+                       arma::vec vals,
+                       arma::vec grid){
+
+  arma::vec temp_probs(grid.n_elem);
+  double temp_prod = 0;
+  double temp_sum = 0;
+  double temp_beta = 0;
+
+  for(arma::uword j = 0; j < grid.n_elem; j++){
+
+    temp_sum = 1;
+    temp_prod = 1;
+    temp_beta = 1 / exp(lgamma(vals.n_elem * mass * grid(j)) - vals.n_elem * lgamma(mass * grid(j)));
+    for(arma::uword k = 0; k < vals.n_elem; k++){
+      temp_prod *= pow(vals(k), mass * grid(j)) / pow(1 - vals(k), mass * grid(j));
+      temp_sum  += vals(k) / (1 - vals(k));
+    }
+
+    temp_probs(j) = temp_beta * temp_prod / pow(temp_sum, vals.n_elem * mass * grid(j));
+  }
+  int index = rintnunif(temp_probs);
+  wei = grid(index);
+}

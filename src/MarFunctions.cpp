@@ -46,7 +46,7 @@ void accelerate_MAR(arma::vec data,
                     double k0,
                     double a0,
                     double b0){
-  for(int j = 0; j < mu.n_elem; j++){
+  for(arma::uword j = 0; j < mu.n_elem; j++){
     int nj = sum(clust == j);
     arma::vec tdata = data.elem(arma::find(clust == j));
 
@@ -87,7 +87,7 @@ void accelerate_MAR_mv(arma::mat data,
                        arma::mat S0,
                        double n0){
   // loop over the different clusters
-  for(int j = 0; j < mu.n_rows; j++){
+  for(arma::uword j = 0; j < mu.n_rows; j++){
     // initialize itra cluster quantities
     int nj = sum(clust == j);
     arma::mat tdata = data.rows(arma::find(clust == j));
@@ -125,13 +125,13 @@ void para_clean_MAR(arma::vec &mu,
   int k = mu.n_elem;
 
   // for all the used parameters
-  for(int i = 0; i < k; i++){
+  for(arma::uword i = 0; i < k; i++){
 
     // if a cluster is empty
     if((int) arma::sum(clust == i) == 0){
 
       // find the last full cluster, then swap
-      for(int j = k; j > i; j--){
+      for(arma::uword j = k; j > i; j--){
         if((int) arma::sum(clust == j) != 0){
 
           // SWAPPING!!
@@ -153,7 +153,7 @@ void para_clean_MAR(arma::vec &mu,
 
   // reduce dimensions
   int u_bound = 0;
-  for(int i = 0; i < k; i++){
+  for(arma::uword i = 0; i < k; i++){
     if(arma::accu(clust == i) > 0){
       u_bound += 1;
     }
@@ -183,13 +183,13 @@ void para_clean_MAR_mv(arma::mat &mu,
   int k = mu.n_rows;
 
   // for all the used parameters
-  for(int i = 0; i < k; i++){
+  for(arma::uword i = 0; i < k; i++){
 
     // if a cluster is empty
     if((int) arma::sum(clust == i) == 0){
 
       // find the last full cluster, then swap
-      for(int j = k; j > i; j--){
+      for(arma::uword j = k; j > i; j--){
         if((int) arma::sum(clust == j) != 0){
 
           // SWAPPING!!
@@ -204,7 +204,7 @@ void para_clean_MAR_mv(arma::mat &mu,
 
   // reduce dimensions
   int u_bound = 0;
-  for(int i = 0; i < k; i++){
+  for(arma::uword i = 0; i < k; i++){
     if(arma::accu(clust == i) > 0){
       u_bound += 1;
     }
@@ -244,7 +244,7 @@ void clust_update_MAR(arma::vec data,
   int n = clust.n_elem;
 
   // loop over the observations
-  for(int i = 0; i < n; i++){
+  for(arma::uword i = 0; i < n; i++){
 
     bool req_clean = false;
     if(arma::sum(clust == clust[i]) == 1){
@@ -266,7 +266,7 @@ void clust_update_MAR(arma::vec data,
     // temp_clust(i) = k+1;
 
     // compute probabilities vector
-    for(int j = 0; j < k; j++) {
+    for(arma::uword j = 0; j < k; j++) {
       int nj = (int) arma::sum(clust == j);
       probs[j] = arma::normpdf(data[i], mu(j), sqrt(s2(j))) * nj;
     }
@@ -326,7 +326,7 @@ void clust_update_MAR_PY(arma::vec data,
   int n = clust.n_elem;
 
   // loop over the observations
-  for(int i = 0; i < n; i++){
+  for(arma::uword i = 0; i < n; i++){
 
     bool req_clean = false;
     if(arma::sum(clust == clust[i]) == 1){
@@ -348,7 +348,7 @@ void clust_update_MAR_PY(arma::vec data,
     // temp_clust(i) = k+1;
 
     // compute probabilities vector
-    for(int j = 0; j < k; j++) {
+    for(arma::uword j = 0; j < k; j++) {
       int nj = (int) arma::sum(clust == j);
       probs[j] = arma::normpdf(data[i], mu(j), sqrt(s2(j))) * (nj - sigma_PY);
     }
@@ -404,7 +404,7 @@ void clust_update_MAR_mv(arma::mat data,
   int d = data.n_cols;
 
   // loop over the observations
-  for(int i = 0; i < n; i++){
+  for(arma::uword i = 0; i < n; i++){
 
     bool req_clean = false;
     if(arma::sum(clust == clust[i]) == 1){
@@ -424,7 +424,7 @@ void clust_update_MAR_mv(arma::mat data,
     probs.fill(0);
 
     // compute probabilities vector
-    for(int j = 0; j < k; j++) {
+    for(arma::uword j = 0; j < k; j++) {
       int nj = (int) arma::sum(clust == j);
       arma::mat rooti  = arma::trans(arma::inv(trimatu(arma::chol(s2.slice(j)))));
       arma::vec cdata  = rooti * arma::trans(data.row(i) - mu.row(j)) ;
@@ -489,7 +489,7 @@ void clust_update_MAR_PY_mv(arma::mat data,
   int d = data.n_cols;
 
   // loop over the observations
-  for(int i = 0; i < n; i++){
+  for(arma::uword i = 0; i < n; i++){
 
     bool req_clean = false;
     if(arma::sum(clust == clust[i]) == 1){
@@ -509,7 +509,7 @@ void clust_update_MAR_PY_mv(arma::mat data,
     probs.fill(0);
 
     // compute probabilities vector
-    for(int j = 0; j < k; j++) {
+    for(arma::uword j = 0; j < k; j++) {
       int nj = (int) arma::sum(clust == j);
       arma::mat rooti  = arma::trans(arma::inv(trimatu(arma::chol(s2.slice(j)))));
       arma::vec cdata  = rooti * arma::trans(data.row(i) - mu.row(j)) ;

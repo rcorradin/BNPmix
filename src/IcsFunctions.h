@@ -87,4 +87,12 @@ void clust_update_ICS_mv(arma::mat data,
                          int iter,
                          arma::vec &new_val);
 
+void update_mass_disc(double &mass,
+                      double &sigma_PY,
+                      int kn,
+                      arma::vec clust,
+                      arma::vec freqtemp,
+                      arma::mat grid_param,
+                      arma::vec ptilde);
+
 #endif

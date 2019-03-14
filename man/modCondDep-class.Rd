@@ -4,7 +4,31 @@
 \name{modCondDep-class}
 \alias{modCondDep-class}
 \alias{modCondDep}
-\title{A class}
+\title{modCondDep class}
 \description{
-A class
+modCondDep class
 }
+\section{Slots}{
+
+\describe{
+\item{\code{density}}{a matrix containing the density value corresponding to the grid points}
+
+\item{\code{grideval}}{a set of values to evaluate the density}
+
+\item{\code{clust}}{a matrix containing the corresponding clusters for each observation, for each iteration}
+
+\item{\code{group_log}}{indicator variables to trace if the observation falls into its gorup or in the common one}
+
+\item{\code{niter}}{number of iterations}
+
+\item{\code{nburn}}{number of burn-in iterations}
+
+\item{\code{nclust}}{number of cluster}
+
+\item{\code{tot_time}}{execution time}
+
+\item{\code{group}}{the prior group allocation}
+
+\item{\code{wvals}}{values for the weights of the specific processes}
+}}
+

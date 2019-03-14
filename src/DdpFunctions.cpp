@@ -45,7 +45,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
 void accelerate_DDP(arma::vec data,
                      arma::vec group,
-                     arma::vec zeta,
+                     arma::vec group_log,
                      arma::field<arma::vec> &mu,
                      arma::field<arma::vec> &s2,
                      arma::vec clust,
@@ -59,17 +59,17 @@ void accelerate_DDP(arma::vec data,
   for(arma::uword g = 0; g <= ngr; g++){
 
     // if the urn is not empty
-    if(any(zeta == g)){
+    if(any(group_log == g)){
 
       // for any block in the urn g
       for(arma::uword j = 0; j < mu(g).n_elem; j++){
 
         // check if the block is not empty
-        if(any(zeta == g && clust == j)){
+        if(any(group_log == g && clust == j)){
 
           // update the corresponding parameters
-          int nj = sum(zeta == g && clust == j);
-          arma::vec tdata = data.elem(arma::find(zeta == g && clust == j));
+          int nj = sum(group_log == g && clust == j);
+          arma::vec tdata = data.elem(arma::find(group_log == g && clust == j));
 
           double kn = 1.0 / ( (1.0/k0) + nj);
           double mn = kn * ((m0/k0) + sum(tdata));
@@ -116,12 +116,12 @@ void para_clean_DDP(arma::field<arma::vec> &mu,
                      arma::field<arma::vec> &s2,
                      arma::vec &clust,
                      arma::vec group,
-                     arma::vec zeta,
+                     arma::vec group_log,
                      int ngr) {
 
   // loop over the non-empty urn
   for(arma::uword g = 0; g <= ngr; g++){
-    if(any(zeta == g)){
+    if(any(group_log == g)){
 
       int k = mu(g).n_elem;
 
@@ -129,14 +129,14 @@ void para_clean_DDP(arma::field<arma::vec> &mu,
       for(arma::uword i = 0; i < k; i++){
 
         // if a cluster is empty
-        if(!any(zeta == g && clust == i)){
+        if(!any(group_log == g && clust == i)){
 
           // find the last full cluster, then swap
           for(arma::uword j = k; j > i; j--){
-            if(any(zeta == g && clust == j)){
+            if(any(group_log == g && clust == j)){
 
               // SWAPPING!!
-              clust.elem(arma::find(zeta == g && clust == j)).fill(i);
+              clust.elem(arma::find(group_log == g && clust == j)).fill(i);
 
               double tmu = mu(g)(i);
               mu(g)(i) = mu(g)(j);
@@ -153,8 +153,8 @@ void para_clean_DDP(arma::field<arma::vec> &mu,
       }
 
       // reduce dimensions
-      if(any(zeta == g)){
-        int m_ind = max(clust.elem(arma::find(zeta == g))) + 1;
+      if(any(group_log == g)){
+        int m_ind = max(clust.elem(arma::find(group_log == g))) + 1;
         mu(g).resize(m_ind);
         s2(g).resize(m_ind);
       }
@@ -266,7 +266,7 @@ void simu_trunc_DDP(arma::field<arma::vec> &mutemp,
 
 void clust_update_DDP(arma::vec data,
                       arma::vec group,
-                      arma::vec &zeta,
+                      arma::vec &group_log,
                       arma::field<arma::vec> mujoin_complete,
                       arma::field<arma::vec> s2join_complete,
                       arma::field<arma::vec> probjoin_complete,
@@ -277,10 +277,10 @@ void clust_update_DDP(arma::vec data,
   arma::vec probs_upd;
   int index;
 
-
   // for each observation
   for(arma::uword i = 0; i < data.n_elem; i++){
     index = group(i) - 1;
+
     // resize the probs_upd object as the number of potential blocks
     int k = probjoin_complete(index).n_elem;
     probs_upd.resize(k);
@@ -290,15 +290,16 @@ void clust_update_DDP(arma::vec data,
       probs_upd(j) = probjoin_complete(index)(j) *
         arma::normpdf(data(i), mujoin_complete(index)(j),
                       sqrt(s2join_complete(index)(j)));
+
     }
 
     // sample the allocation, if new update new_val
     clust(i) = rintnunif(probs_upd);
     if(clust(i) >= max_val(index)){
-      zeta(i) = 0;
+      group_log(i) = 0;
       clust(i) = clust(i) - max_val(index);
     } else {
-      zeta(i) = group(i);
+      group_log(i) = group(i);
     }
   }
 }
@@ -319,7 +320,7 @@ void update_w_DDP(arma::vec &w,
                   double mass,
                   double wei,
                   int n_approx_unif,
-                  arma::vec zeta,
+                  arma::vec group_log,
                   arma::vec clust,
                   arma::vec group,
                   int ngr){
@@ -338,8 +339,8 @@ void update_w_DDP(arma::vec &w,
   // initialize the exponents (same for each simulated unif value)
   double cost_G = exp((ngr * std::lgamma(mass * wei)) - (std::lgamma(ngr * mass * wei)));
   for(arma::uword g = 0; g < ngr; g++){
-    temp_exp_up(g)   = mass * wei - 1 + arma::accu(group == g + 1 && zeta == g + 1);
-    temp_exp_down(g) = mass * wei + 1 - arma::accu(group == g + 1 && zeta != g + 1);
+    temp_exp_up(g)   = mass * wei - 1 + arma::accu(group == g + 1 && group_log == g + 1);
+    temp_exp_down(g) = mass * wei + 1 - arma::accu(group == g + 1 && group_log != g + 1);
   }
 
   // loop over each sampled value from the uniform

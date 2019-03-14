@@ -55,7 +55,7 @@ void accelerate_SLI(arma::vec data,
   double xtemp;
   double ytemp;
 
-  for(int j = 0; j < mu.n_elem; j++){
+  for(arma::uword j = 0; j < mu.n_elem; j++){
     int nj  = arma::accu(clust == j);
     int ngj = arma::accu(clust > j);
     arma::vec tdata = data.elem(arma::find(clust == j));
@@ -116,7 +116,7 @@ void accelerate_SLI_PY(arma::vec data,
   double xtemp;
   double ytemp;
 
-  for(int j = 0; j < mu.n_elem; j++){
+  for(arma::uword j = 0; j < mu.n_elem; j++){
     int nj  = arma::accu(clust == j);
     int ngj = arma::accu(clust > j);
     arma::vec tdata = data.elem(arma::find(clust == j));
@@ -176,7 +176,7 @@ void accelerate_SLI_mv(arma::mat data,
   double ytemp;
 
   // loop over the clusters
-  for(int j = 0; j < mu.n_rows; j++){
+  for(arma::uword j = 0; j < mu.n_rows; j++){
     // initialize intra cluster quantities
     int nj  = arma::accu(clust == j);
     int ngj = arma::accu(clust > j);
@@ -243,7 +243,7 @@ void accelerate_SLI_PY_mv(arma::mat data,
   double ytemp;
 
   // loop over the clusters
-  for(int j = 0; j < mu.n_rows; j++){
+  for(arma::uword j = 0; j < mu.n_rows; j++){
     // initialize intra cluster quantities
     int nj  = arma::accu(clust == j);
     int ngj = arma::accu(clust > j);
@@ -295,13 +295,13 @@ void para_clean_SLI(arma::vec &mu,
   int k = mu.n_elem;
 
   // for all the used parameters
-  for(int i = 0; i < k; i++){
+  for(arma::uword i = 0; i < k; i++){
 
     // if a cluster is empty
     if((int) arma::sum(clust == i) == 0){
 
       // find the last full cluster, then swap
-      for(int j = k; j > i; j--){
+      for(arma::uword j = k; j > i; j--){
         if((int) arma::sum(clust == j) != 0){
 
           // swap the corresponding elements
@@ -331,7 +331,7 @@ void para_clean_SLI(arma::vec &mu,
 
   // reduce dimensions
   int u_bound = 0;
-  for(int i = 0; i < k; i++){
+  for(arma::uword i = 0; i < k; i++){
     if(arma::accu(clust == i) > 0){
       u_bound += 1;
     }
@@ -367,13 +367,13 @@ void para_clean_SLI_mv(arma::mat &mu,
   int k = mu.n_rows;
 
   // for all the used parameters
-  for(int i = 0; i < k; i++){
+  for(arma::uword i = 0; i < k; i++){
 
     // if a cluster is empty
     if((int) arma::sum(clust == i) == 0){
 
       // find the last full cluster, then swap
-      for(int j = k; j > i; j--){
+      for(arma::uword j = k; j > i; j--){
         if((int) arma::sum(clust == j) != 0){
 
           clust( arma::find(clust == j) ).fill(i);
@@ -399,7 +399,7 @@ void para_clean_SLI_mv(arma::mat &mu,
 
   // reduce dimensions
   int u_bound = 0;
-  for(int i = 0; i < k; i++){
+  for(arma::uword i = 0; i < k; i++){
     if(arma::accu(clust == i) > 0){
       u_bound += 1;
     }
@@ -606,7 +606,7 @@ void grow_param_SLI_mv(arma::mat &mu,
   mu.resize(k_new, mu.n_cols);
   s2.resize(s2.n_rows, s2.n_cols, k_new);
 
-  for(int j = k_old; j < k_new; j++){
+  for(arma::uword j = k_old; j < k_new; j++){
     s2.slice(j) = arma::inv(arma::wishrnd(arma::inv(S0), n0));
     mu.row(j) = arma::trans(arma::mvnrnd(m0, s2.slice(j)/k0));
   }
@@ -674,7 +674,7 @@ void grow_param_SLI_PY_mv(arma::mat &mu,
   mu.resize(k_new, mu.n_cols);
   s2.resize(s2.n_rows, s2.n_cols, k_new);
 
-  for(int j = k_old; j < k_new; j++){
+  for(arma::uword j = k_old; j < k_new; j++){
     s2.slice(j) = arma::inv(arma::wishrnd(arma::inv(S0), n0));
     mu.row(j) = arma::trans(arma::mvnrnd(m0, s2.slice(j)/k0));
   }
@@ -698,7 +698,7 @@ void update_u_SLI(arma::vec clust,
                   arma::vec &u){
   int nel = clust.n_elem;
 
-  for(int el = 0; el < nel; el++){
+  for(arma::uword el = 0; el < nel; el++){
     u[el] = arma::randu() * w(clust[el]);
   }
 }
@@ -734,10 +734,10 @@ void update_cluster_SLI(arma::vec data,
   int siz;
   int sampled;
 
-  for(int i = 0; i < n; i++){
+  for(arma::uword i = 0; i < n; i++){
     siz = 0;
     index_use.resize(1);
-    for(int r = 0; r < k; r++){
+    for(arma::uword r = 0; r < k; r++){
       if(w[r] > u[i]){
         siz++;
         index_use.resize(siz);
@@ -752,7 +752,7 @@ void update_cluster_SLI(arma::vec data,
       }
     } else {
       probs.resize(index_use.n_elem);
-      for(int j = 0; j < index_use.n_elem; j++){
+      for(arma::uword j = 0; j < index_use.n_elem; j++){
         probs[j] = arma::normpdf(data[i], mu(index_use[j]), sqrt(s2(index_use[j])));
       }
       sampled = rintnunif(probs);
@@ -796,10 +796,10 @@ void update_cluster_SLI_mv(arma::mat data,
   int siz;
   int sampled;
 
-  for(int i = 0; i < n; i++){
+  for(arma::uword i = 0; i < n; i++){
     siz = 0;
     index_use.resize(1);
-    for(int r = 0; r < k; r++){
+    for(arma::uword r = 0; r < k; r++){
       if(w[r] > u[i]){
         siz++;
         index_use.resize(siz);
@@ -814,7 +814,7 @@ void update_cluster_SLI_mv(arma::mat data,
       }
     } else {
       probs.resize(index_use.n_elem);
-      for(int j = 0; j < index_use.n_elem; j++){
+      for(arma::uword j = 0; j < index_use.n_elem; j++){
         arma::mat rooti  = arma::trans(arma::inv(trimatu(arma::chol(s2.slice(index_use[j])))));
         arma::vec cdata  = rooti * arma::trans(data.row(i) - mu.row(index_use[j])) ;
         probs[j]         = exp(- (d / 2.0) * log(2.0 * M_PI) - 0.5 * arma::sum(cdata%cdata) + arma::sum(log(rooti.diag())));

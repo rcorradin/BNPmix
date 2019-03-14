@@ -2,13 +2,13 @@
 % Please edit documentation in R/condMCMCmv.R
 \name{condMCMCmv}
 \alias{condMCMCmv}
-\title{Estimate a multivariate Dirichlet process mixture model with Gaussian kernel using the
-conditional Polya urn scheme or Slice sampler}
+\title{MCMC for multivariate Pitman-Yor mixtures}
 \usage{
 condMCMCmv(data, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL,
   S0 = NULL, n0 = NULL, mass = 1, method = "ICS", napprox = 100,
   nupd = 1000, out_param = F, out_dens = TRUE, process = "DP",
-  sigma_PY = 0, print_message = TRUE, light_dens = TRUE)
+  sigma_PY = 0, print_message = TRUE, light_dens = TRUE, uniquey,
+  ubound)
 }
 \arguments{
 \item{data}{A dataset (matrix).}
@@ -29,38 +29,40 @@ condMCMCmv(data, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL,
 
 \item{mass}{Mass parameter of the Dirichlet process.}
 
-\item{method}{Different methods to estimate the model. Possible vaule "CPU" or "SLI", conditional Polya urn scheme or Slice sampler, default "CPU".}
+\item{method}{Different methods to estimate the model. Possible vaule "ICS", "SLI" or "MAR",
+importance conditional sampler/slice sampler/marginal sampler, default "ICS".}
 
-\item{napprox}{Number of approximating value for the conditioning distribution via "CPU" method, default 100.}
+\item{napprox}{Number of approximating value for the conditioning distribution via "ICS" method, default 100.}
 
 \item{nupd}{How frequently show the curren state of the estimation (number of iterations) - default 1000.}
 
 \item{out_param}{If TRUE, save the parameters for each iteration, default FALSE.}
 
-\item{out_dens}{If TRUE, return also the estimated density, default TRUE}
+\item{out_dens}{If TRUE, return also the estimated density, default TRUE.}
 
-\item{process}{Dirichlet process ("DP") or Pitman-Yor process ("PY"), default "DP"}
+\item{process}{Dirichlet process ("DP") or Pitman-Yor process ("PY"), default "DP".}
 
-\item{sigma_PY}{Discount parameter of the Pitman-Yor process, default 0}
+\item{sigma_PY}{Discount parameter of the Pitman-Yor process, default 0.}
 
-\item{print_message}{If TRUE print the status of the estimation, default TRUE}
+\item{print_message}{If TRUE print the status of the estimation, default TRUE.}
 
-\item{light_dens}{If TRUE return only the mean of the estimated densities, default TRUE}
+\item{light_dens}{If TRUE return only the mean of the estimated densities, default TRUE.}
 }
 \value{
-A modCond class object contain the estimated density for each iterations, the allocations for each iterations. If out_param is TRUE, also the parameters.
+A modCond class object contain the estimated density for each iterations,
+the allocations for each iterations. If out_param is TRUE, also the parameters.
 }
 \description{
-Estimate a multivariate Dirichlet process mixture model with Gaussian kernel using the
-conditional Polya urn scheme or Slice sampler
+Function to estimate an univariate Pitman-Yor process mixture model with Gaussian kernel. Three possible
+sampling strategies: importance conditional sampler, slice sampler and marginal sampler.
 }
 \examples{
 data_toy <- cbind(c(rnorm(100, -3, 1), rnorm(100, 3, 1)),
                   c(rnorm(100, -3, 1), rnorm(100, 3, 1)))
 grid <- expand.grid(seq(-7, 7, length.out = 50),
                     seq(-7, 7, length.out = 50))
-est_model <- condMCMCmv(data = data_toy, grid = grid, niter = 5000,
-                       nburn = 1000, napprox = 100)
+est_model <- condMCMCmv(data = data_toy, grid = grid, niter = 1000,
+                       nburn = 100, napprox = 100, nupd = 100)
 plot(est_model)
 
 }

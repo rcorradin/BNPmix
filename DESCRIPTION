@@ -1,14 +1,15 @@
 Package: BNPmix
 Type: Package
-Title: Algorithms for Dirichlet process mixtures
-Version: 0.1.0
+Title: Algorithms for Pitman-Yor process mixtures
+Version: 0.1.1
 Date: 2018-06-06
 Author: Riccardo Corradin
 Maintainer: Riccardo Corradin <riccardo.corradin@gmail.com>
-Description: A package containing different algorithms to estimate Dirichlet process mixtures model and Pitman-Yor mixture models. Estimation could be done via importance conditional sampler, slice sampler or marginal sampler. The package contains also the procedures to estimate via importance conditional sampler a GM-DDP model.
+Description: A package containing different algorithms to estimate Pitman-Yor process mixtures model and Pitman-Yor mixture models. Estimation could be done via importance conditional sampler, slice sampler or marginal sampler. The package contains also the procedures to estimate via importance conditional sampler a GM-DDP model.
 License: LGPL-3 | file LICENSE
-Import: ggplot2, methods
-Depends: R (>= 3.3.0), Rcpp(>= 0.12.13)
+NeedsCompilation: yes
+Imports: methods, ggplot2
+Depends: R (>= 3.3.0)
 LinkingTo: RcppArmadillo, Rcpp(>= 0.12.13)
 RoxygenNote: 6.1.1
 Encoding: UTF-8

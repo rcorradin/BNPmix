@@ -4,7 +4,31 @@
 \name{modCond-class}
 \alias{modCond-class}
 \alias{modCond}
-\title{A class}
+\title{modCond class}
 \description{
-A class
+modCond class
 }
+\section{Slots}{
+
+\describe{
+\item{\code{density}}{a matrix containing the density value corresponding to the grid points}
+
+\item{\code{grideval}}{a set of values to evaluate the density}
+
+\item{\code{clust}}{a matrix containing the corresponding clusters for each observation, for each iteration}
+
+\item{\code{mean}}{values for the location parameters}
+
+\item{\code{sigma2}}{values for the scale parameters}
+
+\item{\code{probs}}{values for the mixing measure}
+
+\item{\code{niter}}{number of iterations}
+
+\item{\code{nburn}}{number of burn-in iterations}
+
+\item{\code{nnew}}{number of new clusters sampled at each iteration}
+
+\item{\code{tot_time}}{execution time}
+}}
+

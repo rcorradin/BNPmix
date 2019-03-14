@@ -2,8 +2,7 @@
 % Please edit documentation in R/condDDP.R
 \name{condDDP}
 \alias{condDDP}
-\title{Estimate an univariate Dependent Dirichlet process mixture model with Gaussian kernel using the
-conditional Polya urn scheme}
+\title{Conditional dependent Dirichlet process}
 \usage{
 condDDP(data, group, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL,
   a0 = NULL, b0 = NULL, mass = 1, wei = 0.5, napprox = 10,
@@ -39,24 +38,29 @@ condDDP(data, group, grid = NULL, niter, nburn, m0 = NULL, k0 = NULL,
 
 \item{nupd}{How frequently show the curren state of the estimation (number of iterations) - default 1000.}
 
-\item{out_dens}{If TRUE, save the parameters for each iteration, default TRUE}
+\item{out_dens}{If TRUE, save the parameters for each iteration, default TRUE.}
 
-\item{print_message}{Print the status of the estimation}
+\item{print_message}{Print the status of the estimation.}
+
+\item{light_dens}{Return only the posterior mean of the densities.}
 }
 \value{
-A modCond class object contain the estimated density for each iterations, the allocations for each iterations. If out_param is TRUE, also the parameters.
+A modCond class object contain the estimated density for each iterations,
+the allocations for each iterations. If out_param is TRUE, also the parameters.
 }
 \description{
-Estimate an univariate Dependent Dirichlet process mixture model with Gaussian kernel using the
-conditional Polya urn scheme
+Conditional dependent Dirichlet process
+
+Estimate an univariate dependent Dirichlet process mixture model with Gaussian kernel using
+importance conditional sampler scheme.
 }
 \examples{
 set.seed(42)
 data_toy <- c(rnorm(50, -4, 1), rnorm(100, 0, 1), rnorm(50, 4, 1))
 group_toy <- c(rep(1,100), rep(2,100))
 grid <- seq(-7, 7, length.out = 50)
-est_model <- condDDP(data = data_toy, group = group_toy, grid = grid, niter = 10000,
-                     nburn = 1000, napprox = 100, a0 = 4)
+est_model <- condDDP(data = data_toy, group = group_toy, grid = grid, niter = 1000,
+                     nburn = 100, napprox = 100, nupd = 100)
 plot(est_model)
 
 }

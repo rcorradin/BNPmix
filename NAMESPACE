@@ -1,4 +1,6 @@
 useDynLib(BNPmix)
-importFrom(Rcpp, evalCpp)
+importFrom(methods, new)
+importFrom(ggplot2, ggplot, theme, theme_bw, element_blank, aes, geom_line,stat_contour, facet_wrap, guides)
+importFrom(stats, aggregate, quantile)
 exportPattern("^[[:alpha:]]+")
 

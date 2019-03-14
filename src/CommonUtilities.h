@@ -13,4 +13,10 @@ arma::vec eval_density_mv(arma::mat grid,
                           arma::cube s2,
                           arma::vec probs);
 
+arma::vec cond_dist(arma::mat mu,
+                    arma::cube s2,
+                    arma::vec probs,
+                    arma::vec uniquey,
+                    double upperbound);
+
 #endif
