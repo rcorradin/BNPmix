@@ -1,47 +1,45 @@
 /*==================================================================================
  Copyright (C) 2018 Riccardo Corradin
 
-This library is free software; you can redistribute it and/or
-modify it under the terms of the GNU Lesser General Public
-License as published by the Free Software Foundation; either
-version 3 of the License, or (at your option) any later version.
+ This library is free software; you can redistribute it and/or
+ modify it under the terms of the GNU Lesser General Public
+ License as published by the Free Software Foundation; either
+ version 3 of the License, or (at your option) any later version.
 
-This library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-Lesser General Public License for more details.
+ This library is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+ Lesser General Public License for more details.
 
-You should have received a copy of the GNU Lesser General Public
-License along with this library; if not, write to the Free Software
-Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
-*==================================================================================
-*/
+ You should have received a copy of the GNU Lesser General Public
+ License along with this library; if not, write to the Free Software
+ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
+ *==================================================================================*/
 
 #include "RcppArmadillo.h"
 #include "Distributions.h"
 // [[Rcpp::depends("RcppArmadillo")]]
 
 /*==================================================================================
-* Accelerate - UNIVARIATE conditional Polya Urn Scheme
-* acceleration step for reshuffling the parameters
-* given an allocation
-*
-* args:
-* - data:  vector of observation
-* - group: vector, each element correspond to a group
-* - zeta:  vector, each element correpsond to an urn
-* - mu:    vector of location component
-* - s2:    vector of scale component
-* - clust: vector of allocation
-* - m0:    mean of location's prior distribution (scalar)
-* - k0:    parameter of NIG on scale of location distribution (scalar)
-* - a0:    shape of prior Gamma distribution on the scale component (scalar)
-* - b0:    rate of prior Gamma distribution on the scale component (scalar)
-* - ngr:   number of groups
-*
-* Void function
-* ==================================================================================
-*/
+ * Accelerate - UNIVARIATE importance conditional sampler for DDP model
+ * acceleration step for reshuffling the parameters
+ * given an allocation
+ *
+ * args:
+ * - data:        vector of observation
+ * - group:       vector, each element correspond to a group
+ * - group_log:   vector, each element correpsond to group or the common one
+ * - mu:          field of vector of location component
+ * - s2:          field of vector of scale component
+ * - clust:       vector of allocation
+ * - m0:          mean of location's prior distribution (scalar)
+ * - k0:          parameter of NIG on scale of location distribution (scalar)
+ * - a0:          shape of prior Gamma distribution on the scale component (scalar)
+ * - b0:          rate of prior Gamma distribution on the scale component (scalar)
+ * - ngr:         number of groups
+ *
+ * Void function
+ * ==================================================================================*/
 
 void accelerate_DDP(arma::vec data,
                      arma::vec group,
@@ -54,6 +52,9 @@ void accelerate_DDP(arma::vec data,
                      double a0,
                      double b0,
                      int ngr){
+  double kn, mn, an, bn, data_m;
+  arma::vec tdata;
+  int nj;
 
   // for any urn
   for(arma::uword g = 0; g <= ngr; g++){
@@ -68,21 +69,22 @@ void accelerate_DDP(arma::vec data,
         if(any(group_log == g && clust == j)){
 
           // update the corresponding parameters
-          int nj = sum(group_log == g && clust == j);
-          arma::vec tdata = data.elem(arma::find(group_log == g && clust == j));
+          nj = sum(group_log == g && clust == j);
+          tdata = data.elem(arma::find(group_log == g && clust == j));
+          data_m = arma::accu(tdata) / nj;
 
-          double kn = 1.0 / ( (1.0/k0) + nj);
-          double mn = kn * ((m0/k0) + sum(tdata));
-          double an = a0 + (nj / 2.0);
-          double bn = b0 + (((pow(m0, 2)/ k0) + arma::accu(arma::pow(tdata, 2)) - (pow(mn, 2)/ kn)) / 2.0);
+          kn = (k0 + nj);
+          mn = ((m0 * k0) + nj * data_m) / kn;
+          an = a0 + (nj / 2.0);
+          bn = b0 + (arma::accu(pow(tdata - data_m, 2)) + (nj * k0 * pow(data_m - m0, 2)) / (kn)) / 2;
 
           s2(g)(j) = 1.0 / arma::randg(arma::distr_param(an, 1.0 / bn));
-          mu(g)(j) = arma::randn() * sqrt(kn * s2(g)(j)) + mn;
+          mu(g)(j) = arma::randn() * sqrt(s2(g)(j)/kn) + mn;
         } else {
 
           // otherwise update from the prior
           s2(g)(j) = 1.0 / arma::randg(arma::distr_param(a0, 1.0 / b0));
-          mu(g)(j) = arma::randn() * sqrt(k0 * s2(g)(j)) + m0;
+          mu(g)(j) = arma::randn() * sqrt(s2(g)(j) / k0) + m0;
         }
 
       }
@@ -96,21 +98,20 @@ void accelerate_DDP(arma::vec data,
 }
 
 /*==================================================================================
-* Clean parameter - UNIVARIATE conditional Polya Urn Scheme
-* discard the middle not used values for the clusters and
-* update the correspondent parameters.
-*
-* args:
-* - mu:      vector, each element a mean
-* - s2:      vector, each element a variance
-* - clust:   vector, each (integer) value is the cluster of the corresp. obs
-* - group:   vector, each element correspond to a group
-* - zeta:    vector, each element correpsond to an urn
-* - ngr:     number of groups
-*
-* Void function.
-* ==================================================================================
-*/
+ * Clean parameter - UNIVARIATE importance conditional sampler for DDP models
+ * discard the middle not used values for the clusters and
+ * update the correspondent parameters.
+ *
+ * args:
+ * - mu:          field of vector of location component
+ * - s2:          field of vector of scale component
+ * - clust:       vector, each (integer) value is the cluster of the corresp. obs
+ * - group:       vector, each element correspond to a group
+ * - group_log:   vector, each element correpsond to a group or the common one
+ * - ngr:         number of groups
+ *
+ * Void function.
+ * ==================================================================================*/
 
 void para_clean_DDP(arma::field<arma::vec> &mu,
                      arma::field<arma::vec> &s2,
@@ -168,23 +169,23 @@ void para_clean_DDP(arma::field<arma::vec> &mu,
 }
 
 /*==================================================================================
-* Simulate finite distribution - UNIVARIATE conditional Polya Urn Scheme
-*
-* args:
-* - mutemp:      mean values for each temp component
-* - s2temp:      variance values for temp each component
-* - freqtemp:    frequency values for temp each component
-* - mass:        mass of Dirichlet process
-* - m0:          mean of location's prior distribution (scalar)
-* - k0:          parameter of NIG on scale of location distribution (scalar)
-* - a0:          shape of prior Gamma distribution on the scale component (scalar)
-* - b0:          rate of prior Gamma distribution on the scale component (scalar)
-* - napprox:     number of approximating values
-* - ngr:         number of groups
-*
-* Void function.
-* ==================================================================================
-*/
+ * Simulate finite distribution - importance conditional sampler for DDP models
+ *
+ * args:
+ * - mutemp:      field of vector of mean values for each temp component
+ * - s2temp:      field of vector of variance values for temp each component
+ * - freqtemp:    field of vector of frequency values for temp each component
+ * - mass:        mass of Dirichlet process
+ * - wei:         vector of weights of the processes
+ * - m0:          mean of location's prior distribution (scalar)
+ * - k0:          parameter of NIG on scale of location distribution (scalar)
+ * - a0:          shape of prior Gamma distribution on the scale component (scalar)
+ * - b0:          rate of prior Gamma distribution on the scale component (scalar)
+ * - napprox:     number of approximating values
+ * - ngr:         number of groups
+ *
+ * Void function.
+ * ==================================================================================*/
 
 void simu_trunc_DDP(arma::field<arma::vec> &mutemp,
                     arma::field<arma::vec> &s2temp,
@@ -240,29 +241,28 @@ void simu_trunc_DDP(arma::field<arma::vec> &mutemp,
     mutemp(g).resize(k);
     s2temp(g).resize(k);
     s2temp(g) = 1.0 / arma::randg(k, arma::distr_param(a0, 1.0 / b0));
-    mutemp(g) = arma::randn(k) % sqrt(k0 * s2temp(g)) + m0;
+    mutemp(g) = arma::randn(k) % sqrt(s2temp(g) / k0) + m0;
   }
 }
 
 /*==================================================================================
-* Update clusters - UNIVARIATE conditional Polya Urn Scheme
-*
-* args:
-* - data:        vector of observation
-* - group:       vector, each element correspond to a group
-* - zeta:        vector, each element correpsond to an urn
-* - mujoin:      mean values for each component
-* - s2join:      mean values for each component
-* - probjoin:    mean values for each component
-* - clust:       vector of allocation
-* - max_val:     maximum old value
-* - iter:        current iteration
-* - ngr:         number of groups
-* - new_val      counting the new values
-*
-* void function
-* ==================================================================================
-*/
+ * Update clusters - UNIVARIATE importance conditional sampler for DDP models
+ *
+ * args:
+ * - data:          vector of observation
+ * - group:         vector, each element correspond to a group
+ * - group_log:     vector, each element correpsond to a group or the common one
+ * - mujoin:        field of vectors of mean values for each component
+ * - s2join:        field of vectors of mean values for each component
+ * - probjoin:      field of vectors of mean values for each component
+ * - clust:         vector of allocation
+ * - temp_proc_cum: cumulate values for processes
+ * - max_val:       maximum old value
+ * - iter:          current iteration
+ * - ngr:           number of groups
+ *
+ * void function
+ * ==================================================================================*/
 
 void clust_update_DDP(arma::vec data,
                       arma::vec group,
@@ -271,11 +271,13 @@ void clust_update_DDP(arma::vec data,
                       arma::field<arma::vec> s2join_complete,
                       arma::field<arma::vec> probjoin_complete,
                       arma::vec &clust,
+                      arma::mat &temp_proc_cum,
                       arma::vec max_val,
                       int iter,
                       int ngr){
   arma::vec probs_upd;
   int index;
+  temp_proc_cum.fill(0.0);
 
   // for each observation
   for(arma::uword i = 0; i < data.n_elem; i++){
@@ -291,6 +293,12 @@ void clust_update_DDP(arma::vec data,
         arma::normpdf(data(i), mujoin_complete(index)(j),
                       sqrt(s2join_complete(index)(j)));
 
+      if(j < max_val(index)){
+        temp_proc_cum(i, 0) += probs_upd(j);
+      } else {
+        temp_proc_cum(i, 1) += probs_upd(j);
+      }
+
     }
 
     // sample the allocation, if new update new_val
@@ -305,12 +313,18 @@ void clust_update_DDP(arma::vec data,
 }
 
 /*==================================================================================
-* Update Urns weights - UNIVARIATE conditional Polya Urn Scheme
+* Update Urns weights - importance conditional sampler for DDP models
 *
 * args:
-* - w:     vector of weights
-* - mass:  parameter mass of the DP
-* - wei:   weight parameter for the mixture of gamma process
+* - w:              vector of weights
+* - mass:           parameter mass of the DP
+* - wei:            weight of the processes
+* - n_approx_unif:  number of values for the importance sampling step
+* - group_log:      vector, each element a group or the common one
+* - clust:          vector, clusters
+* - group:          vector, each element a group
+* - temp_proc_cum:  cumulated values for the processes for each observation
+* - ngr:            number of groups
 *
 * void function
 * ==================================================================================
@@ -323,39 +337,98 @@ void update_w_DDP(arma::vec &w,
                   arma::vec group_log,
                   arma::vec clust,
                   arma::vec group,
+                  arma::mat temp_proc_cum,
                   int ngr){
 
   // generate n_approx_unif values from an uniform distribution defined
   // on the hypercube with same dimension as w
   // and the vector for the probabilities
+  int n = group.n_elem;
   arma::mat uvals(n_approx_unif, ngr, arma::fill::randu);
-  arma::vec imp_probs(n_approx_unif);
-  arma::vec temp_exp_up(ngr);
-  arma::vec temp_exp_down(ngr);
-  arma::vec temp_vals(ngr);
-  double temp;
+  // arma::mat uvals(49*49, 2);
+  // arma::vec tv = arma::regspace( 0.02, 0.02, 1 );
+  // int k = 0;
+  // for(arma::uword i = 0; i < 49; i++){
+  //   for(arma::uword j = 0; j < 49; j++){
+  //     uvals(k,0) = tv(i);
+  //     uvals(k,1) = tv(j);
+  //     k++;
+  //   }
+  // }
 
-  // initialize the Beta costant
-  // initialize the exponents (same for each simulated unif value)
-  double cost_G = exp((ngr * std::lgamma(mass * wei)) - (std::lgamma(ngr * mass * wei)));
-  for(arma::uword g = 0; g < ngr; g++){
-    temp_exp_up(g)   = mass * wei - 1 + arma::accu(group == g + 1 && group_log == g + 1);
-    temp_exp_down(g) = mass * wei + 1 - arma::accu(group == g + 1 && group_log != g + 1);
-  }
+  arma::vec imp_probs(uvals.n_rows);
+
+  double tempval;
 
   // loop over each sampled value from the uniform
-  for(arma::uword j = 0; j < n_approx_unif; j++){
+  // for(arma::uword j = 0; j < n_approx_unif; j++){
+  for(arma::uword j = 0; j < uvals.n_rows; j++){
 
-    // compute the terms
-    temp = 0.0;
+    tempval = 0.0;
     for(arma::uword g = 0; g < ngr; g++){
-      temp += std::pow(uvals.row(j)(g), temp_exp_up(g)) / std::pow(uvals.row(j)(g), temp_exp_down(g));
+
+      tempval += log(std::pow(uvals.row(j)(g), mass * wei - 1) /
+        std::pow(1 - uvals.row(j)(g), mass * wei + 1));
+
+      for(arma::uword i = 0; i < n; i++){
+        if(group(i) == g){
+          tempval += log(uvals.row(j)(g) * temp_proc_cum(i,0) +
+            (1 - uvals.row(j)(g)) * temp_proc_cum(i,1));
+        }
+      }
+
+      tempval += (- ngr * mass * wei - mass * (1 - wei)) * log(1 + arma::accu(uvals.row(j) / (1 - uvals.row(j))));
     }
 
+
     // update j-th element of the probs vector
-    imp_probs(j) = cost_G * temp * std::pow(1 + arma::accu(uvals.row(j) / (1 - uvals.row(j))), - ngr * mass * wei);
+    imp_probs(j) = tempval;
   }
 
-  int index = rintnunif(imp_probs);
+  int index = rintnunif_log(imp_probs);
   w = arma::trans(uvals.row(index));
+
+  // // generate n_approx_unif values from an uniform distribution defined
+  // // on the hypercube with same dimension as w
+  // // and the vector for the probabilities
+  // int n = group.n_elem;
+  // double tempval;
+  // arma::vec temp_w(w);
+  // double const_w = 0.0;
+  // arma::vec uvals(n_approx_unif);
+  // arma::vec imp_probs(n_approx_unif);
+  // // arma::vec uvals = arma::regspace( 0.02, 0.02, 0.98 );
+  // // arma::vec imp_probs(uvals.n_elem);
+  //
+  // // loop over each sampled value from the uniform
+  // for(arma::uword g = 0; g < ngr; g++){
+  //
+  //   uvals.randu();
+  //   imp_probs.fill(0.0);
+  //   temp_w = w;
+  //   temp_w(g) = 0;
+  //   const_w = 1 + arma::accu(temp_w / (1 - temp_w));
+  //
+  //   // sample the g element of w
+  //   for(arma::uword j = 0; j < uvals.n_elem; j++){
+  //
+  //     tempval = 0.0;
+  //     tempval += log(std::pow(uvals(j), mass * wei - 1) / std::pow(1 - uvals(j), mass * wei + 1));
+  //
+  //     for(arma::uword i = 0; i < n; i++){
+  //       if(group(i) == g){
+  //         tempval += log(uvals(j) * temp_proc_cum(i,0) +
+  //           (1 - uvals(j)) * temp_proc_cum(i,1));
+  //       }
+  //     }
+  //
+  //     tempval += (- ngr * mass * wei - mass * (1 - wei)) * log(const_w + (uvals(j) / ( 1 - uvals(j))));
+  //     imp_probs(j) = tempval;
+  //   }
+  //
+  //   int index = rintnunif_log(imp_probs);
+  //   w(g) = uvals(index);
+  //
+  // }
 }
+

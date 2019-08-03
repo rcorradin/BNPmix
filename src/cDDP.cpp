@@ -22,10 +22,11 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 #include "DdpFunctions.h"
 // [[Rcpp::depends("RcppArmadillo")]]
 
-//' @export cDDP
+
+//' @export
 //' @name cDDP
 //' @title C++ function to estimate DDP models with 1 grouping variables
-//'
+//' @keywords internal
 //'
 //' @param data a vector of observations.
 //' @param group group allocation of the data.
@@ -39,12 +40,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 //' @param b0 parameter of scale component.
 //' @param mass mass of Dirichlet process.
 //' @param wei prior weight of the specific processes.
+//' @param b tuning parameter of weights distribution
 //' @param napprox number of approximating values.
 //' @param n_approx_unif number of approximating values of the importance step for the weights updating.
 //' @param nupd number of iterations to show current updating.
 //' @param out_dens if TRUE, return also the estimated density (default TRUE).
 //' @param print_message print the status.
 //' @param light_dens if TRUE return only the posterior mean of the density
+//'
+
 
 //[[Rcpp::export]]
 Rcpp::List cDDP(arma::vec data,
@@ -65,8 +69,8 @@ Rcpp::List cDDP(arma::vec data,
                 bool out_dens = 1,
                 bool print_message = 1,
                 bool light_dens = 1){
-  // INITIALIZE
 
+  // INITIALIZE
   if(nupd == 0){
     nupd = (int) (niter / 10);
   }
@@ -95,13 +99,12 @@ Rcpp::List cDDP(arma::vec data,
   arma::field<arma::vec> s2join_complete(ngr);
   arma::field<arma::vec> probjoin_complete(ngr);
   arma::mat dens(grid.n_elem, ngr);
-  // arma::vec new_val(niter);
-  arma::mat n_clust(niter - nburn, ngr + 1);
   arma::field<arma::vec> mujoin(ngr + 1);
   arma::field<arma::vec> s2join(ngr + 1);
   arma::field<arma::vec> probjoin(ngr + 1);
   arma::vec max_val(ngr);
   arma::vec w(ngr);
+  arma::mat temp_proc_cum(n, 2);
 
   // fill the initialized quantity
   for(arma::uword j = 0; j <= ngr; j++){
@@ -125,10 +128,8 @@ Rcpp::List cDDP(arma::vec data,
 
   ptilde(0).resize(1);
   ptilde(0).fill(1);
-
-  // new_val.fill(0);
-  n_clust.fill(0);
   clust.fill(0);
+  temp_proc_cum.fill(1.0);
 
   int start_s = clock();
   int current_s;
@@ -159,19 +160,10 @@ Rcpp::List cDDP(arma::vec data,
           ptilde(g) = rdirich_mass(freq_vec(clust.elem(arma::find(group_log == g))), mass * (1 - wei));
         }
       } else {
-
         ptilde(g).resize(1);
         double temp = arma::randg(1, arma::distr_param(1.0, 1.0))[0];
         double temp2 = arma::randg(1, arma::distr_param(mass * wei, 1.0))[0];
         ptilde(g)(0) =  temp2 / ( temp + temp2);
-
-        // ptilde(g).resize(1);
-        // ptilde(g).fill(1);
-        // if( g != 0){
-        //   ptilde(g)(1) = arma::randg(1, arma::distr_param(mass * wei, 1.0))[0];
-        // } else {
-        //   ptilde(g)(1) = arma::randg(1, arma::distr_param(mass * (1 - wei), 1.0))[0];
-        // }
       }
 
     }
@@ -184,6 +176,7 @@ Rcpp::List cDDP(arma::vec data,
                   group_log,
                   clust,
                   group,
+                  temp_proc_cum,
                   ngr);
 
     // acceleration step
@@ -217,20 +210,12 @@ Rcpp::List cDDP(arma::vec data,
     for(arma::uword g = 0; g <= ngr; g++){
 
       if(any(group_log == g)){
-        // if(g != 0){
-        //   ptilde(g) = rdirich_mass_tot(freq_vec(clust.elem(arma::find(group_log == g))), mass * wei);
-        // } else {
-        //   ptilde(g) = rdirich_mass_tot(freq_vec(clust.elem(arma::find(group_log == g))), mass * (1 - wei));
-        // }
-
         mujoin(g) = arma::join_cols(mu(g), mutemp(g));
         s2join(g) = arma::join_cols(s2(g), s2temp(g));
         int nkpt = ptilde(g).n_elem - 1;
         arma::vec index = arma::regspace(0, nkpt);
         probjoin(g) = arma::join_cols(ptilde(g).elem(arma::find(index < nkpt)),
                  ptilde(g)(nkpt) * freqtemp(g) / napprox);
-        // max_val(g) = mu(g).n_elem;
-
       } else {
         ptilde(g).resize(2);
         ptilde(g).fill(1.0);
@@ -238,8 +223,6 @@ Rcpp::List cDDP(arma::vec data,
         mujoin(g) = mutemp(g);
         s2join(g) = s2temp(g);
         probjoin(g) = freqtemp(g) / napprox;
-        // max_val(g)  = 0;
-
       }
 
     }
@@ -253,6 +236,7 @@ Rcpp::List cDDP(arma::vec data,
       max_val(g - 1) = mujoin(g).n_elem;
     }
 
+
     // update cluster allocations
     clust_update_DDP(data,
                       group,
@@ -261,6 +245,7 @@ Rcpp::List cDDP(arma::vec data,
                       s2join_complete,
                       probjoin_complete,
                       clust,
+                      temp_proc_cum,
                       max_val,
                       iter,
                       ngr);
@@ -277,15 +262,10 @@ Rcpp::List cDDP(arma::vec data,
 
       // compute the density for each urn
       for(arma::uword g = 0; g < ngr; g++){
-        // n_clust(iter - nburn, g) = probjoin.n_elem;
         if(out_dens){
 
           dens.col(g) = eval_density(grid, mujoin_complete(g),
                    s2join_complete(g), probjoin_complete(g));
-
-          // dens.col(g-1) = sum(group == g && group_log == g) / sum(group == g) * eval_density(grid, mujoin(g),
-          //          s2join(g), probjoin(g)) + (1 - sum(group == g && group_log == g) / sum(group == g)) *
-          //            eval_density(grid, mujoin(0), s2join(0), probjoin(0));
         }
       }
 
@@ -313,7 +293,7 @@ Rcpp::List cDDP(arma::vec data,
   }
   int end_s = clock();
   if(print_message){
-    Rcpp::Rcout << "\n" << "WoooW! Have you seen how fast am I?\n";
+    Rcpp::Rcout << "\n" << "Estimation done in " << double(end_s-start_s)/CLOCKS_PER_SEC << " seconds\n";
   }
 
   // export a list with the results
@@ -325,8 +305,6 @@ Rcpp::List cDDP(arma::vec data,
   }
   resu["clust"]  = result_clust;
   resu["group_log"]   = result_group_log;
-  // resu["newval"] = new_val;
-  resu["nclust"] = n_clust;
   resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
   resu["wvals"]  = res_wei;
 

@@ -1,0 +1,151 @@
+# -----------------------------------------------------------------------
+# PARTITIONS
+# -----------------------------------------------------------------------
+#'  Estimating the partition of the data
+#'
+#' @description  The \code{partition} function estimates the partition of the data based on a Bayesian nonparametric mixture
+#' model according to different criteria.
+#'
+#' @param object an object of class \code{BNPdens};
+#' @param dist a loss function defined on the space of partitions;
+#' it can be variation of information  (\code{"VI"}) or \code{"Binder"}, default \code{"VI"};  see details below
+#' @param max_k  maximum number of clusters passed to the \code{cutree} function; see value below
+#' @param ... additional arguments to be passed
+#'
+#' @rdname partition
+#'
+#' @details
+#' This function returns point estimates for the clustering of the data induced by a nonparametric mixture model.
+#' This result is achieved exploiting two different loss fuctions on the space of partitions: variation of information
+#'  (\code{dist = 'VI'}) and Binder's loss (\code{dist = 'Binder'}). The function is based on the \code{mcclust.ext}
+#' code by Sara Wade (Wade and Ghahramani, 2018).
+#'
+#' @return
+#' The function returns a list containing a matrix with \code{nrow(data)} columns and 3 rows. Each row reports
+#' the cluster labels for each observation according to three different approaches, one per row. The first and second rows
+#' are the output of an agglomerative clustering procedure obtained applying the function \code{hclust}
+#' to the dissimilarity matrix (obtained using \code{dist}) and using the complete or average linkage,
+#' respectively. The number of cluster is between 1 and \code{max_k} and is choosen according to a lower bound
+#' on the expected loss as described in Wade and Ghahramani (2018).
+#' The third row reports the partition visited in the MCMC with minimum distance \code{dist} to the dissimilarity matrix.
+#'
+#' In addition, the list reports a vector with three scores representing the lower bound on the expected loss
+#' for the three partitions.
+#'
+#'
+#' @references
+#' Wade, S.,  Ghahramani, Z. (2018). Bayesian cluster analysis: Point estimation and credible balls.
+#' Bayesian Analysis, 13, 559-626.
+#'
+#' @examples
+#' data_toy <- c(rnorm(10, -3, 1), rnorm(10, 3, 1))
+#' grid <- seq(-7, 7, length.out = 50)
+#' fit <- PYdensity(y = data_toy, mcmc = list(niter = 100,
+#'                       nburn = 10, nupd = 100), output = list(grid = grid))
+#' class(fit)
+#' partition(fit)
+#'
+#' @export
+#'
+
+# based on Wade's mcclust.ext package minVI function
+partition <- function(object, dist = "VI", max_k = NULL, ...) {
+
+  # clean the clusters and compute PSM
+  clean_cl <- clean_partition(object$clust) + 1
+  psm_mat  <- BNPmix_psm(clean_cl)
+
+  if(dist == "VI"){
+
+    if(is.null(max_k)) max_k <- ceiling(dim(psm_mat)[1]/8)
+
+    # complete linkage VI
+    hclust_comp <- hclust(as.dist(1 - psm_mat), method="complete")
+    cls_comp    <-  t(apply(matrix(1:max_k), 1, function(x) cutree(hclust_comp, k=x)))
+    VI_comp     <- BNPmix_VI_LB(cls_comp, psm_mat)
+    val_comp    <- min(VI_comp)
+    complete    <- cls_comp[which.min(VI_comp),]
+
+    # avg linkage VI
+    hclust_avg <- hclust(d = as.dist(1 - psm_mat), method = "average")
+    cls_avg    <- t(apply(matrix(1:max_k),1,function(x) cutree(hclust_avg,k=x)))
+    VI_avg     <- BNPmix_VI_LB(cls_avg,psm_mat)
+    val_avg    <- min(VI_avg)
+    average    <- cls_avg[which.min(VI_avg),]
+
+    # draw VI
+    VI_draws  <- BNPmix_VI_LB(clean_cl, psm_mat)
+    val_draws <- min(VI_draws)
+    draw      <- clean_cl[which.min(VI_draws),]
+
+    output <- BNPpart(partitions = rbind(complete, average, draw),
+                      scores = c(val_comp, val_avg, val_draws),
+                      psm = psm_mat)
+    return(output)
+
+  } else if(dist == "Binder"){
+
+    if(is.null(max_k)) max_k <- ceiling(dim(psm_mat)[1]/8)
+
+    # complete linkage BINDER
+    hclust_comp <- hclust(as.dist(1 - psm_mat), method="complete")
+    cls_comp    <- t(apply(matrix(1:max_k), 1, function(x) cutree(hclust_comp, k=x)))
+    BIN_comp    <- BNPmix_BIN(cls_comp, psm_mat)
+    val_comp    <- min(BIN_comp)
+    complete    <- cls_comp[which.min(BIN_comp),]
+
+    # avg linkage VI
+    hclust_avg <- hclust(d = as.dist(1 - psm_mat), method = "average")
+    cls_avg    <- t(apply(matrix(1:max_k),1,function(x) cutree(hclust_avg,k=x)))
+    BIN_avg    <- BNPmix_BIN(cls_avg,psm_mat)
+    val_avg    <- min(BIN_avg)
+    average    <- cls_avg[which.min(BIN_avg),]
+
+    # draw BINDER
+    BIN_draws <- BNPmix_BIN(clean_cl, psm_mat)
+    val_draws <- min(BIN_draws)
+    draw      <- clean_cl[which.min(BIN_draws),]
+
+    output <- BNPpart(partitions = rbind(complete, average, draw),
+                      scores = c(val_comp, val_avg, val_draws),
+                      psm = psm_mat)
+    return(output)
+  }
+}
+
+# -----------------------------------------------------------------------
+# CALIBRATION
+# -----------------------------------------------------------------------
+#'
+#' Pitman-Yor prior elicitation
+#'
+#' @description The function \code{PYcalibrate} elicits the strength parameter of the Pitman-Yor
+#' process, given the discount parameter and the prior expected number of clusters.
+#'
+#' @param Ek prior expected number of cluster;
+#' @param n sample size;
+#' @param discount discount parameter; default is set to 0, corresponding to a Dirichlet process prior.
+#'
+#' @rdname PYcalibrate
+#'
+#' @return
+#' A named list containing the strength and discount parameters.
+#'
+#' @examples
+#' PYcalibrate(5, 100)
+#'
+#' PYcalibrate(5, 100, 0.5)
+#'
+#' @export
+#'
+
+PYcalibrate <- function(Ek, n, discount = 0){
+  rfa <- function(theta, discount, n) prod( 1 + discount/(theta + 0:(n-1)))
+
+  if(discount == 0){
+    result <- try(uniroot(function(x) sum(x/(x+(1:n)-1)) - Ek, interval=c(0.0001,100))$root)
+  } else {
+    result <- try(uniroot(function(x) x/discount*(rfa(x,discount,n)-1) - Ek, interval=c(-discount+0.000001,100))$root)
+  }
+  return(list(strength = result, discount = discount))
+}

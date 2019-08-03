@@ -4,8 +4,8 @@
 \name{BNPmix-package}
 \alias{BNPmix}
 \alias{BNPmix-package}
-\title{BNPmix: Algorithms for Pitman-Yor process mixtures}
+\title{BNPmix: Bayesian Nonparametric Mixture Models}
 \description{
-A package containing different algorithms to both univariate and multivariate Pitman-Yor mixture models. Estimation could be done via importance conditional sampler, slice sampler or marginal sampler. The package contains also the procedures to estimate via importance conditional sampler a Griffiths-Milne Dependent Dirichlet process mixture model.
+Functions to perform Bayesian nonparametric univariate and multivariate density estimation and clustering, by means of Pitman-Yor mixtures, and Dependent Dirichlet process mixtures for partially exchangeable data.
 }
 \keyword{internal}

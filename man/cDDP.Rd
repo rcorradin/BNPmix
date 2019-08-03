@@ -28,6 +28,8 @@
 
 \item{wei}{prior weight of the specific processes.}
 
+\item{b}{tuning parameter of weights distribution}
+
 \item{napprox}{number of approximating values.}
 
 \item{n_approx_unif}{number of approximating values of the importance step for the weights updating.}
@@ -43,3 +45,4 @@
 \description{
 C++ function to estimate DDP models with 1 grouping variables
 }
+\keyword{internal}

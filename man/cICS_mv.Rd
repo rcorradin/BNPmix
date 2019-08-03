@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{cICS_mv}
 \alias{cICS_mv}
-\title{C++ function to estimate Pitman-Yor multivariate mixtures via importance conditional sampler}
+\title{C++ function to estimate Pitman-Yor multivariate mixtures via importance conditional sampler - LOCATION SCALE}
 \arguments{
 \item{data}{a matrix of observations}
 
@@ -20,7 +20,19 @@
 
 \item{n0}{parameter of scale component}
 
-\item{mass}{mass of Dirichlet process}
+\item{m1}{mean of hyperprior distribution of m0}
+
+\item{S1}{covariance of hyperprior distribution of m0}
+
+\item{tau1}{shape parameter of hyperprior distribution of k0}
+
+\item{tau2}{rate parameter of hyperprior distribution of k0}
+
+\item{theta1}{df of hyperprior distribution of S0}
+
+\item{Theta1}{matrix of hyperprior distribution of S0}
+
+\item{strength}{strength parameter}
 
 \item{napprox}{number of approximating values}
 
@@ -30,12 +42,15 @@
 
 \item{out_dens}{if TRUE, return also the estimated density (default TRUE)}
 
-\item{sigma_PY}{second parameter of PY}
+\item{discount}{second parameter of PY}
 
 \item{print_message}{print the status}
 
 \item{light_dens}{if TRUE return only the posterior mean of the density}
+
+\item{hyper, }{if TRUE use hyperpriors, default TRUE}
 }
 \description{
-C++ function to estimate Pitman-Yor multivariate mixtures via importance conditional sampler
+C++ function to estimate Pitman-Yor multivariate mixtures via importance conditional sampler - LOCATION SCALE
 }
+\keyword{internal}

@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{cSLI_mv}
 \alias{cSLI_mv}
-\title{C++ function to estimate Pitman-Yor multivariate mixtures via slice sampler}
+\title{C++ function to estimate Pitman-Yor multivariate mixtures via slice sampler - LOCATION SCALE}
 \arguments{
 \item{data}{a matrix of observations}
 
@@ -20,7 +20,19 @@
 
 \item{n0}{parameter of scale component}
 
-\item{mass}{mass of Dirichlet process}
+\item{m1}{mean of hyperprior distribution of m0}
+
+\item{S1}{covariance of hyperprior distribution of m0}
+
+\item{tau1}{shape parameter of hyperprior distribution of k0}
+
+\item{tau2}{rate parameter of hyperprior distribution of k0}
+
+\item{theta1}{df of hyperprior distribution of S0}
+
+\item{Theta1}{matrix of hyperprior distribution of S0}
+
+\item{mass}{mass parameter}
 
 \item{nupd}{number of iterations to show current updating}
 
@@ -33,7 +45,10 @@
 \item{print_message}{print the status}
 
 \item{light_dens}{if TRUE return only the posterior mean of the density}
+
+\item{hyper, }{if TRUE use hyperpriors, default TRUE}
 }
 \description{
-C++ function to estimate Pitman-Yor multivariate mixtures via slice sampler
+C++ function to estimate Pitman-Yor multivariate mixtures via slice sampler - LOCATION SCALE
 }
+\keyword{internal}

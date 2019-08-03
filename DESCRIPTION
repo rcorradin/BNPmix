@@ -1,15 +1,15 @@
 Package: BNPmix
 Type: Package
-Title: Algorithms for Pitman-Yor process mixtures
-Version: 0.1.1
-Date: 2018-06-06
-Author: Riccardo Corradin
+Title: Bayesian Nonparametric Mixture Models
+Version: 0.2.2
+Date: 2019-07-23
+Author: Riccardo Corradin [aut, cre], Antonio Canale [ctb], Bernardo Nipoti [ctb]
 Maintainer: Riccardo Corradin <riccardo.corradin@gmail.com>
-Description: A package containing different algorithms to both univariate and multivariate Pitman-Yor mixture models. Estimation could be done via importance conditional sampler, slice sampler or marginal sampler. The package contains also the procedures to estimate via importance conditional sampler a Griffiths-Milne Dependent Dirichlet process mixture model.
+Description: Functions to perform Bayesian nonparametric univariate and multivariate density estimation and clustering, by means of Pitman-Yor mixtures, and Dependent Dirichlet process mixtures for partially exchangeable data.  
 License: LGPL-3 | file LICENSE
 NeedsCompilation: yes
 Imports: methods, ggplot2
-Depends: R (>= 3.3.0)
+Depends: R (>= 3.5.0)
 LinkingTo: RcppArmadillo, Rcpp(>= 0.12.13)
 RoxygenNote: 6.1.1
 Encoding: UTF-8

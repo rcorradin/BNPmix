@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{cSLI}
 \alias{cSLI}
-\title{C++ function to estimate Pitman-Yor univariate mixtures via slice sampler}
+\title{C++ function to estimate Pitman-Yor univariate mixtures via slice sampler - LOCATION SCALE}
 \arguments{
 \item{data}{a vector of observations}
 
@@ -20,7 +20,19 @@
 
 \item{b0}{parameter of scale component}
 
-\item{mass}{mass of Dirichlet process}
+\item{m1}{mean of hyperdistribution of m0}
+
+\item{s21}{variance of hyperdistribution of m0}
+
+\item{tau1}{shape parameter of hyperdistribution of k0}
+
+\item{tau2}{rate parameter of hyperdistribution of k0}
+
+\item{a1}{shape parameter of hyperdistribution of b0}
+
+\item{b1}{rate parameter of hyperdistribution of b0}
+
+\item{mass}{parameter}
 
 \item{nupd}{number of iterations to show current updating}
 
@@ -31,7 +43,10 @@
 \item{sigma_PY}{second parameter of PY}
 
 \item{print_message}{print the status}
+
+\item{hyper, }{if TRUE use hyperpriors, default TRUE}
 }
 \description{
-C++ function to estimate Pitman-Yor univariate mixtures via slice sampler
+C++ function to estimate Pitman-Yor univariate mixtures via slice sampler - LOCATION SCALE
 }
+\keyword{internal}
