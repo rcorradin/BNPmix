@@ -15,7 +15,7 @@ BNPpart(partitions = NULL, scores = NULL, psm = NULL)
 }
 \description{
 A constructor for the \code{BNPpart} class. The class \code{BNPpart} is a named list containing
-the output of the partition estimation of different methods.
+the output of partition estimation methods.
 }
 \examples{
 data_toy <- c(rnorm(100, -3, 1), rnorm(100, 3, 1))

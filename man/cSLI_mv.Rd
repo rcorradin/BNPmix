@@ -47,6 +47,8 @@
 \item{light_dens}{if TRUE return only the posterior mean of the density}
 
 \item{hyper, }{if TRUE use hyperpriors, default TRUE}
+
+\item{indep}{if TRUE use the independent slice efficient}
 }
 \description{
 C++ function to estimate Pitman-Yor multivariate mixtures via slice sampler - LOCATION SCALE

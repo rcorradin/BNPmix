@@ -46,15 +46,34 @@ void grow_param_SLI_PY_L(arma::vec &mu,
                          int n,
                          double sigma_PY);
 
+void grow_param_indep_SLI_PY_L(arma::vec &mu,
+                               arma::vec &v,
+                               arma::vec &w,
+                               arma::vec &xi,
+                               arma::vec u,
+                               double m0,
+                               double s20,
+                               double mass,
+                               int n,
+                               double sigma_PY,
+                               double param_seq_one,
+                               double param_seq_two);
+
 void update_cluster_SLI_L(arma::vec data,
                           arma::vec mu,
                           double s2,
                           arma::vec &clust,
                           arma::vec w,
-                          arma::vec u,
-                          int max_val,
-                          int iter,
-                          arma::vec &new_val);
+                          arma::vec u);
+
+
+void update_cluster_indep_SLI_L(arma::vec data,
+                                arma::vec mu,
+                                double s2,
+                                arma::vec &clust,
+                                arma::vec w,
+                                arma::vec xi,
+                                arma::vec u);
 
 /*----------------------------------------------------------------------
  *
@@ -78,19 +97,19 @@ void accelerate_SLI_PY(arma::vec data,
                        double mass,
                        double sigma_PY);
 
-void hyper_accelerate_SLI_L(arma::vec mu,
-                            arma::vec s2,
-                            arma::vec clust,
-                            double &m0,
-                            double &k0,
-                            double a0,
-                            double &b0,
-                            double m1,
-                            double s21,
-                            double tau1,
-                            double tau2,
-                            double a1,
-                            double b1);
+void hyper_accelerate_SLI(arma::vec mu,
+                          arma::vec s2,
+                          arma::vec clust,
+                          double &m0,
+                          double &k0,
+                          double a0,
+                          double &b0,
+                          double m1,
+                          double s21,
+                          double tau1,
+                          double tau2,
+                          double a1,
+                          double b1);
 
 void grow_param_SLI_PY(arma::vec &mu,
                        arma::vec &s2,
@@ -103,17 +122,40 @@ void grow_param_SLI_PY(arma::vec &mu,
                        double b0,
                        double mass,
                        int n,
-                       double sigma_PY);
+                       double sigma_PY,
+                       int &bound);
+
+void grow_param_indep_SLI_PY(arma::vec &mu,
+                             arma::vec &s2,
+                             arma::vec &v,
+                             arma::vec &w,
+                             arma::vec &xi,
+                             arma::vec u,
+                             double m0,
+                             double k0,
+                             double a0,
+                             double b0,
+                             double mass,
+                             int n,
+                             double sigma_PY,
+                             double param_seq_one,
+                             double param_seq_two,
+                             int &bound);
 
 void update_cluster_SLI(arma::vec data,
                         arma::vec mu,
                         arma::vec s2,
                         arma::vec &clust,
                         arma::vec w,
-                        arma::vec u,
-                        int max_val,
-                        int iter,
-                        arma::vec &new_val);
+                        arma::vec u);
+
+void update_cluster_indep_SLI(arma::vec data,
+                              arma::vec mu,
+                              arma::vec s2,
+                              arma::vec &clust,
+                              arma::vec w,
+                              arma::vec xi,
+                              arma::vec u);
 
 /*----------------------------------------------------------------------
  *
@@ -137,7 +179,7 @@ void accelerate_SLI_PY_mv_L(arma::mat data,
                             double mass,
                             double sigma_PY);
 
-void hyper_accelerate_MAR_mv_L(arma::mat mu,
+void hyper_accelerate_SLI_mv_L(arma::mat mu,
                                arma::vec &m0,
                                arma::vec clust,
                                arma::mat &S20,
@@ -156,15 +198,33 @@ void grow_param_SLI_PY_mv_L(arma::mat &mu,
                             int n,
                             double sigma_PY);
 
+void grow_param_indep_SLI_PY_mv_L(arma::mat &mu,
+                                  arma::vec &v,
+                                  arma::vec &w,
+                                  arma::vec &xi,
+                                  arma::vec u,
+                                  arma::vec m0,
+                                  arma::mat S20,
+                                  double mass,
+                                  int n,
+                                  double sigma_PY,
+                                  double param_seq_one,
+                                  double param_seq_two);
+
 void update_cluster_SLI_mv_L(arma::mat data,
                              arma::mat mu,
                              arma::mat s2,
                              arma::vec &clust,
                              arma::vec w,
-                             arma::vec u,
-                             int max_val,
-                             int iter,
-                             arma::vec &new_val);
+                             arma::vec u);
+
+void update_cluster_indep_SLI_mv_L(arma::mat data,
+                                   arma::mat mu,
+                                   arma::mat s2,
+                                   arma::vec &clust,
+                                   arma::vec w,
+                                   arma::vec xi,
+                                   arma::vec u);
 
 /*----------------------------------------------------------------------
  *
@@ -215,15 +275,36 @@ void grow_param_SLI_PY_mv(arma::mat &mu,
                           int n,
                           double sigma_PY);
 
+void grow_param_indep_SLI_PY_mv(arma::mat &mu,
+                                arma::cube &s2,
+                                arma::vec &v,
+                                arma::vec &w,
+                                arma::vec &xi,
+                                arma::vec u,
+                                arma::vec m0,
+                                double k0,
+                                arma::mat S0,
+                                double n0,
+                                double mass,
+                                int n,
+                                double sigma_PY,
+                                double param_seq_one,
+                                double param_seq_two);
+
 void update_cluster_SLI_mv(arma::mat data,
                            arma::mat mu,
                            arma::cube s2,
                            arma::vec &clust,
                            arma::vec w,
-                           arma::vec u,
-                           int max_val,
-                           int iter,
-                           arma::vec &new_val);
+                           arma::vec u);
+
+void update_cluster_indep_SLI_mv(arma::mat data,
+                                 arma::mat mu,
+                                 arma::cube s2,
+                                 arma::vec &clust,
+                                 arma::vec w,
+                                 arma::vec xi,
+                                 arma::vec u);
 
 /*----------------------------------------------------------------------
  *
@@ -274,15 +355,36 @@ void grow_param_SLI_PY_mv_P(arma::mat &mu,
                             int n,
                             double sigma_PY);
 
+void grow_param_indep_SLI_PY_mv_P(arma::mat &mu,
+                                  arma::mat &s2,
+                                  arma::vec &v,
+                                  arma::vec &w,
+                                  arma::vec &xi,
+                                  arma::vec u,
+                                  arma::vec m0,
+                                  arma::vec k0,
+                                  arma::vec a0,
+                                  arma::vec b0,
+                                  double mass,
+                                  int n,
+                                  double sigma_PY,
+                                  double param_seq_one,
+                                  double param_seq_two);
+
 void update_cluster_SLI_mv_P(arma::mat data,
                              arma::mat mu,
                              arma::mat s2,
                              arma::vec &clust,
                              arma::vec w,
-                             arma::vec u,
-                             int max_val,
-                             int iter,
-                             arma::vec &new_val);
+                             arma::vec u);
+
+void update_cluster_indep_SLI_mv_P(arma::mat data,
+                                   arma::mat mu,
+                                   arma::mat s2,
+                                   arma::vec &clust,
+                                   arma::vec w,
+                                   arma::vec xi,
+                                   arma::vec u);
 
 /*----------------------------------------------------------------------
  *
@@ -336,6 +438,22 @@ void grow_param_SLI_PY_mv_MRK(arma::mat &beta,
                               int n,
                               double sigma_PY);
 
+void grow_param_indep_SLI_PY_mv_MRK(arma::mat &beta,
+                                    arma::vec &sigma2,
+                                    arma::vec &v,
+                                    arma::vec &w,
+                                    arma::vec &xi,
+                                    arma::vec u,
+                                    arma::vec beta0,
+                                    arma::mat Sb0,
+                                    double a0,
+                                    double b0,
+                                    double mass,
+                                    int n,
+                                    double sigma_PY,
+                                    double param_seq_one,
+                                    double param_seq_two);
+
 void update_cluster_SLI_mv_MRK(arma::vec y,
                                arma::mat covs,
                                arma::mat beta,
@@ -343,5 +461,88 @@ void update_cluster_SLI_mv_MRK(arma::vec y,
                                arma::vec &clust,
                                arma::vec w,
                                arma::vec u);
+
+void update_cluster_indep_SLI_mv_MRK(arma::vec y,
+                                     arma::mat covs,
+                                     arma::mat beta,
+                                     arma::vec sigma2,
+                                     arma::vec &clust,
+                                     arma::vec w,
+                                     arma::vec xi,
+                                     arma::vec u);
+
+/*----------------------------------------------------------------------
+ *
+ * MIXTURE OF REGRESSION KERNELS
+ * LOCATION-SCALE KERNEL
+ * SLI functions
+ *
+ *----------------------------------------------------------------------
+ */
+
+void accelerate_SLI_mv_MRK_L(arma::vec y,
+                             arma::mat covs,
+                             arma::mat &beta,
+                             double &sigma2,
+                             arma::vec &v,
+                             arma::vec &w,
+                             arma::vec clust,
+                             arma::vec beta0,
+                             arma::mat Sb0,
+                             double a0,
+                             double b0,
+                             double mass,
+                             double sigma_PY);
+
+void hyper_accelerate_SLI_mv_MRK_L(arma::vec y,
+                                   arma::mat covs,
+                                   arma::vec clust,
+                                   arma::mat beta,
+                                   arma::vec &beta0,
+                                   arma::mat &Sb0,
+                                   arma::vec beta1,
+                                   double k1,
+                                   double sb1,
+                                   arma::mat Sb1);
+
+void grow_param_SLI_PY_mv_MRK_L(arma::mat &beta,
+                                arma::vec &v,
+                                arma::vec &w,
+                                arma::vec u,
+                                arma::vec beta0,
+                                arma::mat Sb0,
+                                double mass,
+                                int n,
+                                double sigma_PY);
+
+void grow_param_indep_SLI_PY_mv_MRK_L(arma::mat &beta,
+                                      arma::vec &v,
+                                      arma::vec &w,
+                                      arma::vec &xi,
+                                      arma::vec u,
+                                      arma::vec beta0,
+                                      arma::mat Sb0,
+                                      double mass,
+                                      int n,
+                                      double sigma_PY,
+                                      double param_seq_one,
+                                      double param_seq_two);
+
+void update_cluster_SLI_mv_MRK_L(arma::vec y,
+                                 arma::mat covs,
+                                 arma::mat beta,
+                                 double sigma2,
+                                 arma::vec &clust,
+                                 arma::vec w,
+                                 arma::vec u);
+
+void update_cluster_indep_SLI_mv_MRK_L(arma::vec y,
+                                       arma::mat covs,
+                                       arma::mat beta,
+                                       double sigma2,
+                                       arma::vec &clust,
+                                       arma::vec w,
+                                       arma::vec xi,
+                                       arma::vec u);
 
 #endif

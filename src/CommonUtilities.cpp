@@ -220,3 +220,34 @@ arma::mat eval_density_mv_MKR(arma::mat grid_covs,
   return(result);
 }
 
+/*==================================================================================
+ * eval_density_mv - evaluate density with gaussian kernel - MKR
+ *
+ * args:
+ * - grid,  a matrix of multivariate points where the density has to be evaluated
+ * - mu,    a matrix of multivariate location parameters
+ * - s2,    a matrix of variances
+ * - probs, a vector of weights of the mixtures
+ *
+ * return:
+ * - a vector of density values on grid's points
+ ==================================================================================*/
+
+arma::mat eval_density_mv_MKR_L(arma::mat grid_covs,
+                                arma::vec grid_response,
+                                arma::mat beta,
+                                double sigma2,
+                                arma::vec probs){
+
+  probs = probs / arma::accu(probs);
+  arma::mat result(grid_response.n_elem, grid_covs.n_rows, arma::fill::zeros);
+
+  for(arma::uword j = 0; j < grid_covs.n_rows; j++){
+    for(arma::uword l = 0; l < beta.n_rows; l++){
+      result.col(j) += probs(l) * normpdf(grid_response,
+                 arma::dot(grid_covs.row(j), beta.row(l)),
+                 sqrt(sigma2));
+    }
+  }
+  return(result);
+}

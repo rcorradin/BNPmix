@@ -25,8 +25,6 @@
 # \item \code{mcmc_dens}, if equal to \code{TRUE}, the function returns a total of \code{niter}-\code{nburn} realizations of the posterior
 # density, that is one per stored iteration, evaluated at
 # \code{grid} (default is \code{TRUE}). See \code{value} for details.
-#
-# \item \code{mean_dens}, if equal to \code{TRUE}, the function returns only the posterior mean of the density, default is \code{TRUE}. See \code{value} for details.
 #' }
 #'
 #' @param mcmc a list of MCMC arguments:
@@ -35,9 +33,9 @@
 #'
 #'   \item \code{nburn} (mandatory), number of iterations to discard as burn-in.
 #'
-#'   \item \code{method}, the MCMC sampling method to be used (default is \code{'ICS'}). See \code{details}.
+#'   \item \code{method}, the MCMC sampling method to be used, options are \code{'ICS'}, \code{'MAR'} and \code{'SLI'} (default is \code{'ICS'}). See details.
 #'
-#'   \item \code{model}, the type of model to be fitted (default is \code{'LS'}). See \code{details}.
+#'   \item \code{model}, the type of model to be fitted (default is \code{'LS'}). See details.
 #'
 #'   \item \code{nupd}, argument controlling the number of iterations to be displayed on screen: the function reports
 #'   on standard output every time \code{nupd} new iterations have been carried out (default is \code{niter/10}).
@@ -45,7 +43,9 @@
 #'   \item \code{print_message}, control option. If equal to \code{TRUE}, the status is printed
 #'   to standard output every \code{nupd} iterations (default is \code{TRUE}).
 #'
-#'   \item \code{m_imp}, number of generated values for the importance sampling step of \code{method = 'ICS'} (default is 10). See \code{details}.
+#'   \item \code{m_imp}, number of generated values for the importance sampling step of \code{method = 'ICS'} (default is 10). See details.
+#'
+#'   \item \code{slice_type}, when \code{method = 'SLI'} it specifies the type of slice sampler. Options are \code{'DEP'} for dependent slice-efficient, and \code{'INDEP'} for independent slice-efficient (default is \code{'DEP'}). See details.
 #'
 #'   \item \code{hyper}, if equal to \code{TRUE}, hyperprior distributions on the base measure's
 #'   parameters are added, as specified in \code{prior} and explained in \code{details} (default is \code{TRUE}).
@@ -61,66 +61,69 @@
 #' \item If \code{model = 'L'} (location mixture) and \code{y} is univariate:
 #'
 #' \code{m0} and \code{s20} are
-#'  mean and variance of the base measure on the location parameter (default are 0 and 1);
+#'  mean and variance of the base measure on the location parameter (default are sample mean and sample variance of the data);
 #'  \code{a0} and \code{b0} are shape and scale parameters of the inverse gamma prior on the common scale parameter
-#'  (default are 2 and 1).
+#'  (default are 2 and the sample variance of the data).
 #'  If \code{hyper = TRUE},  optional hyperpriors on the base measure's parameters are added:
 #'  specifically, \code{m1} and \code{k1} are the mean parameter and the scale factor defining the
-#'  normal hyperprior on \code{m0} (default are 0 and 1), and
+#'  normal hyperprior on \code{m0} (default are the sample mean of the data and 1), and
 #'  \code{a1} and \code{b1} are shape and rate parameters of the inverse gamma hyperprior on \code{b0}
-#'  (default are 1 and 2). See \code{details}.
+#'  (default are 2 and the sample variance of the data). See details.
 #'
 #' \item If \code{model = 'LS'} (location-scale mixture) and \code{y} is univariate:
 #'
 #'   \code{m0} and \code{k0} are the mean parameter and the scale factor defining the normal base measure
-#'   on the location parameter (default are 0 and 1), and \code{a0} and \code{b0} are
-#'   shape and scale parameters of the inverse gamma base measure on the scale parameter (default are 2 and 1).
+#'   on the location parameter (default are the sample mean of the data and 1), and \code{a0} and \code{b0} are
+#'   shape and scale parameters of the inverse gamma base measure on the scale parameter (default are 2 and the sample variance of the data).
 #'  If \code{hyper = TRUE},  optional hyperpriors on the base measure's parameters are added:
 #'  specifically, \code{m1} and \code{s21} are mean and variance parameters of the normal hyperprior on
-#'  \code{m0} (default are 0 and 1);
+#'  \code{m0} (default are the sample mean and the sample variance of the data);
 #'  \code{tau1} and \code{zeta1} are shape and rate parameters of the gamma hyperprior on
 #'  \code{k0} (default is 1 for both);
 #'  \code{a1} and \code{b1} are shape and rate parameters of the gamma hyperprior on
-#'  \code{b0}  (default is 1 for both). See \code{details}.
+#'  \code{b0}  (default are the sample variance of the data and 1). See details.
 #'
 #' \item If \code{model = 'L'} (location mixture) and \code{y} is multivariate (\code{p}-variate):
 #'
 #' \code{m0} and \code{S20} are
-#'  mean and covariance of the base measure on the location parameter (default are a vector of zeroes and the identity matrix);
+#'  mean and covariance of the base measure on the location parameter (default are the sample mean and the sample covariance of the data);
 #'  \code{Sigma0} and \code{n0} are the parameters of the inverse Whishart prior on
-#'   the common scale matrix.
+#'   the common scale matrix (default are the sample covariance of the data and \code{p}+2).
 #'  If \code{hyper = TRUE}, optional hyperpriors on the base measure's parameters are added:
 #'  specifically, \code{m1} and \code{k1} are the mean parameter and the scale factor defining the
-#'  normal hyperprior on \code{m0} (default are a vector of zeroes and 1), and
-#'  \code{lambda} and \code{Lambda1} are the parameters (degrees of freedom and scale) of the inverse Wishart prior on \code{S20} (default are \code{p}+2 and the identity matrix). See \code{details}.
+#'  normal hyperprior on \code{m0} (default are the sample mean of the data and 1), and
+#'  \code{lambda} and \code{Lambda1} are the parameters (degrees of freedom and scale) of the inverse Wishart prior on \code{S20}
+#'  (default are \code{p}+2 and the sample covariance of the data). See details.
 #'
 #' \item If \code{model = 'LS'} (location-scale mixture) and \code{y} is multivariate (\code{p}-variate):
 #'
 #' \code{m0} and \code{k0} are the mean parameter and the scale factor defining the normal base measure on the
-#' location parameter (default are a vector of zeros and 1), and
+#' location parameter (default are the sample mean of the data and 1), and
 #' \code{n0} and \code{Sigma0} are the parameters (degrees of freedom and scale) of the inverse Wishart base measure on the location parameter
-#' (default are \code{p}+2 and the identity matrix).
+#' (default are \code{p}+2 and the sample covariance of the data).
 #'  If \code{hyper = TRUE}, optional hyperpriors on the base measure's parameters are added:
 #'  specifically, \code{m1} and \code{S1} are mean and covariance matrix parameters of the normal hyperprior on
-#'  \code{m0} (default are a vector of zeroes and the identity matrix);
+#'  \code{m0} (default are the sample mean and the sample covariance of the data);
 #'  \code{tau1} and \code{zeta1} are shape and rate parameters of the gamma hyperprior on
 #'  \code{k0} (default is 1 for both);
-#'  \code{n1} and \code{Sigma1} are the parameters (degrees of freedom and scale) of the Wishart prior for \code{Sigma0} (default are \code{p}+2 and the identity matrix divided \code{p}+2). See \code{details}.
+#'  \code{n1} and \code{Sigma1} are the parameters (degrees of freedom and scale) of the Wishart prior for \code{Sigma0}
+#'  (default are \code{p}+2 and the sample covariance of the data divided \code{p}+2). See details.
 #'
 #'
 #' \item If \code{model = 'DLS'} (diagonal location-scale mixture):
 #'
 #' \code{m0} and \code{k0} are the mean vector parameter and the vector of scale factors defining the normal base measure
-#' on the location parameter (default are a vector of zeroes and a vector of ones),
+#' on the location parameter (default are the sample mean and a vector of ones),
 #' and \code{a0} and \code{b0} are vectors of
-#' shape and scale parameters defining the base measure on the scale parameters (default are a vector of twos and a vector of ones).
+#' shape and scale parameters defining the base measure on the scale parameters (default are a vector of twos and the diagonal
+#' of the sample covariance of the data).
 #' If \code{hyper = TRUE}, optional hyperpriors on the base measure's parameters are added:
 #'  specifically, \code{m1} and \code{s21} are vectors of mean and variance parameters for the normal hyperpriors on the components of
-#'  \code{m0} (default are a vector of zeros and a vector of ones);
+#'  \code{m0} (default are the sample mean and the diagonal of the sample covariance of the data);
 #'  \code{tau1} and \code{zeta1} are vectors of shape and rate parameters of the gamma hyperpriors on the components of
 #'  \code{k0} (default is a vector of ones for both);
 #'  \code{a1} and \code{b1} are vectors of shape and rate parameters of the gamma hyperpriors on the components of
-#'  \code{b0}  (default is a vector of ones for both). See \code{details}.
+#'  \code{b0}  (default is the diagonal of the sample covariance of the data and a vector of ones). See details.
 #' }
 #'
 #'@details
@@ -189,12 +192,14 @@
 #' \strong{Posterior simulation methods}
 #'
 #' This generic function implements three types of MCMC algorithms for posterior simulation.
-#' The default method is the importance conditional sampler (Canale et al. 2019). Other options are
-#' the marginal sampler (Neal, 2000)  and the dependent slice-efficient sampler (Kalli et al. 2011).
+#' The default method is the importance conditional sampler \code{'ICS'} (Canale et al. 2019). Other options are
+#' the marginal sampler \code{'MAR'} (Neal, 2000) and the slice sampler \code{'SLI'} (Kalli et al. 2011).
 #' The importance conditional sampler performs an importance sampling step when updating the values of
 #' individual parameters \eqn{\theta}, which requires to sample \code{m_imp} values from a suitable
 #' proposal. Large values of \code{m_imp} are known to improve the mixing of the chain
-#' at the cost of increased running time (Canale et al. 2019).
+#' at the cost of increased running time (Canale et al. 2019). Two options are available for the slice sampler,
+#' namely the dependent slice-efficient sampler (\code{slice_type = 'DEP'}), which is set as default, and the
+#' independent slice-efficient sampler (\code{slice_type = 'INDEP'}) (Kalli et al. 2011).
 #'
 #'
 #' @return A \code{BNPdens} class object containing the estimated density and
@@ -233,11 +238,37 @@ PYdensity <- function(y,
                        prior = list(),
                        output = list()){
 
+  if(!is.list(mcmc)) stop("mcmc must be a list")
+  if(!is.list(prior)) stop("prior must be a list")
+  if(!is.list(output)) stop("output must be a list")
+
+  if(!is.null(mcmc$niter) && (!is.numeric(mcmc$niter) | (mcmc$niter<1))) stop("mcmc$niter must be a positive integer")
+  if(!is.null(mcmc$nburn) && (!is.numeric(mcmc$nburn) | (mcmc$nburn<1)) & (mcmc$nburn>mcmc$niter)) stop("mcmc$nburn must be a positive integer less than niter")
+  if(!is.null(mcmc$nupd) && (!is.numeric(mcmc$nupd)  | (mcmc$nupd<1))) stop("mcmc$nupd must be a positive integer")
+  if(!is.null(mcmc$m_imp) && (!is.numeric(mcmc$m_imp) | (mcmc$m_imp<1))) stop("mcmc$m_imp must be a positive integer")
+  if(!is.null(mcmc$print_message) & (!is.logical(mcmc$print_message))) stop("mcmc$print_message must be a logical value")
+  if(!is.null(mcmc$hyper) & !is.logical(mcmc$hyper)) stop("mcmc$hyper must be a logical value")
+  if(!is.null(output$grid) & !is.vector(output$grid) & !is.matrix(output$grid) & !is.data.frame(output$grid)) stop("wrong grid specification")
+
   if(is.vector(y)){
+    p = 1
+    if(!is.null(prior$m0) & !is.numeric(prior$m0)) stop("prior$m0 must be a numerical value")
+    if(!is.null(prior$k0) && (!is.numeric(prior$k0) | (prior$k0<=0))) stop("prior$k0 must be a numerical positive value")
+    if(!is.null(prior$a0) && (!is.numeric(prior$a0) | (prior$a0<=0))) stop("prior$a0 must be a numerical positive value")
+    if(!is.null(prior$b0) && (!is.numeric(prior$b0) | (prior$b0<=0))) stop("prior$b0 must be a numerical positive value")
+    if(!is.null(prior$s20) && (!is.numeric(prior$s20) | (prior$s20<=0))) stop("prior$s20 must be a numerical positive value")
+
+    if(!is.null(prior$m1) & !is.numeric(prior$m1)) stop("prior$m1 must be a numerical value")
+    if(!is.null(prior$s21) && (!is.numeric(prior$s21) | (prior$s21<=0))) stop("prior$s21 must be a numerical positive value")
+    if(!is.null(prior$a1) && (!is.numeric(prior$a1) | (prior$a1<=0))) stop("prior$a1 must be a numerical positive value")
+    if(!is.null(prior$b1) && (!is.numeric(prior$b1) | (prior$b1<=0))) stop("prior$b1 must be a numerical positive value")
+    if(!is.null(prior$k1) && (!is.numeric(prior$k1) | (prior$k1<=0))) stop("prior$k1 must be a numerical positive value")
+    if(!is.null(prior$tau1) && (!is.numeric(prior$tau1) | (prior$tau1<=0))) stop("prior$tau1 must be a numerical positive value")
+    if(!is.null(prior$zeta1) && (!is.numeric(prior$zeta1) | (prior$zeta1<=0))) stop("prior$zeta1 must be a numerical positive value")
 
     # mandatory parameters
     if(is.null(mcmc$niter)) stop("Missing number of iterations")
-    if(is.null(mcmc$nburn)) stop("Missing number of burn-in iterations")
+    if(is.null(mcmc$nburn)) mcmc$nburn = 0
 
     # if mcmc misses some parts, add default
     niter = mcmc$niter
@@ -254,7 +285,7 @@ PYdensity <- function(y,
     if(output$out_type == "FULL"){
       mcmc_dens = TRUE
       if(is.null(output$grid)){
-        grid_use = 0
+        grid_use = seq(from = min(y) - 0.1 * diff(range(y)), to = max(y) + 0.1 * diff(range(y)), length.out = 30)
       } else {
         if(length(dim(output$grid)) > 1) stop("Wrong grid dimension")
         grid_use <- as.vector(output$grid)
@@ -263,18 +294,19 @@ PYdensity <- function(y,
       mcmc_dens = FALSE
       grid_use = 0
     }
-    #
-    # if(is.null(output$grid)){
-    #   mcmc_dens = FALSE
-    #   grid = 0
-    # } else {
-    #   # check the grid
-    #   if(length(dim(output$grid)) > 1) stop("Wrong grid dimension")
-    #   grid_use <- as.vector(output$grid)
-    # }
 
     if(!(model == "LS" | model == "L")) stop("Wrong model setting")
+    slice_type <- mcmc$slice_type
+    if(is.null(slice_type)){ slice_type <- "DEP"}
+    if(!(slice_type == "DEP" | slice_type == "INDEP")) stop("Wrong mcmc$slice_type setting")
     if(!(method == "ICS" | method == "SLI" | method == "MAR")) stop("Wrong method setting")
+
+    if(is.null(mcmc$wei_slice)){
+      indep_sli = "DEFAULT"
+    } else {
+      indep_sli = "CUSTOM"
+    }
+    if(length(mcmc$wei_slice) > 2) stop("Wrong mcmc$wei_slice setting")
 
     hyper = ifelse(is.null(mcmc$hyper), TRUE, mcmc$hyper)
     # Check for different model parameters
@@ -282,40 +314,40 @@ PYdensity <- function(y,
     if(model == "LS"){
       if(hyper){
         if(is.null(prior$a0)){ a0 = 2 } else { a0 = prior$a0 }
-        if(is.null(prior$m1)){ m1 = 0 } else { m1 = prior$m1 }
-        if(is.null(prior$s21)){ s21 = 1 } else { s21 = prior$s21 }
+        if(is.null(prior$m1)){ m1 = mean(y) } else { m1 = prior$m1 }
+        if(is.null(prior$s21)){ s21 = var(y) } else { s21 = prior$s21 }
         if(is.null(prior$tau1)){ tau1 = 1 } else { tau1 = prior$tau1 }
         if(is.null(prior$zeta1)){ zeta1 = 1 } else { zeta1 = prior$zeta1 }
-        if(is.null(prior$a1)){ a1 = 1 } else { a1 = prior$a1 }
+        if(is.null(prior$a1)){ a1 = var(y) } else { a1 = prior$a1 }
         if(is.null(prior$b1)){ b1 = 1 } else { b1 = prior$b1 }
 
         if(is.null(prior$m0)){ m0 = rnorm(1, m1, sqrt(s21)) } else { m0 = prior$m0 }
         if(is.null(prior$k0)){ k0 = rgamma(1, tau1, zeta1) } else { k0 = prior$k0 }
         if(is.null(prior$b0)){ b0 = rgamma(1, a1, b1) } else { b0 = prior$b0 }
       } else {
-        if(is.null(prior$m0)){ m0 = 0 } else { m0 = prior$m0 }
+        if(is.null(prior$m0)){ m0 = mean(y) } else { m0 = prior$m0 }
         if(is.null(prior$k0)){ k0 = 1 } else { k0 = prior$k0 }
         if(is.null(prior$a0)){ a0 = 2 } else { a0 = prior$a0 }
-        if(is.null(prior$b0)){ b0 = 1 } else { b0 = prior$b0 }
+        if(is.null(prior$b0)){ b0 = var(y) } else { b0 = prior$b0 }
 
         m1 <- s21 <- tau1 <- zeta1 <- a1 <- b1 <- 0
       }
     } else if(model == "L"){
       if(hyper){
         if(is.null(prior$a0)){ a0 = 2 } else { a0 = prior$a0 }
-        if(is.null(prior$b0)){ b0 = 1 } else { b0 = prior$b0 }
-        if(is.null(prior$m1)){ m1 = 0 } else { m1 = prior$m1 }
+        if(is.null(prior$b0)){ b0 = var(y) } else { b0 = prior$b0 }
+        if(is.null(prior$m1)){ m1 = mean(y) } else { m1 = prior$m1 }
         if(is.null(prior$k1)){ k1 = 1 } else { k1 = prior$k1 }
         if(is.null(prior$a1)){ a1 = 2 } else { a1 = prior$a1 }
-        if(is.null(prior$b1)){ b1 = 1 } else { b1 = prior$b1 }
+        if(is.null(prior$b1)){ b1 = var(y) } else { b1 = prior$b1 }
 
         if(is.null(prior$m0)){ m0 = rnorm(1, m1, sqrt(b1 / ((a1 - 1) * k1))) } else { m0 = prior$m0 }
         if(is.null(prior$s20)){ s20 = 1 / rgamma(1, a1, 1/b1) } else { s20 = prior$s20 }
       } else {
-        if(is.null(prior$m0)){ m0 = 0 } else { m0 = prior$m0 }
-        if(is.null(prior$s20)){ s20 = 1 } else { s20 = prior$s20 }
+        if(is.null(prior$m0)){ m0 = mean(y) } else { m0 = prior$m0 }
+        if(is.null(prior$s20)){ s20 = var(y) } else { s20 = prior$s20 }
         if(is.null(prior$a0)){ a0 = 2 } else { a0 = prior$a0 }
-        if(is.null(prior$b0)){ b0 = 1 } else { b0 = prior$b0 }
+        if(is.null(prior$b0)){ b0 = var(y) } else { b0 = prior$b0 }
 
         m1 <- k1 <- a1 <- b1 <- 0
       }
@@ -325,6 +357,9 @@ PYdensity <- function(y,
     strength = ifelse(is.null(prior$strength), 1, prior$strength)
     discount = ifelse(is.null(prior$discount), 0, prior$discount)
     if(strength < - discount) stop("strength must be greater than -discount")
+    if(is.null(mcmc$wei_slice)){
+      mcmc$wei_slice <- c(strength, discount)
+    }
 
     # estimate the model
     if(method == "ICS"){
@@ -337,16 +372,39 @@ PYdensity <- function(y,
         est_model <- cICS_L(y, grid_use, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1, strength,
                             m_imp, nupd, out_param, mcmc_dens, discount, print_message, hyper)
       }
-    } else if(method == "SLI"){
+    } else if(method == "SLI" & slice_type == "DEP"){
 
       # call the SLI univariate function
       if(model == "LS"){
         est_model <- cSLI(y, grid_use, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, zeta1, a1, b1,
-                          strength, nupd, out_param, mcmc_dens, discount, print_message, hyper)
+                          strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param, mcmc_dens, discount, print_message, hyper, FALSE)
       } else if(model == "L"){
         est_model <- cSLI_L(y, grid_use, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1,
-                            strength, nupd, out_param, mcmc_dens, discount, print_message, hyper)
+                            strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param, mcmc_dens, discount, print_message, hyper, FALSE)
       }
+    } else if(method == "SLI" & slice_type == "INDEP"){
+
+      if(indep_sli == "DEFAULT"){
+        # call the SLI univariate function
+        if(model == "LS"){
+          est_model <- cSLI(y, grid_use, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, zeta1, a1, b1,
+                            strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param, mcmc_dens, discount, print_message, hyper, TRUE)
+        } else if(model == "L"){
+          est_model <- cSLI_L(y, grid_use, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1,
+                              strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param, mcmc_dens, discount, print_message, hyper, TRUE)
+        }
+      }
+
+      if(indep_sli == "CUSTOM"){
+        if(model == "LS"){
+          est_model <- cSLI(y, grid_use, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, zeta1, a1, b1,
+                            strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param, mcmc_dens, discount, print_message, hyper, TRUE)
+        } else if(model == "L"){
+          est_model <- cSLI_L(y, grid_use, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1,
+                              strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param, mcmc_dens, discount, print_message, hyper, TRUE)
+        }
+      }
+
     } else if(method == "MAR"){
 
       # call the MAR univariate function
@@ -370,14 +428,18 @@ PYdensity <- function(y,
                           niter = niter,
                           nburn = nburn,
                           tot_time = est_model$time,
-                          univariate = TRUE)
+                          univariate = TRUE,
+                          wvals = est_model$bound,
+                          group_log = est_model$tdns)
       }else{
         result <- BNPdens(data = y,
                           clust = est_model$clust,
                           niter = niter,
                           nburn = nburn,
                           tot_time = est_model$time,
-                          univariate = TRUE)
+                          univariate = TRUE,
+                          wvals = est_model$bound,
+                          group_log = est_model$tdns)
       }
     } else {
       if(isTRUE(mcmc_dens)){
@@ -391,7 +453,9 @@ PYdensity <- function(y,
                           niter = niter,
                           nburn = nburn,
                           tot_time = est_model$time,
-                          univariate = TRUE)
+                          univariate = TRUE,
+                          wvals = est_model$bound,
+                          group_log = est_model$tdns)
       }else{
         result <- BNPdens(data = y,
                           clust = est_model$clust,
@@ -401,14 +465,39 @@ PYdensity <- function(y,
                           niter = niter,
                           nburn = nburn,
                           tot_time = est_model$time,
-                          univariate = TRUE)
+                          univariate = TRUE,
+                          wvals = est_model$bound,
+                          group_log = est_model$tdns)
       }
     }
   } else if(!is.vector(y)){
+    p = ncol(y)
+    if(!is.null(prior$m0) && (!is.numeric(prior$m0) | length(prior$m0)!=p)) stop("prior$m0 must be a numerical vector of proper dimension")
+    if(!is.null(prior$k0) && (!is.numeric(prior$k0))) stop("prior$k0 must be a numerical vector of proper dimension")
+    if(!is.null(prior$a0) && (!is.numeric(prior$a0) | length(prior$a0)!=p)) stop("prior$a0 must be a numerical vector of proper dimension")
+    if(!is.null(prior$b0) && (!is.numeric(prior$b0) | length(prior$b0)!=p)) stop("prior$b0 must be a numerical vector of proper dimension")
+    if(!is.null(prior$a1) && (!is.numeric(prior$a1) | length(prior$a1)!=p)) stop("prior$a1 must be a numerical vector of proper dimension")
+    if(!is.null(prior$b1) && (!is.numeric(prior$b1) | length(prior$b1)!=p)) stop("prior$b1 must be a numerical vector of proper dimension")
+    if(!is.null(prior$k1) && (!is.numeric(prior$k1) | length(prior$k1)!=p)) stop("prior$k1 must be a numerical vector of proper dimension")
+    if(!is.null(prior$Sigma0) && (!is.matrix(prior$Sigma0) | ncol(prior$Sigma0) != nrow(prior$Sigma0) | ncol(prior$Sigma0) !=p)) stop("prior$Sigma0 must be a square matrix of proper dimension")
+    if(!is.null(prior$S20) && (!is.matrix(prior$S20) | ncol(prior$S0) != nrow(prior$S0) | ncol(prior$S0) !=p)) stop("prior$S20 must be a square matrix of proper dimension")
+    if(!is.null(prior$n0) && (!is.numeric(prior$n0) | prior$n0<=(p+1) )) stop("prior$n0 must be a positive value grater than ncol(y) + 1")
+
+    if(!is.null(prior$m1) && ( !is.vector(prior$m1) | length(prior$m1)!=p)) stop("prior$m1 must be a numerical vector of proper dimension")
+    if(!is.null(prior$s21) && ( !is.vector(prior$s21) | length(prior$s21)!=p)) stop("prior$s21 must be a numerical vector of proper dimension")
+    if(!is.null(prior$S1) && ( !is.matrix(prior$S1) )) stop("prior$S1 must be a square matrix of proper dimension")
+    if(!is.null(prior$Sigma1) && ( !is.matrix(prior$Sigma1) | ncol(prior$Sigma1) != nrow(prior$Sigma1) | ncol(prior$Sigma1) !=p)) stop("prior$Sigma1 must be a square matrix of proper dimension")
+    if(!is.null(prior$Lambda1) && ( !is.matrix(prior$Lambda1) | ncol(prior$Lambda1) != nrow(prior$Lambda1) | ncol(prior$Lambda1) !=p)) stop("prior$Lambda1 must be a square matrix of proper dimension")
+    if(!is.null(prior$tau1) & !is.numeric(prior$tau1) & !is.vector(prior$tau1)) stop("prior$tau1 must be a numerical value or a vector")
+    if(!is.null(prior$zeta1) & !is.numeric(prior$zeta1) & !is.vector(prior$zeta1)) stop("prior$zeta1 must be a numerical value or a vector")
+    if(!is.null(prior$n1) && ( !is.numeric(prior$n1) | prior$n1<=(p-1) )) stop("prior$n1 must be a numerical value grater than ncol(y) - 1")
+    if(!is.null(prior$lambda1) && ( !is.numeric(prior$lambda1))) stop("prior$lambda1 must be a numerical value")
+    if(!is.null(prior$a1) && ( !is.vector(prior$a1) | length(prior$a1)!=p)) stop("prior$a1 must be a vector of proper dimension")
+    if(!is.null(prior$b1) && ( !is.vector(prior$b1) | length(prior$b1)!=p)) stop("prior$b1 must be a vector of proper dimension")
 
     # Check the mandatory parameters
     if(is.null(mcmc$niter)) stop("Missing number of iterations")
-    if(is.null(mcmc$nburn)) stop("Missing number of burn-in iterations")
+    if(is.null(mcmc$nburn)) mcmc$nburn = 0
 
     # if mcmc misses some parts, add default
     niter = mcmc$niter
@@ -426,8 +515,18 @@ PYdensity <- function(y,
       mean_dens = FALSE
       mcmc_dens = TRUE
       if(is.null(output$grid)){
-        mcmc_dens = FALSE
-        grid_use = matrix(0, ncol = ncol(y))
+        if(p == 2){
+          grid_use <- as.matrix(expand.grid(
+            seq(from = min(y[,1]) - 0.1 * diff(range(y[,1])), to = max(y[,1]) + 0.1 * diff(range(y[,1])), length.out = 30),
+            seq(from = min(y[,2]) - 0.1 * diff(range(y[,2])), to = max(y[,2]) + 0.1 * diff(range(y[,2])), length.out = 30)))
+        } else if(p == 3){
+          grid_use <- as.matrix(expand.grid(
+            seq(from = min(y[,1]) - 0.1 * diff(range(y[,1])), to = max(y[,1]) + 0.1 * diff(range(y[,1])), length.out = 20),
+            seq(from = min(y[,2]) - 0.1 * diff(range(y[,2])), to = max(y[,2]) + 0.1 * diff(range(y[,2])), length.out = 20),
+            seq(from = min(y[,3]) - 0.1 * diff(range(y[,3])), to = max(y[,3]) + 0.1 * diff(range(y[,3])), length.out = 20)))
+        } else {
+          grid_use = matrix(0, nrow = 1, ncol = p)
+        }
       } else {
         # check the grid
         if(ncol(output$grid) != ncol(y)) stop("The dimensions of grid and data not match")
@@ -437,8 +536,18 @@ PYdensity <- function(y,
       mean_dens = TRUE
       mcmc_dens = TRUE
       if(is.null(output$grid)){
-        mcmc_dens = FALSE
-        grid_use = matrix(0, ncol = ncol(y))
+        if(p == 2){
+          grid_use <- as.matrix(expand.grid(
+            seq(from = min(y[,1]) - 0.1 * diff(range(y[,1])), to = max(y[,1]) + 0.1 * diff(range(y[,1])), length.out = 30),
+            seq(from = min(y[,2]) - 0.1 * diff(range(y[,2])), to = max(y[,2]) + 0.1 * diff(range(y[,2])), length.out = 30)))
+        } else if(p == 3){
+          grid_use <- as.matrix(expand.grid(
+            seq(from = min(y[,1]) - 0.1 * diff(range(y[,1])), to = max(y[,1]) + 0.1 * diff(range(y[,1])), length.out = 20),
+            seq(from = min(y[,2]) - 0.1 * diff(range(y[,2])), to = max(y[,2]) + 0.1 * diff(range(y[,2])), length.out = 20),
+            seq(from = min(y[,3]) - 0.1 * diff(range(y[,3])), to = max(y[,3]) + 0.1 * diff(range(y[,3])), length.out = 20)))
+        } else {
+          grid_use = matrix(0, nrow = 1, ncol = p)
+        }
       } else {
         # check the grid
         if(ncol(output$grid) != ncol(y)) stop("The dimensions of grid and data not match")
@@ -447,32 +556,42 @@ PYdensity <- function(y,
     } else if (output$out_type == "CLUST"){
       mean_dens = FALSE
       mcmc_dens = FALSE
-      grid_use = matrix(0, ncol = ncol(y))
+      grid_use = matrix(0, nrow = 1, ncol = p)
     }
 
     if(!(model == "LS" | model == "L" | model == "DLS")) stop("Wrong model setting")
+    slice_type <- mcmc$slice_type
+    if(is.null(slice_type)){ slice_type <- "DEP"}
+    if(!(slice_type == "DEP" | slice_type == "INDEP")) stop("Wrong mcmc$slice_type setting")
     if(!(method == "ICS" | method == "SLI" | method == "MAR")) stop("Wrong method setting")
+
+    if(is.null(mcmc$wei_slice)){
+      indep_sli = "DEFAULT"
+    } else {
+      indep_sli = "CUSTOM"
+    }
+    if(length(mcmc$wei_slice) > 2) stop("Wrong mcmc$wei_slice setting")
 
     hyper = ifelse(is.null(mcmc$hyper), TRUE, mcmc$hyper)
     # Check for different model parameters
     if(model == "LS"){
       if(hyper){
-        if(is.null(prior$m1)){ m1 = rep(0, ncol(y)) } else { m1 = prior$m1 }
-        if(is.null(prior$S1)){ S1 = diag(1, ncol(y)) } else { S1 = prior$S1 }
+        if(is.null(prior$m1)){ m1 = colMeans(y) } else { m1 = prior$m1 }
+        if(is.null(prior$S1)){ S1 = var(y) } else { S1 = prior$S1 }
         if(is.null(prior$tau1)){ tau1 = 1 } else { tau1 = prior$tau1 }
         if(is.null(prior$zeta1)){ zeta1 = 1 } else { zeta1 = prior$zeta1 }
         if(is.null(prior$n1)){ n1 = ncol(y) + 2 } else { n1 = prior$n1 }
-        if(is.null(prior$Sigma1)){ Sigma1 = diag(1/n1, ncol(y)) } else { Sigma1 = prior$Sigma1 }
+        if(is.null(prior$Sigma1)){ Sigma1 = var(y) } else { Sigma1 = prior$Sigma1 }
         if(is.null(prior$n0)){ n0 = ncol(y) + 2 } else { n0 = prior$n0 }
 
         if(is.null(prior$Sigma0)){ Sigma0 = rWishart(n = 1, Sigma = Sigma1, df = n1)[,,1] } else {Sigma0 = prior$Sigma0}
         if(is.null(prior$m0)){ m0 = as.vector(rnorm(ncol(y)) %*% t(chol(S1)) + m1)} else { m0 = prior$m0 }
         if(is.null(prior$k0)){ k0 = rgamma(1, tau1, 1 / zeta1)} else { k0 = prior$k0 }
       } else {
-        if(is.null(prior$m0)){ m0 = rep(0, ncol(y)) } else { m0 = prior$m0 }
+        if(is.null(prior$m0)){ m0 = colMeans(y) } else { m0 = prior$m0 }
         if(is.null(prior$k0)){ k0 = 1 } else { k0 = prior$k0 }
-        if(is.null(prior$Sigma0)){ Sigma0 = diag(1, ncol(y)) } else { Sigma0 = prior$Sigma0 }
         if(is.null(prior$n0)){ n0 = ncol(y) + 2 } else { n0 = prior$n0 }
+        if(is.null(prior$Sigma0)){ Sigma0 = var(y) / n0 } else { Sigma0 = prior$Sigma0 }
 
         m1 <- rep(0, ncol(y))
         n1 <- tau1 <- zeta1 <- 0
@@ -480,21 +599,21 @@ PYdensity <- function(y,
       }
     } else if(model == "L"){
       if(hyper){
-        if(is.null(prior$m1)){ m1 = rep(0, ncol(y)) } else { m1 = prior$m1 }
+        if(is.null(prior$m1)){ m1 = colMeans(y) } else { m1 = prior$m1 }
         if(is.null(prior$k1)){ k1 = 1 } else { k1 = prior$k1 }
         if(is.null(prior$lambda1)){ lambda1 = ncol(y) + 2 } else { lambda1 = prior$lambda1 }
-        if(is.null(prior$Lambda1)){ Lambda1 = diag(1, ncol(y)) } else { Lambda1 = prior$Lambda1 }
-        if(is.null(prior$Sigma0)){ Sigma0 = diag(1, ncol(y)) } else { Sigma0 = prior$Sigma0 }
+        if(is.null(prior$Lambda1)){ Lambda1 = var(y) } else { Lambda1 = prior$Lambda1 }
         if(is.null(prior$n0)){ n0 = ncol(y) + 2 } else { n0 = prior$n0 }
+        if(is.null(prior$Sigma0)){ Sigma0 = var(y) } else { Sigma0 = prior$Sigma0 }
 
         if(is.null(prior$S20)){ S20 = solve(rWishart(n = 1, Sigma = solve(Lambda1), df = lambda1)[,,1]) } else {S20 = prior$S20}
         if(is.null(prior$m0)){ m0 = as.vector(rnorm(ncol(y)) %*% t(chol(S20)) + m1)} else { m0 = prior$m0 }
 
 
       } else {
-        if(is.null(prior$m0)){ m0 = rep(0, ncol(y)) } else { m0 = prior$m0 }
+        if(is.null(prior$m0)){ m0 = colMeans(y) } else { m0 = prior$m0 }
         if(is.null(prior$S20)){ S20 = diag(1, ncol(y)) } else { S20 = prior$S20 }
-        if(is.null(prior$Sigma0)){ Sigma0 = diag(1, ncol(y)) } else { Sigma0 = prior$Sigma0 }
+        if(is.null(prior$Sigma0)){ Sigma0 = var(y) } else { Sigma0 = prior$Sigma0 }
         if(is.null(prior$n0)){ n0 = ncol(y) + 2 } else { n0 = prior$n0 }
 
         m1 <- rep(0, ncol(y))
@@ -505,11 +624,11 @@ PYdensity <- function(y,
 
       if(hyper){
         if(is.null(prior$a0)){ a0 = rep(2, ncol(y)) } else { a0 = prior$a0 }
-        if(is.null(prior$m1)){ m1 = rep(0, ncol(y)) } else { m1 = prior$m1 }
-        if(is.null(prior$s21)){ s21 = rep(1, ncol(y)) } else { s21 = prior$s21 }
+        if(is.null(prior$m1)){ m1 = colMeans(y) } else { m1 = prior$m1 }
+        if(is.null(prior$s21)){ s21 = diag(var(y)) } else { s21 = prior$s21 }
         if(is.null(prior$tau1)){ tau1 = rep(1, ncol(y)) } else { tau1 = prior$tau1 }
         if(is.null(prior$zeta1)){ zeta1 = rep(1, ncol(y)) } else { zeta1 = prior$zeta1 }
-        if(is.null(prior$a1)){ a1 = rep(1, ncol(y)) } else { a1 = prior$a1 }
+        if(is.null(prior$a1)){ a1 = diag(var(y)) } else { a1 = prior$a1 }
         if(is.null(prior$b1)){ b1 = rep(1, ncol(y)) } else { b1 = prior$b1 }
 
         if(is.null(prior$m0)){ m0 = apply(cbind(m1, s21), 1,
@@ -517,10 +636,10 @@ PYdensity <- function(y,
         if(is.null(prior$k0)){ k0 = apply(cbind(tau1,zeta1), 1, function(x) rgamma(1, x[1], x[2])) } else { k0 = prior$k0 }
         if(is.null(prior$b0)){ b0 = apply(cbind(a1,b1), 1, function(x) rgamma(1, x[1], x[2])) } else { b0 = prior$b0 }
       } else {
-        if(is.null(prior$m0)){ m0 = rep(0, ncol(y)) } else { m0 = prior$m0 }
+        if(is.null(prior$m0)){ m0 = colMeans(y) } else { m0 = prior$m0 }
         if(is.null(prior$k0)){ k0 = rep(1, ncol(y)) } else { k0 = prior$k0 }
         if(is.null(prior$a0)){ a0 = rep(2, ncol(y)) } else { a0 = prior$a0 }
-        if(is.null(prior$b0)){ b0 = rep(1, ncol(y)) } else { b0 = prior$b0 }
+        if(is.null(prior$b0)){ b0 = diag(var(y)) } else { b0 = prior$b0 }
 
         m1 <- s21 <- tau1 <- zeta1 <- a1 <- b1 <- rep(0, ncol(y))
       }
@@ -530,6 +649,9 @@ PYdensity <- function(y,
     strength = ifelse(is.null(prior$strength), 1, prior$strength)
     discount = ifelse(is.null(prior$discount), 0, prior$discount)
     if(strength < - discount) stop("strength must be greater than -discount")
+    if(is.null(mcmc$wei_slice)){
+      mcmc$wei_slice <- c(strength, discount)
+    }
 
     # convert data to matrix
     y <- as.matrix(y)
@@ -546,16 +668,45 @@ PYdensity <- function(y,
         est_model <- cICS_mv_P(y, grid_use, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, zeta1, a1, b1,
                                strength, m_imp, nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper)
       }
-    } else if(method == "SLI"){
+    } else if(method == "SLI" & slice_type == "DEP"){
       if(model == "LS"){
         est_model <- cSLI_mv(y, grid_use, niter, nburn, m0, k0, Sigma0, n0, m1, S1, tau1, zeta1, n1, Sigma1,
-                             strength, nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper)
+                             strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper, FALSE)
       } else if(model == "L"){
         est_model <- cSLI_mv_L(y, grid_use, niter, nburn, m0, S20, Sigma0, n0, m1, k1, lambda1, Lambda1,
-                               strength, nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper)
+                               strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper, FALSE)
       } else if(model == "DLS"){
         est_model <- cSLI_mv_P(y, grid_use, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, zeta1, a1, b1,
-                               strength, nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper)
+                               strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper, FALSE)
+      }
+    } else if(method == "SLI" & slice_type == "INDEP"){
+      if(indep_sli == "DEFAULT"){
+        if(model == "LS"){
+          est_model <- cSLI_mv(y, grid_use, niter, nburn, m0, k0, Sigma0, n0, m1, S1, tau1, zeta1, n1, Sigma1,
+                               strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper, TRUE)
+        } else if(model == "L"){
+          est_model <- cSLI_mv_L(y, grid_use, niter, nburn, m0, S20, Sigma0, n0, m1, k1, lambda1, Lambda1,
+                                 strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper, TRUE)
+        } else if(model == "DLS"){
+          est_model <- cSLI_mv_P(y, grid_use, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, zeta1, a1, b1,
+                                 strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param, mcmc_dens, discount, print_message, mean_dens, hyper, TRUE)
+        }
+      }
+
+      if(indep_sli == "CUSTOM"){
+        if(model == "LS"){
+          est_model <- cSLI_mv(y, grid_use, niter, nburn, m0, k0, Sigma0, n0, m1, S1, tau1, zeta1, n1, Sigma1,
+                               strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param, mcmc_dens,
+                               discount, print_message, mean_dens, hyper, TRUE)
+        } else if(model == "L"){
+          est_model <- cSLI_mv_L(y, grid_use, niter, nburn, m0, S20, Sigma0, n0, m1, k1, lambda1, Lambda1,
+                                 strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param, mcmc_dens,
+                                 discount, print_message, mean_dens, hyper, TRUE)
+        } else if(model == "DLS"){
+          est_model <- cSLI_mv_P(y, grid_use, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, zeta1, a1, b1,
+                                 strength, mcmc$wei_slice[1], mcmc$wei_slice[2], nupd, out_param, mcmc_dens,
+                                 discount, print_message, mean_dens, hyper, TRUE)
+        }
       }
     } else if(method == "MAR"){
       if(model == "LS"){
@@ -580,14 +731,16 @@ PYdensity <- function(y,
                           niter = niter,
                           nburn = nburn,
                           tot_time = est_model$time,
-                          univariate = FALSE)
+                          univariate = FALSE,
+                          wvals = est_model$wvals)
       }else{
         result <- BNPdens(data = y,
                           clust = (est_model$clust + 1),
                           niter = niter,
                           nburn = nburn,
                           tot_time = est_model$time,
-                          univariate = FALSE)
+                          univariate = FALSE,
+                          wvals = est_model$wvals)
       }
     } else {
       if(isTRUE(mcmc_dens)){
@@ -601,7 +754,8 @@ PYdensity <- function(y,
                           niter = niter,
                           nburn = nburn,
                           tot_time = est_model$time,
-                          univariate = FALSE)
+                          univariate = FALSE,
+                          wvals = est_model$wvals)
       }else{
         result <- BNPdens(data = y,
                           clust = (est_model$clust + 1),
@@ -611,7 +765,8 @@ PYdensity <- function(y,
                           niter = niter,
                           nburn = nburn,
                           tot_time = est_model$time,
-                          univariate = FALSE)
+                          univariate = FALSE,
+                          wvals = est_model$wvals)
       }
     }
   }

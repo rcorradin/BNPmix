@@ -6,6 +6,6 @@
 \alias{BNPmix-package}
 \title{BNPmix: Bayesian Nonparametric Mixture Models}
 \description{
-Functions to perform Bayesian nonparametric univariate and multivariate density estimation and clustering, by means of Pitman-Yor mixtures, and Dependent Dirichlet process mixtures for partially exchangeable data.
+Functions to perform Bayesian nonparametric univariate and multivariate density estimation and clustering, by means of Pitman-Yor mixtures, and dependent Dirichlet process mixtures for partially exchangeable data.
 }
 \keyword{internal}

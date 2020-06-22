@@ -34,4 +34,9 @@ arma::mat eval_density_mv_MKR(arma::mat grid_covs,
                               arma::vec sigma2,
                               arma::vec prob);
 
+arma::mat eval_density_mv_MKR_L(arma::mat grid_covs,
+                                arma::vec grid_response,
+                                arma::mat beta,
+                                double sigma2,
+                                arma::vec prob);
 #endif

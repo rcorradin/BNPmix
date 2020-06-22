@@ -11,10 +11,10 @@ PYcalibrate(Ek, n, discount = 0)
 
 \item{n}{sample size;}
 
-\item{discount}{discount parameter; default is set to 0, corresponding to a Dirichlet process prior.}
+\item{discount}{discount parameter; default is set equal to 0, corresponding to a Dirichlet process prior.}
 }
 \value{
-A named list containing the strength and discount parameters.
+A named list containingtthe values of strength and discount parameters.
 }
 \description{
 The function \code{PYcalibrate} elicits the strength parameter of the Pitman-Yor

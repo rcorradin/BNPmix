@@ -4,13 +4,15 @@
 \name{CPP}
 \alias{CPP}
 \title{Collaborative Perinatal Project data}
-\format{A data.frame}
+\format{
+A data.frame
+}
 \usage{
 data(CPP)
 }
 \description{
 A subset of the Collaborative Perinatal Project data set (Klebanoff, 2009)
-focusing on studying the effect of DDE exposure on pregnancies (Longnecker et al., 2001).
+focused on studying the effect of DDE exposure on pregnancies (Longnecker et al., 2001).
 The dataset contains the following variables for each pregnant women enrolled in the study:
 \itemize{
   \item hosp, factor denoting the hospital where the woman was hospitalized;

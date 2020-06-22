@@ -1,15 +1,15 @@
 Package: BNPmix
 Type: Package
 Title: Bayesian Nonparametric Mixture Models
-Version: 0.2.2
-Date: 2019-07-23
+Version: 0.2.7
+Date: 2020-06-20
 Author: Riccardo Corradin [aut, cre], Antonio Canale [ctb], Bernardo Nipoti [ctb]
 Maintainer: Riccardo Corradin <riccardo.corradin@gmail.com>
-Description: Functions to perform Bayesian nonparametric univariate and multivariate density estimation and clustering, by means of Pitman-Yor mixtures, and Dependent Dirichlet process mixtures for partially exchangeable data.  
+Description: Functions to perform Bayesian nonparametric univariate and multivariate density estimation and clustering, by means of Pitman-Yor mixtures, and dependent Dirichlet process mixtures for partially exchangeable data.  
 License: LGPL-3 | file LICENSE
 NeedsCompilation: yes
-Imports: methods, ggplot2
+Imports: methods, stats, ggplot2, coda, Rcpp, ggpubr
 Depends: R (>= 3.5.0)
 LinkingTo: RcppArmadillo, Rcpp(>= 0.12.13)
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.0
 Encoding: UTF-8

@@ -45,6 +45,8 @@
 \item{print_message}{print the status}
 
 \item{hyper, }{if TRUE use hyperpriors, default TRUE}
+
+\item{indep, }{if TRUE use the independent slice efficient}
 }
 \description{
 C++ function to estimate Pitman-Yor univariate mixtures via slice sampler - LOCATION SCALE

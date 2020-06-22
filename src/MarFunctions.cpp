@@ -1521,3 +1521,255 @@ void clust_update_MAR_mv_MRK(arma::vec y,
     }
   }
 }
+
+/*----------------------------------------------------------------------
+ *
+ * MIXTURE OF REGRESSION KERNELS - LOCATION
+ * LOCATION-SCALE KERNEL
+ * MAR functions
+ *
+ *----------------------------------------------------------------------
+ */
+
+/*==================================================================================
+ * Accelerate - MULTIVARIATE importance conditional sampler - MRK
+ * acceleration step for reshuffling the parameters
+ * given an allocation
+ *
+ * args:
+ * - y:       target variable (n x 1)
+ * - covs:    covariates (n x (d + 1))
+ * - beta:    regression coefficients (k x (d+1))
+ * - sigma2:  scale component of kernel function
+ * - clust:   vector of allocation
+ * - beta0:   vector of location's prior distribution
+ * - Sb0:     double of NIG on scale of location distribution
+ * - a0:      shape parameter of scale component
+ * - b0:      scale parameter of scale component
+ *
+ * Void function
+ ==================================================================================*/
+
+void accelerate_MAR_mv_MRK_L(arma::vec y,
+                             arma::mat covs,
+                             arma::mat &beta,
+                             double &sigma2,
+                             arma::vec clust,
+                             arma::vec beta0,
+                             arma::mat Sb0,
+                             double a0,
+                             double b0){
+  arma::mat cdata;
+  arma::mat tdata;
+  arma::vec ty;
+
+  double an, bn;
+  arma::mat tSb;
+  arma::vec tbeta0;
+
+  double accu_cdata = 0.0;
+
+  // loop over the different clusters
+  for(arma::uword j = 0; j < beta.n_rows; j++){
+
+    // initialize itra cluster quantities
+    int nj = sum(clust == j);
+    tdata = covs.rows(arma::find(clust == j));
+    ty = y.elem(arma::find(clust == j));
+    cdata = ty - (tdata * beta.row(j).t());
+
+    accu_cdata += arma::accu(pow(cdata, 2));
+
+    // update parameters
+    tSb = arma::inv(arma::inv(Sb0) + arma::trans(tdata) * tdata / sigma2);
+    tbeta0 = tSb * (arma::inv(Sb0) * beta0 + (arma::trans(tdata) * ty) / sigma2);
+    beta.row(j) = arma::trans(arma::mvnrnd(tbeta0, tSb));
+  }
+
+  // sample from the posterior distributions
+  an = a0 + y.n_elem / 2;
+  bn = b0 + accu_cdata / 2;
+  sigma2 = 1.0 / arma::randg(arma::distr_param(an, 1.0 / (bn)));
+
+}
+
+/*==================================================================================
+ * Hyper-accelerate - MULTIVARIATE importance conditional sampler - MRK
+ *
+ * args:
+ * - mu:      vector of location component
+ * - s2:      covariance matricies
+ * - m0:      mean of location distribution
+ * - k0:      scale factor of location distribution
+ * - S20:     matrix of the scale distribution
+ * - n0:      df of scale distribution
+ * - m1:      hyperparameter, location component of m0
+ * - k1:      hyperparameter, scale parameter for variance of m0
+ * - theta1:  hyperparameter, df of S20 distribution
+ * - Theta2:  hyperparameter, matrix of S20 distribution
+ *
+ * Void function
+ ==================================================================================*/
+
+void hyper_accelerate_MAR_mv_MRK_L(arma::vec y,
+                                   arma::mat covs,
+                                   arma::vec clust,
+                                   arma::mat beta,
+                                   arma::vec &beta0,
+                                   arma::mat &Sb0,
+                                   double a0,
+                                   double &b0,
+                                   arma::vec beta1,
+                                   double k1,
+                                   double sb1,
+                                   arma::mat Sb1){
+
+  // initialize quantities
+  arma::mat cbeta = beta - arma::repmat(mean(beta, 0), beta.n_rows, 1);
+
+  // sampling hyperparameters
+  double kn = k1 + beta.n_rows;
+  arma::vec betan = ((beta1 * k1) + arma::trans(sum(beta, 0)))/kn;
+  double sbn = sb1 + beta.n_rows;
+  arma::mat Sbn = Sb1 + arma::trans(cbeta) * cbeta + ((k1 * beta.n_rows) / kn) *
+    (arma::trans(mean(beta, 0)) - beta1) * arma::trans(arma::trans(mean(beta, 0)) - beta1);
+
+  Sb0 = arma::inv(arma::wishrnd(arma::inv(Sbn), sbn));
+  beta0 = arma::mvnrnd(betan, Sb0 / kn);
+
+}
+
+
+/*==================================================================================
+ * Clean parameter - MULTIVARIATE importance conditional sampler - MRK
+ * discard the middle not used values for the clusters and
+ * update the correspondent parameters.
+ *
+ * args:
+ * - mu:      matrix, each row a mean
+ * - s2:      cube, each slice a covariance matrix
+ * - clust:   vector, each (integer) value is the cluster of the corresp. obs.
+ *
+ * Void function.
+ ==================================================================================*/
+
+void para_clean_MAR_mv_MRK_L(arma::mat &beta,
+                             arma::vec &clust) {
+  int k = beta.n_rows;
+  double tsigma2;
+
+  // for all the used parameters
+  for(arma::uword i = 0; i < k; i++){
+
+    // if a cluster is empty
+    if((int) arma::sum(clust == i) == 0){
+
+      // find the last full cluster, then swap
+      for(arma::uword j = k; j > i; j--){
+        if((int) arma::sum(clust == j) != 0){
+
+          // swap the corresponding elements
+          clust( arma::find(clust == j) ).fill(i);
+          beta.swap_rows(i,j);
+          break;
+        }
+      }
+    }
+  }
+
+  // reduce dimensions
+  int u_bound = 0;
+  for(arma::uword i = 0; i < k; i++){
+    if(arma::accu(clust == i) > 0){
+      u_bound += 1;
+    }
+  }
+
+  // resize object to the correct dimension
+  beta.resize(u_bound, beta.n_cols);
+}
+
+/*==================================================================================
+ * Update clusters - MULTIVARIATE importance conditional sampler - MRK
+ *
+ * args:
+ * - data:        vector of observation
+ * - mujoin:      mean values for each component
+ * - s2join:      variance for each component
+ * - probjoin:    prob for each component
+ * - clust:       vector of allocation
+ * - max_val:     vector, number of already existent atoms
+ * - iter:        current iteration
+ * - new_val:     vector of new values
+ *
+ * void function
+ ==================================================================================*/
+
+void clust_update_MAR_mv_MRK_L(arma::vec y,
+                               arma::mat covs,
+                               arma::mat &beta,
+                               double sigma2,
+                               arma::vec &clust,
+                               double mass,
+                               arma::vec beta0,
+                               arma::mat Sb0,
+                               double sigma_PY,
+                               int napprox){
+
+  // initialize quantities
+  int n = clust.n_elem;
+  int k;
+  arma::vec probs, betan;
+  double an, bn, prob_temp;
+  arma::mat Sbn, betatemp;
+
+  // sample the temp values
+  betatemp = arma::trans(arma::mvnrnd(beta0, Sb0, napprox));
+
+  // loop over the observations
+  for(arma::uword i = 0; i < n; i++){
+
+    bool req_clean = false;
+    if(arma::sum(clust == clust[i]) == 1){
+      req_clean = true;
+    }
+
+    clust(i) = beta.n_rows + 1;
+    if(req_clean){
+      para_clean_MAR_mv_MRK_L(beta,
+                              clust);
+    }
+
+    // initialize useful quantities
+    k = beta.n_rows;
+    probs.resize(k+1);
+    probs.fill(0);
+
+    // compute probabilities vector
+    for(arma::uword j = 0; j < k; j++) {
+      int nj = (int) arma::sum(clust == j);
+      probs(j) = log(nj - sigma_PY) - log(2 * M_PI * sigma2) / 2 -
+        (pow(y(i) - arma::dot(covs.row(i), beta.row(j)), 2) / (2 * sigma2));
+    }
+
+    prob_temp = 0.0;
+    for(arma::uword l = 0; l < napprox; l++){
+      prob_temp += arma::normpdf(y(i), arma::dot(covs.row(i), betatemp.row(l)), sqrt(sigma2));
+    }
+    probs(k) = log(mass + k * sigma_PY) + log(prob_temp / napprox);
+
+    // sample new
+    int temp_cl = rintnunif_log(probs);
+    clust(i) = temp_cl;
+
+    if(temp_cl == k){
+
+      beta.resize(k+1, beta.n_cols);
+
+      Sbn = arma::inv(arma::inv(Sb0) + arma::trans(covs.row(i)) * covs.row(i) / sigma2);
+      betan = Sbn * (arma::inv(Sb0) * beta0 + (arma::trans(covs.row(i)) * y(i)) / sigma2);
+      beta.row(k) = arma::trans(arma::mvnrnd(betan, Sbn));
+
+    }
+  }
+}

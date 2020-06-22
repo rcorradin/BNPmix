@@ -356,7 +356,6 @@ void hyper_accelerate_ICS(arma::vec mu,
 
   double m_temp, s2_temp, tau1_temp, tau2_temp, a_temp, b_temp, mu_m;
   int k = mu.n_elem;
-  mu_m = arma::accu(mu) / k;
 
   tau1_temp = tau1 + k / 2;
   tau2_temp = tau2 + arma::accu(pow(mu - m0, 2) / s2) / 2;
@@ -1610,6 +1609,273 @@ void clust_update_ICS_mv_MRK(arma::vec y,
       probs_upd(j)     = log(probjoin(j)) - log(2 * M_PI * sigma2join(j)) / 2 -
                               ( pow(y(i) - arma::dot(covs.row(i), betajoin.row(j)), 2) /
                               (2 * sigma2join(j)) );
+    }
+
+    // sample the allocation for the current observations
+    clust(i) = rintnunif_log(probs_upd);
+  }
+}
+
+/*----------------------------------------------------------------------
+ *
+ * MIXTURE OF REGRESSION KERNELS
+ * LOCATION KERNEL
+ * ICS functions
+ *
+ *----------------------------------------------------------------------
+ */
+
+/*==================================================================================
+ * Accelerate - MULTIVARIATE importance conditional sampler - MRK
+ * acceleration step for reshuffling the parameters
+ * given an allocation
+ *
+ * args:
+ * - y:       target variable (n x 1)
+ * - covs:    covariates (n x (d + 1))
+ * - beta:    regression coefficients (k x (d+1))
+ * - sigma2:  scale component of kernel function
+ * - clust:   vector of allocation
+ * - beta0:   vector of location's prior distribution
+ * - Sb0:     double of NIG on scale of location distribution
+ * - a0:      shape parameter of scale component
+ * - b0:      scale parameter of scale component
+ *
+ * Void function
+ ==================================================================================*/
+
+void accelerate_ICS_mv_MRK_L(arma::vec y,
+                             arma::mat covs,
+                             arma::mat &beta,
+                             double &sigma2,
+                             arma::vec clust,
+                             arma::vec beta0,
+                             arma::mat Sb0,
+                             double a0,
+                             double b0){
+  arma::mat cdata;
+  arma::mat tdata;
+  arma::vec ty;
+
+  double an, bn;
+  arma::mat tSb;
+  arma::vec tbeta0;
+
+  double accu_cdata = 0.0;
+
+  // loop over the different clusters
+  for(arma::uword j = 0; j < beta.n_rows; j++){
+
+    // initialize itra cluster quantities
+    int nj = sum(clust == j);
+    tdata = covs.rows(arma::find(clust == j));
+    ty = y.elem(arma::find(clust == j));
+    cdata = ty - (tdata * beta.row(j).t());
+    accu_cdata += arma::accu(pow(cdata, 2));
+
+    // update the coefficients
+    tSb = arma::inv(arma::inv(Sb0) + arma::trans(tdata) * tdata / sigma2);
+    tbeta0 = tSb * (arma::inv(Sb0) * beta0 + (arma::trans(tdata) * ty) / sigma2);;
+    beta.row(j) = arma::trans(arma::mvnrnd(tbeta0, tSb));
+  }
+
+  // update the variance
+  an = a0 + y.n_elem/2;
+  bn = b0 + accu_cdata / 2;
+  sigma2 = 1.0 / arma::randg(arma::distr_param(an, 1.0 / (bn)));
+}
+
+/*==================================================================================
+ * Hyper-accelerate - MULTIVARIATE importance conditional sampler - MRK
+ *
+ * args:
+ * - mu:      vector of location component
+ * - s2:      covariance matricies
+ * - m0:      mean of location distribution
+ * - k0:      scale factor of location distribution
+ * - S20:     matrix of the scale distribution
+ * - n0:      df of scale distribution
+ * - m1:      hyperparameter, location component of m0
+ * - k1:      hyperparameter, scale parameter for variance of m0
+ * - tau1:    hyperparameter, shape of k0 distribution
+ * - tau2:    hyperparameter, rate of k0 distribution
+ * - theta1:  hyperparameter, df of S20 distribution
+ * - Theta2:  hyperparameter, matrix of S20 distribution
+ *
+ * Void function
+ ==================================================================================*/
+
+void hyper_accelerate_ICS_mv_MRK_L(arma::vec y,
+                                 arma::mat covs,
+                                 arma::vec clust,
+                                 arma::mat beta,
+                                 arma::vec &beta0,
+                                 arma::mat &Sb0,
+                                 double a0,
+                                 double &b0,
+                                 arma::vec beta1,
+                                 double k1,
+                                 double sb1,
+                                 arma::mat Sb1){
+
+  // initialize quantities
+  arma::mat cbeta = beta - arma::repmat(mean(beta, 0), beta.n_rows, 1);
+
+  // sampling hyperparameters
+  double kn = k1 + beta.n_rows;
+  arma::vec betan = ((beta1 * k1) + arma::trans(sum(beta, 0)))/kn;
+  double sbn = sb1 + beta.n_rows;
+  arma::mat Sbn = Sb1 + arma::trans(cbeta) * cbeta + ((k1 * beta.n_rows) / kn) *
+    (arma::trans(mean(beta, 0)) - beta1) * arma::trans(arma::trans(mean(beta, 0)) - beta1);
+
+  Sb0 = arma::inv(arma::wishrnd(arma::inv(Sbn), sbn));
+  beta0 = arma::mvnrnd(betan, Sb0 / kn);
+}
+
+
+/*==================================================================================
+ * Clean parameter - MULTIVARIATE importance conditional sampler - MRK
+ * discard the middle not used values for the clusters and
+ * update the correspondent parameters.
+ *
+ * args:
+ * - mu:      matrix, each row a mean
+ * - s2:      cube, each slice a covariance matrix
+ * - clust:   vector, each (integer) value is the cluster of the corresp. obs.
+ *
+ * Void function.
+ ==================================================================================*/
+
+void para_clean_ICS_mv_MRK_L(arma::mat &beta,
+                           arma::vec &clust) {
+  int k = beta.n_rows;
+  double tsigma2;
+
+  // for all the used parameters
+  for(arma::uword i = 0; i < k; i++){
+
+    // if a cluster is empty
+    if((int) arma::sum(clust == i) == 0){
+
+      // find the last full cluster, then swap
+      for(arma::uword j = k; j > i; j--){
+        if((int) arma::sum(clust == j) != 0){
+
+          // swap the corresponding elements
+          clust( arma::find(clust == j) ).fill(i);
+          beta.swap_rows(i,j);
+          break;
+        }
+      }
+    }
+  }
+
+  // reduce dimensions
+  int u_bound = 0;
+  for(arma::uword i = 0; i < k; i++){
+    if(arma::accu(clust == i) > 0){
+      u_bound += 1;
+    }
+  }
+
+  // resize object to the correct dimension
+  beta.resize(u_bound, beta.n_cols);
+}
+
+/*==================================================================================
+ * Simulate finite distribution - MULTIVARIATE importance conditional sampler - MRK
+ *
+ * args:
+ * - mutemp:      mean values for each temp component
+ * - s2temp:      variance values for temp each component
+ * - freqtemp:    frequency values for temp each component
+ * - mass:        mass of Dirichlet process
+ * - m0:          vector of location's prior distribution
+ * - k0:          double of NIG on scale of location distribution
+ * - S0:          matrix of Inverse Wishart distribution
+ * - n0:          degree of freedom of Inverse Wishart distribution
+ * - napprox:     number of approximating values
+ * - sigma_PY:    second parameter of Pitman-Yor process
+ *
+ * Void function.
+ ==================================================================================*/
+
+void simu_trunc_PY_mv_MRK_L(arma::mat &betatemp,
+                            arma::vec &freqtemp,
+                            double mass,
+                            arma::vec beta0,
+                            arma::mat Sb0,
+                            int napprox,
+                            double sigma_PY){
+
+  // resize the objects to size 1
+  freqtemp.resize(1);
+
+  // initialize the first element
+  freqtemp.fill(1);
+  int k = 1;
+
+  // generate napprox values with ties
+  for(arma::uword j = 1; j < napprox; j++){
+    int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
+    if(temp_cl < (k - 1)){
+
+      // if is an existing one, increase the freq
+      freqtemp[temp_cl] += 1;
+
+    } else {
+
+      // if is a new one, generate the new parameters
+      freqtemp.resize(k + 1);
+      freqtemp[k] = 1;
+      k += 1;
+
+    }
+  }
+
+  // betatemp.resize(k, betatemp.n_cols);
+  // sigma2temp.resize(k);
+  betatemp = arma::trans(arma::mvnrnd(beta0, Sb0, k));
+
+}
+
+
+/*==================================================================================
+ * Update clusters - MULTIVARIATE importance conditional sampler - MRK
+ *
+ * args:
+ * - data:        vector of observation
+ * - mujoin:      mean values for each component
+ * - s2join:      variance for each component
+ * - probjoin:    prob for each component
+ * - clust:       vector of allocation
+ * - max_val:     vector, number of already existent atoms
+ * - iter:        current iteration
+ * - new_val:     vector of new values
+ *
+ * void function
+ ==================================================================================*/
+
+void clust_update_ICS_mv_MRK_L(arma::vec y,
+                               arma::mat covs,
+                               arma::mat betajoin,
+                               double sigma2,
+                               arma::vec probjoin,
+                               arma::vec &clust){
+
+  // initialize the quantities
+  int n = clust.n_elem;
+  int k = probjoin.n_elem;
+  arma::vec probs_upd(k);
+
+  // loop over the observations
+  for(arma::uword i = 0; i < n; i++){
+
+    // loop over the components
+    for(arma::uword j = 0; j < k; j++){
+      probs_upd(j)     = log(probjoin(j)) - log(2 * M_PI * sigma2) / 2 -
+        ( pow(y(i) - arma::dot(covs.row(i), betajoin.row(j)), 2) /
+          (2 * sigma2) );
     }
 
     // sample the allocation for the current observations

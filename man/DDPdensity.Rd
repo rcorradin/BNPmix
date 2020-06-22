@@ -33,10 +33,10 @@ for the elements of \code{y};}
 
 \itemize{
 \item \code{strength}, the strength parameter, or total mass, of the marginal Dirichlet processes (default 1);
-\item \code{m0}, mean of the normal base measure on the location parameter (default 0);
+\item \code{m0}, mean of the normal base measure on the location parameter (default is the sample mean of the data);
 \item \code{k0}, scale factor appearing in the normal base measure on the location parameter (default 1);
 \item \code{a0}, shape parameter of the inverse gamma base measure on the scale parameter (default 2);
-\item \code{b0}, scale parameter of the inverse gamma base measure on the scale parameter (default 1);
+\item \code{b0}, scale parameter of the inverse gamma base measure on the scale parameter (default is the sample variance of the data);
 \item \code{wei}, parameter controlling the strength of dependence across Dirichlet processes (default 1/2).
 }}
 

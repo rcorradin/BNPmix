@@ -300,4 +300,54 @@ void clust_update_ICS_mv_MRK(arma::vec y,
                              arma::vec probjoin,
                              arma::vec &clust);
 
+/*----------------------------------------------------------------------
+ *
+ * MIXTURE OF REGRESSION KERNELS - LOCATION
+ * LOCATION-SCALE KERNEL
+ * ICS functions
+ *
+ *----------------------------------------------------------------------
+ */
+
+void accelerate_ICS_mv_MRK_L(arma::vec y,
+                             arma::mat covs,
+                             arma::mat &beta,
+                             double &sigma2,
+                             arma::vec clust,
+                             arma::vec beta0,
+                             arma::mat Sb0,
+                             double a0,
+                             double b0);
+
+void hyper_accelerate_ICS_mv_MRK_L(arma::vec y,
+                                   arma::mat covs,
+                                   arma::vec clust,
+                                   arma::mat beta,
+                                   arma::vec &beta0,
+                                   arma::mat &Sb0,
+                                   double a0,
+                                   double &b0,
+                                   arma::vec beta1,
+                                   double k1,
+                                   double sb1,
+                                   arma::mat Sb1);
+
+void para_clean_ICS_mv_MRK_L(arma::mat &beta,
+                             arma::vec &clust);
+
+void simu_trunc_PY_mv_MRK_L(arma::mat &betatemp,
+                            arma::vec &freqtemp,
+                            double mass,
+                            arma::vec beta0,
+                            arma::mat Sb0,
+                            int napprox,
+                            double sigma_PY);
+
+void clust_update_ICS_mv_MRK_L(arma::vec y,
+                               arma::mat covs,
+                               arma::mat betajoin,
+                               double sigma2,
+                               arma::vec probjoin,
+                               arma::vec &clust);
+
 #endif

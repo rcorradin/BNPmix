@@ -271,4 +271,50 @@ void clust_update_MAR_mv_MRK(arma::vec y,
                              double sigma_PY,
                              int napprox);
 
+/*----------------------------------------------------------------------
+ *
+ * MIXTURE OF REGRESSION KERNELS - LOCATION
+ * LOCATION-SCALE KERNEL
+ * MAR functions
+ *
+ *----------------------------------------------------------------------
+ */
+
+void accelerate_MAR_mv_MRK_L(arma::vec y,
+                             arma::mat covs,
+                             arma::mat &beta,
+                             double &sigma2,
+                             arma::vec clust,
+                             arma::vec beta0,
+                             arma::mat Sb0,
+                             double a0,
+                             double b0);
+
+void hyper_accelerate_MAR_mv_MRK_L(arma::vec y,
+                                   arma::mat covs,
+                                   arma::vec clust,
+                                   arma::mat beta,
+                                   arma::vec &beta0,
+                                   arma::mat &Sb0,
+                                   double a0,
+                                   double &b0,
+                                   arma::vec beta1,
+                                   double k1,
+                                   double sb1,
+                                   arma::mat Sb1);
+
+void para_clean_MAR_mv_MRK_L(arma::mat &beta,
+                             arma::vec &clust);
+
+void clust_update_MAR_mv_MRK_L(arma::vec y,
+                               arma::mat covs,
+                               arma::mat &beta,
+                               double sigma2,
+                               arma::vec &clust,
+                               double mass,
+                               arma::vec beta0,
+                               arma::mat Sb0,
+                               double sigma_PY,
+                               int napprox);
+
 #endif
