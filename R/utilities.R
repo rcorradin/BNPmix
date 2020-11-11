@@ -118,7 +118,9 @@ partition.BNPdens <- function(object, dist = "VI", max_k = NULL, ...) {
     val_draws <- min(BIN_draws)
     draw      <- clean_cl[which.min(BIN_draws),]
 
-    output <- BNPpart(partitions = rbind(complete, average, draw),
+    output <- BNPpart(partitions = rbind(as.numeric(as.factor(complete)),
+                                         as.numeric(as.factor(average)),
+                                         as.numeric(as.factor(draw))),
                       scores = c(val_comp, val_avg, val_draws),
                       psm = psm_mat)
     return(output)

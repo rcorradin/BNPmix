@@ -16,9 +16,9 @@
  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
  ==================================================================================*/
 
-#include "RcppArmadillo.h"
+#include "RcppDist.h"
 #include "Distributions.h"
-// [[Rcpp::depends("RcppArmadillo")]]
+// [[Rcpp::depends(RcppArmadillo, RcppDist)]]
 
 /*----------------------------------------------------------------------
  *
@@ -478,7 +478,7 @@ void clust_update_MAR_PY(arma::vec data,
       int nj = (int) arma::sum(clust == j);
       probs[j] = log(arma::normpdf(data[i], mu(j), sqrt(s2(j)))) + log(nj - sigma_PY);
     }
-    probs[k] = log(mass + k * sigma_PY) + dt_ls(data[i], 2 * a0, m0, sqrt(b0 * (1 + k0) / (a0*k0)));
+    probs[k] = log(mass + k * sigma_PY) + d_lst(data[i], 2 * a0, m0, sqrt(b0 / a0 * (1.0 + 1.0 / k0)), true);
 
     // sample new
     int temp_cl = rintnunif_log(probs);
@@ -936,7 +936,9 @@ void clust_update_MAR_PY_mv(arma::mat data,
                             double k0,
                             arma::mat S0,
                             double n0,
-                            double sigma_PY){
+                            double sigma_PY,
+                            //-*-temp
+                            double &new_clust){
   // initialize quantities
   int n = clust.n_elem;
   int d = data.n_cols;
@@ -944,6 +946,10 @@ void clust_update_MAR_PY_mv(arma::mat data,
   arma::vec probs, mn;
   double kn, nn;
   arma::mat Sn;
+
+  //-*-temp
+  int old_max = max(clust);
+  new_clust = 0;
 
   // loop over the observations
   for(arma::uword i = 0; i < n; i++){
@@ -970,7 +976,7 @@ void clust_update_MAR_PY_mv(arma::mat data,
       double out       = - (d / 2.0) * log(2.0 * M_PI) - 0.5 * arma::sum(cdata%cdata) + arma::sum(log(rooti.diag()));
       probs(j) = out + log(nj - sigma_PY);
     }
-    probs(k) = log(mass + k * sigma_PY) + dt_ls_mv(data.row(i).t(), n0 - d + 1, m0, S0 * (k0 + 1) / (k0 * (n0 - d + 1)));
+    probs(k) = log(mass + k * sigma_PY) + dmvt(data.row(i), m0, S0 * (k0 + 1) / (k0 * (n0 - d + 1)), n0 - d + 1, true)(0);
 
     // sample new
     int temp_cl = rintnunif_log(probs);
@@ -991,6 +997,9 @@ void clust_update_MAR_PY_mv(arma::mat data,
       // sample from the posterior distributions
       s2.slice(k) = arma::inv(arma::wishrnd(arma::inv(Sn), nn));
       mu.row(k)   = arma::trans(arma::mvnrnd(mn, s2.slice(k)/kn));
+
+      //-*-temp
+      new_clust += 1;
     }
   }
 }
@@ -1229,7 +1238,7 @@ void clust_update_MAR_PY_mv_P(arma::mat data,
     }
     probs(k) = log(mass + k * sigma_PY);
     for(arma::uword l = 0; l < d; l++){
-      probs(k) +=  dt_ls(data(i,l), 2 * a0(l), m0(l), sqrt(b0(l) * (1 + k0(l)) / (k0(l) * a0(l))));
+      probs(k) += d_lst(data(i,l), 2 * a0(l), m0(l), sqrt(b0(l) / a0(l) * (1.0 + 1.0 / k0(l))), true);
     }
 
     // sample new

@@ -1,4 +1,4 @@
-CXX_STD = CXX11
+#CXX_STD = CXX11
 
 # FLAG the following lines when you are compiling on MAC
 # PKG_CXXFLAGS = $(SHLIB_OPENMP_CXXFLAGS)

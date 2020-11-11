@@ -171,7 +171,9 @@ void clust_update_MAR_PY_mv(arma::mat data,
                             double k0,
                             arma::mat S0,
                             double n0,
-                            double sigma_PY);
+                            double sigma_PY,
+                            //-*-temp
+                            double &new_clust);
 
 /*----------------------------------------------------------------------
  *

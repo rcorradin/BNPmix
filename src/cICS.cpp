@@ -160,6 +160,7 @@ Rcpp::List cICS_L(arma::vec data,
     arma::vec index = arma::linspace(0, nkpt - 1, nkpt);
     arma::vec probjoin = arma::join_cols(ptilde.elem(arma::find(index < nkpt - 1)),
                                          ptilde[nkpt - 1] * freqtemp / napprox);
+    probjoin = probjoin / sum(probjoin);
 
     // update cluster allocations
     clust_update_ICS_L(data,
@@ -382,6 +383,7 @@ Rcpp::List cICS(arma::vec data,
     arma::vec index = arma::linspace(0, nkpt - 1, nkpt);
     arma::vec probjoin = arma::join_cols(ptilde.elem(arma::find(index < nkpt - 1)),
                                          ptilde[nkpt - 1] * freqtemp / napprox);
+    probjoin = probjoin / sum(probjoin);
 
     // update cluster allocations
     clust_update_ICS(data,
@@ -542,9 +544,10 @@ Rcpp::List cICS_mv_L(arma::mat data,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::mat> result_mu;
+  arma::field<arma::mat> result_mu(niter - nburn);
   arma::cube result_s2(d,d,niter - nburn);
-  std::list<arma::vec> result_probs;
+  arma::field<arma::vec> result_probs(niter - nburn);
+
   arma::mat result_dens(grid.n_rows,1);
   if(!light_dens){
     result_dens.resize(niter - nburn, grid.n_rows);
@@ -617,6 +620,7 @@ Rcpp::List cICS_mv_L(arma::mat data,
     arma::vec index = arma::linspace(0, nkpt - 1, nkpt);
     arma::vec probjoin = arma::join_cols(ptilde.elem(arma::find(index < nkpt - 1)),
                                          ptilde[nkpt - 1] * freqtemp / napprox);
+    probjoin = probjoin / sum(probjoin);
 
     // update cluster allocations
     clust_update_ICS_mv_L(data,
@@ -629,7 +633,9 @@ Rcpp::List cICS_mv_L(arma::mat data,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      result_probs.push_back(probjoin);
+      if(out_param){
+        result_probs(iter - nburn) = probjoin;
+      }
       if(out_dens){
         dens = eval_density_mv_L(grid,
                                  mujoin,
@@ -649,8 +655,10 @@ Rcpp::List cICS_mv_L(arma::mat data,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      result_mu.push_back(mu);
-      result_s2.slice(iter - nburn) = s2;
+      if(out_param){
+        result_mu(iter - nburn) = mu;
+        result_s2.slice(iter - nburn) = s2;
+      }
       result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
     }
 
@@ -766,9 +774,9 @@ Rcpp::List cICS_mv(arma::mat data,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::mat> result_mu;
-  std::list<arma::cube> result_s2;
-  std::list<arma::vec> result_probs;
+  arma::field<arma::mat> result_mu(niter - nburn);
+  arma::field<arma::cube> result_s2(niter - nburn);
+  arma::field<arma::vec> result_probs(niter - nburn);
   arma::mat result_dens(grid.n_rows,1);
   if(!light_dens){
     result_dens.resize(niter - nburn, grid.n_rows);
@@ -793,16 +801,16 @@ Rcpp::List cICS_mv(arma::mat data,
   s2temp.fill(0);
   freqtemp.fill(1);
 
+  //-*-temp
+  double new_clust;
+  arma::vec clust_news(niter - nburn);
+
   // time quantities
   int start_s = clock();
   int current_s;
 
-  // TEMP TEMP TEMP TEMP
-  arma::mat times_in(niter, 6);
   // strarting loop
   for(arma::uword iter = 0; iter < niter; iter++){
-
-    int in_start_s = clock();
 
     // acceleration step
     accelerate_ICS_mv(data,
@@ -813,8 +821,6 @@ Rcpp::List cICS_mv(arma::mat data,
                       k0,
                       S0,
                       n0);
-    times_in(iter, 0) = double(clock() - in_start_s) / CLOCKS_PER_SEC ;
-    in_start_s = clock();
 
     if(hyper){
       hyper_accelerate_ICS_mv_LS(mu,
@@ -830,16 +836,12 @@ Rcpp::List cICS_mv(arma::mat data,
                                  theta1,
                                  Theta1);
     }
-    times_in(iter, 1) = double(clock() - in_start_s) / CLOCKS_PER_SEC ;
-    in_start_s = clock();
 
     // sample the probability vector
     // from Dirichlet distribution
     arma::vec temp_freq = freq_vec(clust);
     ptilde = rdirich_mass(temp_freq - discount, strength + discount * temp_freq.n_elem);
 
-    times_in(iter, 2) = double(clock() - in_start_s ) / CLOCKS_PER_SEC ;
-    in_start_s = clock();
 
     // simulate the required values
     simu_trunc_PY_mv(mutemp,
@@ -852,7 +854,6 @@ Rcpp::List cICS_mv(arma::mat data,
                      n0,
                      napprox,
                      discount);
-    times_in(iter, 3) = double(clock() - in_start_s) / CLOCKS_PER_SEC ;
 
     // joint the existent parameters with
     // the simulated new ones
@@ -862,22 +863,25 @@ Rcpp::List cICS_mv(arma::mat data,
     arma::vec index = arma::linspace(0, nkpt - 1, nkpt);
     arma::vec probjoin = arma::join_cols(ptilde.elem(arma::find(index < nkpt - 1)),
                                          ptilde[nkpt - 1] * freqtemp / napprox);
-    in_start_s = clock();
+    probjoin = probjoin / sum(probjoin);
 
     // update cluster allocations
     clust_update_ICS_mv(data,
                         mujoin,
                         s2join,
                         probjoin,
-                        clust);
-    times_in(iter, 4) = double(clock() - in_start_s) / CLOCKS_PER_SEC ;
+                        clust,
+                        //-*-temp
+                        new_clust);
 
     mu = mujoin;
     s2 = s2join;
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      result_probs.push_back(probjoin);
+      if(out_param){
+        result_probs(iter - nburn) = probjoin;
+      }
       if(out_dens){
         dens = eval_density_mv(grid,
                                mujoin,
@@ -889,6 +893,8 @@ Rcpp::List cICS_mv(arma::mat data,
           result_dens.row(iter - nburn) = arma::trans(dens);
         }
       }
+      //-*-temp
+      clust_news(iter - nburn) = new_clust;
     }
 
     // clean parameter objects
@@ -898,8 +904,10 @@ Rcpp::List cICS_mv(arma::mat data,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      result_mu.push_back(mu);
-      result_s2.push_back(s2);
+      if(out_param){
+        result_mu(iter - nburn) = mu;
+        result_s2(iter - nburn) = s2;
+      }
       result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
     }
 
@@ -940,8 +948,8 @@ Rcpp::List cICS_mv(arma::mat data,
     resu["clust"]  = result_clust;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
   }
-  // TEMP TEMP TEMP
-  resu["wvals"] = times_in;
+  //-*-temp
+  resu["wvals"] = clust_news;
   return resu;
 }
 
@@ -1017,9 +1025,9 @@ Rcpp::List cICS_mv_P(arma::mat data,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::mat> result_mu;
-  std::list<arma::mat> result_s2;
-  std::list<arma::vec> result_probs;
+  arma::field<arma::mat> result_mu(niter - nburn);
+  arma::field<arma::mat> result_s2(niter - nburn);
+  arma::field<arma::vec> result_probs(niter - nburn);
   arma::mat result_dens(grid.n_rows,1);
   if(!light_dens){
     result_dens.resize(niter - nburn, grid.n_rows);
@@ -1102,6 +1110,7 @@ Rcpp::List cICS_mv_P(arma::mat data,
     arma::vec index = arma::linspace(0, nkpt - 1, nkpt);
     arma::vec probjoin = arma::join_cols(ptilde.elem(arma::find(index < nkpt - 1)),
                                          ptilde[nkpt - 1] * freqtemp / napprox);
+    probjoin = probjoin / sum(probjoin);
 
     // update cluster allocations
     clust_update_ICS_mv_P(data,
@@ -1115,7 +1124,9 @@ Rcpp::List cICS_mv_P(arma::mat data,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      result_probs.push_back(probjoin);
+      if(out_param){
+        result_probs(iter - nburn) = probjoin;
+      }
       if(out_dens){
         dens = eval_density_mv_P(grid,
                                  mujoin,
@@ -1137,8 +1148,10 @@ Rcpp::List cICS_mv_P(arma::mat data,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      result_mu.push_back(mu);
-      result_s2.push_back(s2);
+      if(out_param){
+        result_mu(iter - nburn) = mu;
+        result_s2(iter - nburn) = s2;
+      }
       result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
     }
 
@@ -1257,9 +1270,9 @@ Rcpp::List cICS_mv_MKR(arma::vec y,
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
   arma::mat result_beta(niter - nburn, d);
-  std::list<arma::mat> result_beta_all;
-  std::list<arma::vec> result_sigma2;
-  std::list<arma::vec> result_probs;
+  arma::field<arma::mat> result_beta_all(niter - nburn);
+  arma::field<arma::vec> result_sigma2(niter - nburn);
+  arma::field<arma::vec> result_probs(niter - nburn);
 
   // initialize the result densities objects (response and covs)
   arma::cube result_dens(grid_response.n_rows, grid_covs.n_rows, 1);
@@ -1352,6 +1365,7 @@ Rcpp::List cICS_mv_MKR(arma::vec y,
     arma::vec index = arma::linspace(0, nkpt - 1, nkpt);
     probjoin = arma::join_cols(ptilde.elem(arma::find(index < nkpt - 1)),
                                          ptilde[nkpt - 1] * freqtemp / napprox);
+    probjoin = probjoin / sum(probjoin);
 
     // update cluster allocations
     clust_update_ICS_mv_MRK(y,
@@ -1366,7 +1380,9 @@ Rcpp::List cICS_mv_MKR(arma::vec y,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      result_probs.push_back(probjoin);
+      if(out_param){
+        result_probs(iter - nburn) = probjoin;
+      }
 
       if(out_dens){
         dens = eval_density_mv_MKR(grid_covs,
@@ -1390,8 +1406,10 @@ Rcpp::List cICS_mv_MKR(arma::vec y,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      result_beta_all.push_back(beta);
-      result_sigma2.push_back(sigma2);
+      if(out_param){
+        result_beta_all(iter - nburn) = beta;
+        result_sigma2(iter - nburn) = sigma2;
+      }
       result_clust.row(iter - nburn)  = arma::trans(arma::conv_to<arma::vec>::from(clust));
     }
 
@@ -1506,9 +1524,10 @@ Rcpp::List cICS_mv_MKR_L(arma::vec y,
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
   arma::mat result_beta(niter - nburn, d);
-  std::list<arma::mat> result_beta_all;
+
+  arma::field<arma::mat> result_beta_all(niter - nburn);
   arma::vec result_sigma2(niter - nburn);
-  std::list<arma::vec> result_probs;
+  arma::field<arma::vec> result_probs(niter - nburn);
 
   // initialize the result densities objects (response and covs)
   arma::cube result_dens(grid_response.n_rows, grid_covs.n_rows, 1);
@@ -1591,6 +1610,7 @@ Rcpp::List cICS_mv_MKR_L(arma::vec y,
     arma::vec index = arma::linspace(0, nkpt - 1, nkpt);
     probjoin = arma::join_cols(ptilde.elem(arma::find(index < nkpt - 1)),
                                ptilde[nkpt - 1] * freqtemp / napprox);
+    probjoin = probjoin / sum(probjoin);
 
     // update cluster allocations
     clust_update_ICS_mv_MRK_L(y,
@@ -1604,7 +1624,9 @@ Rcpp::List cICS_mv_MKR_L(arma::vec y,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      result_probs.push_back(probjoin);
+      if(out_param){
+        result_probs(iter - nburn) = probjoin;
+      }
 
       if(out_dens){
         dens = eval_density_mv_MKR_L(grid_covs,
@@ -1627,8 +1649,10 @@ Rcpp::List cICS_mv_MKR_L(arma::vec y,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      result_beta_all.push_back(beta);
-      result_sigma2(iter - nburn) = sigma2;
+      if(out_param){
+        result_beta_all(iter - nburn) = beta;
+        result_sigma2(iter - nburn) = sigma2;
+      }
       result_clust.row(iter - nburn)  = arma::trans(arma::conv_to<arma::vec>::from(clust));
     }
 

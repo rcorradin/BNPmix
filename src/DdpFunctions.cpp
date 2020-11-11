@@ -431,4 +431,3 @@ void update_w_DDP(arma::vec &w,
   //
   // }
 }
-

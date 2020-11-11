@@ -194,34 +194,65 @@ void simu_trunc_PY_L(arma::vec &mutemp,
   // By independence of atoms and jumps, sample
   // the jumps, then the entire vector of atoms
   // resize the objects to size 1
-  freqtemp.resize(1);
+  // freqtemp.resize(1);
+  //
+  // // initialize the first element
+  // freqtemp.fill(1);
+  // int k = 1;
+  //
+  // // generate napprox values with ties
+  // for(arma::uword j = 1; j < napprox; j++){
+  //
+  //   int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
+  //
+  //   if(temp_cl < (k - 1)){
+  //
+  //     // if is an existing one, increase the freq
+  //     freqtemp[temp_cl] += 1;
+  //
+  //   } else {
+  //
+  //     // if is a new one, generate the new parameters
+  //     freqtemp.resize(k + 1);
+  //     freqtemp[k] = 1;
+  //     k += 1;
+  //
+  //   }
+  // }
 
-  // initialize the first element
-  freqtemp.fill(1);
-  int k = 1;
+  freqtemp.resize(napprox);
+  freqtemp.fill(0.0);
+  freqtemp(0) = 1 - sigma_PY;
+  int k_max = 1;
+  double accu_val;
+  int k;
+  double t_bound;
 
-  // generate napprox values with ties
   for(arma::uword j = 1; j < napprox; j++){
+    t_bound = arma::randu() * (j + mass);
+    k = -1;
+    accu_val = 0.0;
 
-    int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
-
-    if(temp_cl < (k - 1)){
-
-      // if is an existing one, increase the freq
-      freqtemp[temp_cl] += 1;
-
-    } else {
-
-      // if is a new one, generate the new parameters
-      freqtemp.resize(k + 1);
-      freqtemp[k] = 1;
+    // loop
+    while(t_bound >= accu_val){
       k += 1;
+      if(k == k_max){
+        break;
+      }
+      accu_val += freqtemp(k);
+    }
 
+    if(k < k_max){
+      freqtemp(k) += 1;
+    } else {
+      freqtemp(k) = 1 - sigma_PY;
+      k_max += 1;
     }
   }
+  freqtemp.resize(k_max);
 
-  mutemp.resize(k);
-  mutemp = arma::randn(k) * sqrt(s20) + m0;
+  // mutemp.resize(k_max);
+  mutemp = arma::randn(k_max) * sqrt(s20) + m0;
 
 }
 
@@ -247,21 +278,42 @@ void clust_update_ICS_L(arma::vec data,
                         arma::vec probjoin,
                         arma::vec &clust){
 
+  // // initialize the quantities
+  // int n = clust.n_elem;
+  // int k = probjoin.n_elem;
+  // arma::vec probs_upd(k);
+  //
+  // // loop over the observations
+  // for(arma::uword i = 0; i < n; i++){
+  //
+  //   // loop over the components
+  //   for(arma::uword j = 0; j < k; j++){
+  //     probs_upd[j] = log(probjoin[j]) + log(arma::normpdf(data[i], mujoin[j], sqrt(s2)));
+  //   }
+  //
+  //   // sample the allocation for the current observation
+  //   clust[i] = rintnunif_log(probs_upd);
+  // }
+
   // initialize the quantities
   int n = clust.n_elem;
   int k = probjoin.n_elem;
-  arma::vec probs_upd(k);
+  arma::mat probs_upd(k,n);
 
-  // loop over the observations
+  // loop over the components
+  for(arma::uword j = 0; j < k; j++){
+    // loop over the observations
+    probs_upd.row(j).fill(log(probjoin[j]) - 0.5 * log(s2));
+    probs_upd.row(j) -=  0.5 * pow(data.t() - mujoin(j), 2) / s2;
+
+    // for(arma::uword i = 0; i < n; i++){
+    //   probs_upd(j,i) -=  0.5 * pow(data(i) - mujoin(j), 2) / s2;
+    // }
+  }
+
   for(arma::uword i = 0; i < n; i++){
-
-    // loop over the components
-    for(arma::uword j = 0; j < k; j++){
-      probs_upd[j] = log(probjoin[j]) + log(arma::normpdf(data[i], mujoin[j], sqrt(s2)));
-    }
-
     // sample the allocation for the current observation
-    clust[i] = rintnunif_log(probs_upd);
+    clust[i] = rintnunif_log(probs_upd.col(i));
   }
 }
 
@@ -461,36 +513,68 @@ void simu_trunc_PY(arma::vec &mutemp,
   // By independence of atoms and jumps, sample
   // the jumps, then the entire vector of atoms
   // resize the objects to size 1
-  freqtemp.resize(1);
 
-  // initialize the first element
-  freqtemp.fill(1);
-  int k = 1;
+  // freqtemp.resize(1);
+  //
+  // // initialize the first element
+  // freqtemp.fill(1);
+  // int k = 1;
+  //
+  // // generate napprox values with ties
+  // for(arma::uword j = 1; j < napprox; j++){
+  //
+  //   int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
+  //
+  //   if(temp_cl < (k - 1)){
+  //
+  //     // if is an existing one, increase the freq
+  //     freqtemp[temp_cl] += 1;
+  //
+  //   } else {
+  //
+  //     // if is a new one, generate the new parameters
+  //     freqtemp.resize(k + 1);
+  //     freqtemp[k] = 1;
+  //     k += 1;
+  //
+  //   }
+  // }
 
-  // generate napprox values with ties
+  freqtemp.resize(napprox);
+  freqtemp.fill(0.0);
+  freqtemp(0) = 1 - sigma_PY;
+  int k_max = 1;
+  double accu_val;
+  int k;
+  double t_bound;
+
   for(arma::uword j = 1; j < napprox; j++){
+    t_bound = arma::randu() * (j + mass);
+    k = -1;
+    accu_val = 0.0;
 
-    int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
-
-    if(temp_cl < (k - 1)){
-
-      // if is an existing one, increase the freq
-      freqtemp[temp_cl] += 1;
-
-    } else {
-
-      // if is a new one, generate the new parameters
-      freqtemp.resize(k + 1);
-      freqtemp[k] = 1;
+    // loop
+    while(t_bound >= accu_val){
       k += 1;
+      if(k == k_max){
+        break;
+      }
+      accu_val += freqtemp(k);
+    }
 
+    if(k < k_max){
+      freqtemp(k) += 1;
+    } else {
+      freqtemp(k) = 1 - sigma_PY;
+      k_max += 1;
     }
   }
+  freqtemp.resize(k_max);
 
-  mutemp.resize(k);
-  s2temp.resize(k);
-  s2temp = 1.0 / arma::randg(k, arma::distr_param(a0, 1.0 / b0));
-  mutemp = arma::randn(k) % sqrt(s2temp / k0) + m0;
+  // mutemp.resize(k_max);
+  // s2temp.resize(k_max);
+  s2temp = 1.0 / arma::randg(k_max, arma::distr_param(a0, 1.0 / b0));
+  mutemp = arma::randn(k_max) % sqrt(s2temp / k0) + m0;
 
 }
 
@@ -516,21 +600,41 @@ void clust_update_ICS(arma::vec data,
                       arma::vec probjoin,
                       arma::vec &clust){
 
+  // // initialize the quantities
+  // int n = clust.n_elem;
+  // int k = probjoin.n_elem;
+  // arma::vec probs_upd(k);
+  //
+  // // loop over the observations
+  // for(arma::uword i = 0; i < n; i++){
+  //
+  //   // loop over the components
+  //   for(arma::uword j = 0; j < k; j++){
+  //     probs_upd[j] = log(probjoin[j]) + log(arma::normpdf(data[i], mujoin[j], sqrt(s2join[j])));
+  //   }
+  //
+  //   // sample the allocation for the current observation
+  //   clust[i] = rintnunif_log(probs_upd);
+  // }
+
   // initialize the quantities
   int n = clust.n_elem;
   int k = probjoin.n_elem;
-  arma::vec probs_upd(k);
+  arma::mat probs_upd(k,n);
 
-  // loop over the observations
+  // loop over the components
+  for(arma::uword j = 0; j < k; j++){
+    probs_upd.row(j).fill(log(probjoin[j]) - 0.5 * log(s2join(j)));
+    probs_upd.row(j) -= 0.5 * pow(data.t() - mujoin(j), 2) / s2join(j);
+    // loop over the observations
+    // for(arma::uword i = 0; i < n; i++){
+    //   probs_upd(j,i) -=  0.5 * pow(data(i) - mujoin(j), 2) / s2join(j);
+    // }
+  }
+
   for(arma::uword i = 0; i < n; i++){
-
-    // loop over the components
-    for(arma::uword j = 0; j < k; j++){
-      probs_upd[j] = log(probjoin[j]) + log(arma::normpdf(data[i], mujoin[j], sqrt(s2join[j])));
-    }
-
     // sample the allocation for the current observation
-    clust[i] = rintnunif_log(probs_upd);
+    clust(i) = rintnunif_log(probs_upd.col(i));
   }
 }
 
@@ -705,33 +809,64 @@ void simu_trunc_PY_mv_L(arma::mat &mutemp,
                         int napprox,
                         double sigma_PY){
 
-  // resize the objects to size 1
-  freqtemp.resize(1);
+  // // resize the objects to size 1
+  // freqtemp.resize(1);
+  //
+  // // initialize the first element
+  // freqtemp.fill(1);
+  // int k = 1;
+  //
+  // // generate napprox values with ties
+  // for(arma::uword j = 1; j < napprox; j++){
+  //   int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
+  //   if(temp_cl < (k - 1)){
+  //
+  //     // if is an existing one, increase the freq
+  //     freqtemp[temp_cl] += 1;
+  //
+  //   } else {
+  //
+  //     // if is a new one, generate the new parameters
+  //     freqtemp.resize(k + 1);
+  //     freqtemp[k] = 1;
+  //     k += 1;
+  //
+  //   }
+  // }
 
-  // initialize the first element
-  freqtemp.fill(1);
-  int k = 1;
+  freqtemp.resize(napprox);
+  freqtemp.fill(0.0);
+  freqtemp(0) = 1 - sigma_PY;
+  int k_max = 1;
+  double accu_val;
+  int k;
+  double t_bound;
 
-  // generate napprox values with ties
   for(arma::uword j = 1; j < napprox; j++){
-    int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
-    if(temp_cl < (k - 1)){
+    t_bound = arma::randu() * (j + mass);
+    k = -1;
+    accu_val = 0.0;
 
-      // if is an existing one, increase the freq
-      freqtemp[temp_cl] += 1;
-
-    } else {
-
-      // if is a new one, generate the new parameters
-      freqtemp.resize(k + 1);
-      freqtemp[k] = 1;
+    // loop
+    while(t_bound >= accu_val){
       k += 1;
+      if(k == k_max){
+        break;
+      }
+      accu_val += freqtemp(k);
+    }
 
+    if(k < k_max){
+      freqtemp(k) += 1;
+    } else {
+      freqtemp(k) = 1 - sigma_PY;
+      k_max += 1;
     }
   }
+  freqtemp.resize(k_max);
 
-  mutemp.resize(k, mutemp.n_cols);
-  for(arma::uword j = 0; j < k; j++){
+  mutemp.resize(k_max, mutemp.n_cols);
+  for(arma::uword j = 0; j < k_max; j++){
     mutemp.row(j) = arma::trans(arma::mvnrnd(m0, S20));
   }
 }
@@ -761,24 +896,52 @@ void clust_update_ICS_mv_L(arma::mat data,
   double d = (double) data.n_cols;
   int n = clust.n_elem;
   int k = probjoin.n_elem;
-  arma::vec probs_upd(k);
+  arma::mat probs_upd(k, n);
 
   arma::mat rooti  = arma::trans(arma::inv(trimatu(arma::chol(s2))));
   double rsum = arma::sum(log(rooti.diag()));
+  arma::mat cdata;
+  // loop over the components
+  for(arma::uword j = 0; j < k; j++){
+    probs_upd.row(j).fill(log(probjoin[j]) + rsum);
 
-  // loop over the observations
-  for(arma::uword i = 0; i < n; i++){
+    cdata = rooti * arma::trans(data - repmat(mujoin.row(j), n, 1));
+    probs_upd.row(j) -= 0.5 * sum(pow(cdata, 2), 0);
 
-    // loop over the components
-    for(arma::uword j = 0; j < k; j++){
-      arma::vec cdata  = rooti * arma::trans(data.row(i) - mujoin.row(j)) ;
-      double out       = - (d / 2.0) * log(2.0 * M_PI) - 0.5 * arma::sum(cdata%cdata) + rsum;
-      probs_upd[j]     = log(probjoin[j]) + out;
-    }
-
-    // sample the allocation for the current observations
-    clust[i] = rintnunif_log(probs_upd);
+    // loop over the observations
+    // for(arma::uword i = 0; i < n; i++){
+    //   arma::vec cdata  = rooti * arma::trans(data.row(i) - mujoin.row(j)) ;
+    //   probs_upd(j,i)     -= 0.5 * arma::sum(cdata%cdata);
+    // }
   }
+
+  for(arma::uword i = 0; i < n; i++){
+    // sample the allocation for the current observations
+    clust(i) = rintnunif_log(probs_upd.col(i));
+  }
+
+  // // initialize the quantities
+  // double d = (double) data.n_cols;
+  // int n = clust.n_elem;
+  // int k = probjoin.n_elem;
+  // arma::vec probs_upd(k);
+  //
+  // arma::mat rooti  = arma::trans(arma::inv(trimatu(arma::chol(s2))));
+  // double rsum = arma::sum(log(rooti.diag()));
+  //
+  // // loop over the observations
+  // for(arma::uword i = 0; i < n; i++){
+  //
+  //   // loop over the components
+  //   for(arma::uword j = 0; j < k; j++){
+  //     arma::vec cdata  = rooti * arma::trans(data.row(i) - mujoin.row(j)) ;
+  //     double out       = - (d / 2.0) * log(2.0 * M_PI) - 0.5 * arma::sum(cdata%cdata) + rsum;
+  //     probs_upd[j]     = log(probjoin[j]) + out;
+  //   }
+  //
+  //   // sample the allocation for the current observations
+  //   clust[i] = rintnunif_log(probs_upd);
+  // }
 }
 
 
@@ -972,44 +1135,77 @@ void para_clean_ICS_mv(arma::mat &mu,
  ==================================================================================*/
 
 void simu_trunc_PY_mv(arma::mat &mutemp,
-                       arma::cube &s2temp,
-                       arma::vec &freqtemp,
-                       double mass,
-                       arma::vec m0,
-                       double k0,
-                       arma::mat S0,
-                       double n0,
-                       int napprox,
-                       double sigma_PY){
+                      arma::cube &s2temp,
+                      arma::vec &freqtemp,
+                      double mass,
+                      arma::vec m0,
+                      double k0,
+                      arma::mat S0,
+                      double n0,
+                      int napprox,
+                      double sigma_PY){
 
-  // resize the objects to size 1
-  freqtemp.resize(1);
+  // // resize the objects to size 1
+  // freqtemp.resize(1);
+  //
+  // // initialize the first element
+  // freqtemp.fill(1);
+  // int k = 1;
+  //
+  // // generate napprox values with ties
+  // for(arma::uword j = 1; j < napprox; j++){
+  //   int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
+  //   if(temp_cl < (k - 1)){
+  //
+  //     // if is an existing one, increase the freq
+  //     freqtemp[temp_cl] += 1;
+  //
+  //   } else {
+  //
+  //     // if is a new one, generate the new parameters
+  //     freqtemp.resize(k + 1);
+  //     freqtemp[k] = 1;
+  //     k += 1;
+  //
+  //   }
+  // }
 
-  // initialize the first element
-  freqtemp.fill(1);
-  int k = 1;
+  freqtemp.resize(napprox);
+  freqtemp.fill(0.0);
+  freqtemp(0) = 1 - sigma_PY;
+  int k_max = 1;
+  double accu_val;
+  int k;
+  double t_bound;
 
-  // generate napprox values with ties
   for(arma::uword j = 1; j < napprox; j++){
-    int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
-    if(temp_cl < (k - 1)){
+    t_bound = arma::randu() * (j + mass);
+    k = -1;
+    accu_val = 0.0;
 
-      // if is an existing one, increase the freq
-      freqtemp[temp_cl] += 1;
-
-    } else {
-
-      // if is a new one, generate the new parameters
-      freqtemp.resize(k + 1);
-      freqtemp[k] = 1;
+    // loop
+    while(t_bound >= accu_val){
       k += 1;
+      if(k == k_max){
+        break;
+      }
+      accu_val += freqtemp(k);
+    }
 
+    if(k < k_max){
+      freqtemp(k) += 1;
+    } else {
+      freqtemp(k) = 1 - sigma_PY;
+      k_max += 1;
     }
   }
+  freqtemp.resize(k_max);
 
-  mutemp.resize(k, mutemp.n_cols);
-  s2temp.resize(s2temp.n_rows, s2temp.n_cols, k);
-  for(arma::uword j = 0; j < k; j++){
+  mutemp.resize(k_max, mutemp.n_cols);
+  s2temp.resize(s2temp.n_rows, s2temp.n_cols, k_max);
+  // mutemp.resize(k, mutemp.n_cols);
+  // s2temp.resize(s2temp.n_rows, s2temp.n_cols, k);
+  for(arma::uword j = 0; j < k_max; j++){
     s2temp.slice(j) = arma::inv(arma::wishrnd(arma::inv(S0), n0));
     mutemp.row(j) = arma::trans(arma::mvnrnd(m0, s2temp.slice(j)/k0));
   }
@@ -1036,28 +1232,68 @@ void clust_update_ICS_mv(arma::mat data,
                          arma::mat mujoin,
                          arma::cube s2join,
                          arma::vec probjoin,
-                         arma::vec &clust){
+                         arma::vec &clust,
+                         //-*-temp
+                         double &new_clust){
 
   // initialize the quantities
   double d = (double) data.n_cols;
   int n = clust.n_elem;
   int k = probjoin.n_elem;
-  arma::vec probs_upd(k);
+  arma::mat probs_upd(k, n);
+  arma::mat cdata;
+  //-*-temp
+  int old_max = max(clust);
+  new_clust = 0;
 
-  // loop over the observations
-  for(arma::uword i = 0; i < n; i++){
+  // loop over the components
+  for(arma::uword j = 0; j < k; j++){
+    arma::mat rooti  = arma::trans(arma::inv(trimatu(arma::chol(s2join.slice(j)))));
+    probs_upd.row(j).fill(log(probjoin[j]) + arma::sum(log(rooti.diag())));
 
-    // loop over the components
-    for(arma::uword j = 0; j < k; j++){
-      arma::mat rooti  = arma::trans(arma::inv(trimatu(arma::chol(s2join.slice(j)))));
-      arma::vec cdata  = rooti * arma::trans(data.row(i) - mujoin.row(j)) ;
-      double out       = - (d / 2.0) * log(2.0 * M_PI) - 0.5 * arma::sum(cdata%cdata) + arma::sum(log(rooti.diag()));
-      probs_upd[j]     = log(probjoin[j]) + out;
-    }
+    cdata = rooti * arma::trans(data - repmat(mujoin.row(j), n, 1));
+    probs_upd.row(j) -= 0.5 * sum(pow(cdata, 2), 0);
 
-    // sample the allocation for the current observations
-    clust[i] = rintnunif_log(probs_upd);
+    // loop over the observations
+    // for(arma::uword i = 0; i < n; i++){
+    //   arma::vec cdata  = rooti * arma::trans(data.row(i) - mujoin.row(j)) ;
+    //   probs_upd(j,i)     -= 0.5 * arma::sum(cdata%cdata);
+    // }
   }
+
+  for(arma::uword i = 0; i < n; i++){
+    // sample the allocation for the current observations
+    clust(i) = rintnunif_log(probs_upd.col(i));
+  }
+
+  // // initialize the quantities
+  // double d = (double) data.n_cols;
+  // int n = clust.n_elem;
+  // int k = probjoin.n_elem;
+  // arma::vec probs_upd(k);
+  //
+  // //-*-temp
+  // int old_max = max(clust);
+  // new_clust = 0;
+  //
+  // // loop over the observations
+  // for(arma::uword i = 0; i < n; i++){
+  //
+  //   // loop over the components
+  //   for(arma::uword j = 0; j < k; j++){
+  //     arma::mat rooti  = arma::trans(arma::inv(trimatu(arma::chol(s2join.slice(j)))));
+  //     arma::vec cdata  = rooti * arma::trans(data.row(i) - mujoin.row(j)) ;
+  //     double out       = - (d / 2.0) * log(2.0 * M_PI) - 0.5 * arma::sum(cdata%cdata) + arma::sum(log(rooti.diag()));
+  //     probs_upd[j]     = log(probjoin[j]) + out;
+  //   }
+  //
+  //   // sample the allocation for the current observations
+  //   clust[i] = rintnunif_log(probs_upd);
+  // }
+
+  // -*-temp
+  // arma::vec temp_clust = unique(clust.elem(arma::find(clust > old_max)));
+  new_clust = arma::accu(clust > old_max);
 }
 
 /*----------------------------------------------------------------------
@@ -1255,33 +1491,64 @@ void simu_trunc_PY_mv_P(arma::mat &mutemp,
                         double sigma_PY){
 
   // resize the objects to size 1
-  freqtemp.resize(1);
+  // freqtemp.resize(1);
+  //
+  // // initialize the first element
+  // freqtemp.fill(1);
+  // int k = 1;
+  //
+  // // generate napprox values with ties
+  // for(arma::uword j = 1; j < napprox; j++){
+  //   int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
+  //   if(temp_cl < (k - 1)){
+  //
+  //     // if is an existing one, increase the freq
+  //     freqtemp[temp_cl] += 1;
+  //
+  //   } else {
+  //
+  //     // if is a new one, generate the new parameters
+  //     freqtemp.resize(k + 1);
+  //     freqtemp[k] = 1;
+  //     k += 1;
+  //
+  //   }
+  // }
 
-  // initialize the first element
-  freqtemp.fill(1);
-  int k = 1;
+  freqtemp.resize(napprox);
+  freqtemp.fill(0.0);
+  freqtemp(0) = 1 - sigma_PY;
+  int k_max = 1;
+  double accu_val;
+  int k;
+  double t_bound;
 
-  // generate napprox values with ties
   for(arma::uword j = 1; j < napprox; j++){
-    int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
-    if(temp_cl < (k - 1)){
+    t_bound = arma::randu() * (j + mass);
+    k = -1;
+    accu_val = 0.0;
 
-      // if is an existing one, increase the freq
-      freqtemp[temp_cl] += 1;
-
-    } else {
-
-      // if is a new one, generate the new parameters
-      freqtemp.resize(k + 1);
-      freqtemp[k] = 1;
+    // loop
+    while(t_bound >= accu_val){
       k += 1;
+      if(k == k_max){
+        break;
+      }
+      accu_val += freqtemp(k);
+    }
 
+    if(k < k_max){
+      freqtemp(k) += 1;
+    } else {
+      freqtemp(k) = 1 - sigma_PY;
+      k_max += 1;
     }
   }
+  freqtemp.resize(k_max);
 
-  mutemp.resize(k, mutemp.n_cols);
-  s2temp.resize(k, s2temp.n_cols);
-  for(arma::uword j = 0; j < k; j++){
+  mutemp.resize(k_max, mutemp.n_cols);
+  s2temp.resize(k_max, s2temp.n_cols);
+  for(arma::uword j = 0; j < k_max; j++){
     for(arma::uword i = 0; i < mutemp.n_cols; i++){
       s2temp(j,i) = 1.0 / arma::randg(arma::distr_param(a0(i), 1.0 / b0(i)));
       mutemp(j,i) = arma::randn() * sqrt(s2temp(j,i) / k0(i)) + m0(i);
@@ -1313,27 +1580,49 @@ void clust_update_ICS_mv_P(arma::mat data,
                            arma::vec &clust){
 
   // initialize the quantities
-  int d = data.n_cols;
+  double d = (double) data.n_cols;
   int n = clust.n_elem;
   int k = probjoin.n_elem;
-  arma::vec probs_upd(k);
+  arma::mat probs_upd(k, n);
 
-  // loop over the observations
-  for(arma::uword i = 0; i < n; i++){
 
-    probs_upd.fill(0);
-    // loop over the components
-    for(arma::uword j = 0; j < k; j++){
+  // loop over the components
+  for(arma::uword j = 0; j < k; j++){
 
-      probs_upd(j) = log(probjoin(j));
-      for(arma::uword l = 0; l < d; l++){
-        probs_upd(j) +=  - log(2 * M_PI * s2join(j,l)) / 2 - (pow(data(i,l) - mujoin(j,l), 2) / (2 * s2join(j,l)));
-      }
+    probs_upd.row(j).fill(log(probjoin(j)));
+
+    for(arma::uword l = 0; l < d; l++){
+      probs_upd.row(j) -= trans(0.5 * log(s2join(j,l)) + 0.5 * (pow(data.col(l) - mujoin(j,l), 2) / s2join(j,l)));
     }
-
-    // sample the allocation for the current observations
-    clust[i] = rintnunif_log(probs_upd);
   }
+
+  for(arma::uword i = 0; i < n; i++){
+    // sample the allocation for the current observations
+    clust(i) = rintnunif_log(probs_upd.col(i));
+  }
+
+  // // initialize the quantities
+  // int d = data.n_cols;
+  // int n = clust.n_elem;
+  // int k = probjoin.n_elem;
+  // arma::vec probs_upd(k);
+  //
+  // // loop over the observations
+  // for(arma::uword i = 0; i < n; i++){
+  //
+  //   probs_upd.fill(0);
+  //   // loop over the components
+  //   for(arma::uword j = 0; j < k; j++){
+  //
+  //     probs_upd(j) = log(probjoin(j));
+  //     for(arma::uword l = 0; l < d; l++){
+  //       probs_upd(j) +=  - log(2 * M_PI * s2join(j,l)) / 2 - (pow(data(i,l) - mujoin(j,l), 2) / (2 * s2join(j,l)));
+  //     }
+  //   }
+  //
+  //   // sample the allocation for the current observations
+  //   clust[i] = rintnunif_log(probs_upd);
+  // }
 }
 
 /*----------------------------------------------------------------------
@@ -1541,34 +1830,65 @@ void simu_trunc_PY_mv_MRK(arma::mat &betatemp,
                           double sigma_PY){
 
   // resize the objects to size 1
-  freqtemp.resize(1);
+  // freqtemp.resize(1);
+  //
+  // // initialize the first element
+  // freqtemp.fill(1);
+  // int k = 1;
+  //
+  // // generate napprox values with ties
+  // for(arma::uword j = 1; j < napprox; j++){
+  //   int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
+  //   if(temp_cl < (k - 1)){
+  //
+  //     // if is an existing one, increase the freq
+  //     freqtemp[temp_cl] += 1;
+  //
+  //   } else {
+  //
+  //     // if is a new one, generate the new parameters
+  //     freqtemp.resize(k + 1);
+  //     freqtemp[k] = 1;
+  //     k += 1;
+  //
+  //   }
+  // }
 
-  // initialize the first element
-  freqtemp.fill(1);
-  int k = 1;
+  freqtemp.resize(napprox);
+  freqtemp.fill(0.0);
+  freqtemp(0) = 1 - sigma_PY;
+  int k_max = 1;
+  double accu_val;
+  int k;
+  double t_bound;
 
-  // generate napprox values with ties
   for(arma::uword j = 1; j < napprox; j++){
-    int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
-    if(temp_cl < (k - 1)){
+    t_bound = arma::randu() * (j + mass);
+    k = -1;
+    accu_val = 0.0;
 
-      // if is an existing one, increase the freq
-      freqtemp[temp_cl] += 1;
-
-    } else {
-
-      // if is a new one, generate the new parameters
-      freqtemp.resize(k + 1);
-      freqtemp[k] = 1;
+    // loop
+    while(t_bound >= accu_val){
       k += 1;
+      if(k == k_max){
+        break;
+      }
+      accu_val += freqtemp(k);
+    }
 
+    if(k < k_max){
+      freqtemp(k) += 1;
+    } else {
+      freqtemp(k) = 1 - sigma_PY;
+      k_max += 1;
     }
   }
+  freqtemp.resize(k_max);
 
   // betatemp.resize(k, betatemp.n_cols);
   // sigma2temp.resize(k);
-  sigma2temp = 1.0 / arma::randg(k, arma::distr_param(a0, 1.0 / b0));
-  betatemp = arma::trans(arma::mvnrnd(beta0, Sb0, k));
+  sigma2temp = 1.0 / arma::randg(k_max, arma::distr_param(a0, 1.0 / b0));
+  betatemp = arma::trans(arma::mvnrnd(beta0, Sb0, k_max));
 
 }
 
@@ -1599,21 +1919,42 @@ void clust_update_ICS_mv_MRK(arma::vec y,
   // initialize the quantities
   int n = clust.n_elem;
   int k = probjoin.n_elem;
-  arma::vec probs_upd(k);
+  arma::mat probs_upd(n,k);
 
-  // loop over the observations
-  for(arma::uword i = 0; i < n; i++){
+  // loop over the components
+  for(arma::uword j = 0; j < k; j++){
+    // loop over the observations
+    probs_upd.col(j).fill(log(probjoin[j]) - 0.5 * log(sigma2join(j)));
+    probs_upd.col(j) -=  0.5 * pow(y - sum(covs % repmat(betajoin.row(j), n, 1), 1), 2) / sigma2join(j);
 
-    // loop over the components
-    for(arma::uword j = 0; j < k; j++){
-      probs_upd(j)     = log(probjoin(j)) - log(2 * M_PI * sigma2join(j)) / 2 -
-                              ( pow(y(i) - arma::dot(covs.row(i), betajoin.row(j)), 2) /
-                              (2 * sigma2join(j)) );
-    }
-
-    // sample the allocation for the current observations
-    clust(i) = rintnunif_log(probs_upd);
+    // for(arma::uword i = 0; i < n; i++){
+    //   probs_upd(j,i) -=  0.5 * pow(data(i) - mujoin(j), 2) / s2;
+    // }
   }
+
+  for(arma::uword i = 0; i < n; i++){
+    // sample the allocation for the current observation
+    clust(i) = rintnunif_log(probs_upd.row(i).t());
+  }
+
+  // // initialize the quantities
+  // int n = clust.n_elem;
+  // int k = probjoin.n_elem;
+  // arma::vec probs_upd(k);
+  //
+  // // loop over the observations
+  // for(arma::uword i = 0; i < n; i++){
+  //
+  //   // loop over the components
+  //   for(arma::uword j = 0; j < k; j++){
+  //     probs_upd(j)     = log(probjoin(j)) - log(2 * M_PI * sigma2join(j)) / 2 -
+  //                             ( pow(y(i) - arma::dot(covs.row(i), betajoin.row(j)), 2) /
+  //                             (2 * sigma2join(j)) );
+  //   }
+  //
+  //   // sample the allocation for the current observations
+  //   clust(i) = rintnunif_log(probs_upd);
+  // }
 }
 
 /*----------------------------------------------------------------------
@@ -1808,34 +2149,64 @@ void simu_trunc_PY_mv_MRK_L(arma::mat &betatemp,
                             int napprox,
                             double sigma_PY){
 
-  // resize the objects to size 1
-  freqtemp.resize(1);
+  // // resize the objects to size 1
+  // freqtemp.resize(1);
+  //
+  // // initialize the first element
+  // freqtemp.fill(1);
+  // int k = 1;
+  //
+  // // generate napprox values with ties
+  // for(arma::uword j = 1; j < napprox; j++){
+  //   int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
+  //   if(temp_cl < (k - 1)){
+  //
+  //     // if is an existing one, increase the freq
+  //     freqtemp[temp_cl] += 1;
+  //
+  //   } else {
+  //
+  //     // if is a new one, generate the new parameters
+  //     freqtemp.resize(k + 1);
+  //     freqtemp[k] = 1;
+  //     k += 1;
+  //
+  //   }
+  // }
+  freqtemp.resize(napprox);
+  freqtemp.fill(0.0);
+  freqtemp(0) = 1 - sigma_PY;
+  int k_max = 1;
+  double accu_val;
+  int k;
+  double t_bound;
 
-  // initialize the first element
-  freqtemp.fill(1);
-  int k = 1;
-
-  // generate napprox values with ties
   for(arma::uword j = 1; j < napprox; j++){
-    int temp_cl = rintnunifw(freqtemp - sigma_PY, mass + freqtemp.n_elem * sigma_PY);
-    if(temp_cl < (k - 1)){
+    t_bound = arma::randu() * (j + mass);
+    k = -1;
+    accu_val = 0.0;
 
-      // if is an existing one, increase the freq
-      freqtemp[temp_cl] += 1;
-
-    } else {
-
-      // if is a new one, generate the new parameters
-      freqtemp.resize(k + 1);
-      freqtemp[k] = 1;
+    // loop
+    while(t_bound >= accu_val){
       k += 1;
+      if(k == k_max){
+        break;
+      }
+      accu_val += freqtemp(k);
+    }
 
+    if(k < k_max){
+      freqtemp(k) += 1;
+    } else {
+      freqtemp(k) = 1 - sigma_PY;
+      k_max += 1;
     }
   }
+  freqtemp.resize(k_max);
 
   // betatemp.resize(k, betatemp.n_cols);
   // sigma2temp.resize(k);
-  betatemp = arma::trans(arma::mvnrnd(beta0, Sb0, k));
+  betatemp = arma::trans(arma::mvnrnd(beta0, Sb0, k_max));
 
 }
 
@@ -1866,19 +2237,40 @@ void clust_update_ICS_mv_MRK_L(arma::vec y,
   // initialize the quantities
   int n = clust.n_elem;
   int k = probjoin.n_elem;
-  arma::vec probs_upd(k);
+  arma::mat probs_upd(n,k);
 
-  // loop over the observations
-  for(arma::uword i = 0; i < n; i++){
+  // loop over the components
+  for(arma::uword j = 0; j < k; j++){
+    // loop over the observations
+    probs_upd.col(j).fill(log(probjoin[j]) - 0.5 * log(sigma2));
+    probs_upd.col(j) -=  0.5 * pow(y - sum(covs % repmat(betajoin.row(j), n, 1), 1), 2) / sigma2;
 
-    // loop over the components
-    for(arma::uword j = 0; j < k; j++){
-      probs_upd(j)     = log(probjoin(j)) - log(2 * M_PI * sigma2) / 2 -
-        ( pow(y(i) - arma::dot(covs.row(i), betajoin.row(j)), 2) /
-          (2 * sigma2) );
-    }
-
-    // sample the allocation for the current observations
-    clust(i) = rintnunif_log(probs_upd);
+    // for(arma::uword i = 0; i < n; i++){
+    //   probs_upd(j,i) -=  0.5 * pow(data(i) - mujoin(j), 2) / s2;
+    // }
   }
+
+  for(arma::uword i = 0; i < n; i++){
+    // sample the allocation for the current observation
+    clust(i) = rintnunif_log(probs_upd.row(i).t());
+  }
+
+  // // initialize the quantities
+  // int n = clust.n_elem;
+  // int k = probjoin.n_elem;
+  // arma::vec probs_upd(k);
+  //
+  // // loop over the observations
+  // for(arma::uword i = 0; i < n; i++){
+  //
+  //   // loop over the components
+  //   for(arma::uword j = 0; j < k; j++){
+  //     probs_upd(j)     = log(probjoin(j)) - log(2 * M_PI * sigma2) / 2 -
+  //       ( pow(y(i) - arma::dot(covs.row(i), betajoin.row(j)), 2) /
+  //         (2 * sigma2) );
+  //   }
+  //
+  //   // sample the allocation for the current observations
+  //   clust(i) = rintnunif_log(probs_upd);
+  // }
 }

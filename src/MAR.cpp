@@ -427,9 +427,10 @@ Rcpp::List MAR_mv_L(arma::mat data,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::mat> result_mu(niter - nburn);
+  arma::field<arma::mat> result_mu(niter - nburn);
   arma::cube result_s2(d,d,niter - nburn);
-  std::list<arma::vec> result_probs(niter - nburn);
+  arma::field<arma::vec> result_probs(niter - nburn);
+
   arma::mat result_dens(grid.n_rows, 1);
   if(!light_dens){
     result_dens.resize(niter - nburn, grid.n_rows);
@@ -493,10 +494,13 @@ Rcpp::List MAR_mv_L(arma::mat data,
     // if the burn-in phase is complete
     if(iter >= nburn){
       result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
-      result_mu.push_back(mu);
-      result_s2.slice(iter - nburn) = s2;
       arma::vec tab_freq = freq_vec(clust) - sigma_PY;
-      result_probs.push_back(tab_freq / n);
+
+      if(out_param){
+        result_mu(iter - nburn) = mu;
+        result_s2.slice(iter - nburn) = s2;
+        result_probs(iter - nburn) = tab_freq / n;
+      }
 
       if(out_dens){
         dens = eval_density_mv_L(grid,
@@ -623,9 +627,10 @@ Rcpp::List MAR_mv(arma::mat data,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::mat> result_mu(niter - nburn);
-  std::list<arma::cube> result_s2(niter - nburn);
-  std::list<arma::vec> result_probs(niter - nburn);
+  arma::field<arma::mat> result_mu(niter - nburn);
+  arma::field<arma::cube> result_s2(niter - nburn);
+  arma::field<arma::vec> result_probs(niter - nburn);
+
   arma::mat result_dens(grid.n_rows, 1);
   if(!light_dens){
     result_dens.resize(niter - nburn, grid.n_rows);
@@ -642,6 +647,10 @@ Rcpp::List MAR_mv(arma::mat data,
   clust.fill(0);
   mu.row(0) = arma::trans(m0);
   s2.slice(0) = S0 / (n0 - d - 1);
+
+  //-*-temp
+  double new_clust;
+  arma::vec clust_news(niter - nburn);
 
   // time quantities
   int start_s = clock();
@@ -694,7 +703,9 @@ Rcpp::List MAR_mv(arma::mat data,
                            k0,
                            S0,
                            n0,
-                           sigma_PY);
+                           sigma_PY,
+                           //-*-temp
+                           new_clust);
 
     // clean parameter objects
     para_clean_MAR_mv(mu,
@@ -706,10 +717,14 @@ Rcpp::List MAR_mv(arma::mat data,
     // if the burn-in phase is complete
     if(iter >= nburn){
       result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
-      result_mu.push_back(mu);
-      result_s2.push_back(s2);
       arma::vec tab_freq = freq_vec(clust) - sigma_PY;
-      result_probs.push_back(tab_freq / n);
+
+      if(out_param){
+        result_mu(iter - nburn) = mu;
+        result_s2(iter - nburn) = s2;
+        result_probs(iter - nburn) = tab_freq / n;
+      }
+
       if(out_dens){
         dens = eval_density_mv(grid,
                                mu,
@@ -721,6 +736,8 @@ Rcpp::List MAR_mv(arma::mat data,
           result_dens.row(iter - nburn) = arma::trans(dens);
         }
       }
+      //-*-temp
+      clust_news(iter - nburn) = new_clust;
     }
 
     if(print_message){
@@ -760,8 +777,8 @@ Rcpp::List MAR_mv(arma::mat data,
     resu["clust"]  = result_clust;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
   }
-  // TEMP TEMP TEMP
-  resu["wvals"] = times_in;
+  //-*-temp
+  resu["wvals"] = clust_news;
   return resu;
 }
 
@@ -836,9 +853,9 @@ Rcpp::List MAR_mv_P(arma::mat data,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::mat> result_mu(niter - nburn);
-  std::list<arma::mat> result_s2(niter - nburn);
-  std::list<arma::vec> result_probs(niter - nburn);
+  arma::field<arma::mat> result_mu(niter - nburn);
+  arma::field<arma::mat> result_s2(niter - nburn);
+  arma::field<arma::vec> result_probs(niter - nburn);
   arma::mat result_dens(grid.n_rows, 1);
   if(!light_dens){
     result_dens.resize(niter - nburn, grid.n_rows);
@@ -908,10 +925,14 @@ Rcpp::List MAR_mv_P(arma::mat data,
     // if the burn-in phase is complete
     if(iter >= nburn){
       result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
-      result_mu.push_back(mu);
-      result_s2.push_back(s2);
       arma::vec tab_freq = freq_vec(clust) - sigma_PY;
-      result_probs.push_back(tab_freq / n);
+
+      if(out_param){
+        result_mu(iter - nburn) = mu;
+        result_s2(iter - nburn) = s2;
+        result_probs(iter - nburn) = tab_freq / n;
+      }
+
       if(out_dens){
         dens = eval_density_mv_P(grid,
                                  mu,
@@ -1040,9 +1061,9 @@ Rcpp::List MAR_mv_MKR(arma::vec y,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::mat> result_beta;
-  std::list<arma::vec> result_sigma2;
-  std::list<arma::vec> result_probs;
+  arma::field<arma::mat> result_beta_all(niter - nburn);
+  arma::field<arma::vec> result_sigma2(niter - nburn);
+  arma::field<arma::vec> result_probs(niter - nburn);
 
   // initialize the result densities objects (response and covs)
   arma::cube result_dens(grid_response.n_rows, grid_covs.n_rows, 1);
@@ -1121,10 +1142,12 @@ Rcpp::List MAR_mv_MKR(arma::vec y,
     // if the burn-in phase is complete
     if(iter >= nburn){
       arma::vec tab_freq = freq_vec(clust) - discount;
-      result_probs.push_back(tab_freq / n);
 
-      result_beta.push_back(beta);
-      result_sigma2.push_back(sigma2);
+      if(out_param){
+        result_beta_all(iter - nburn) = beta;
+        result_sigma2(iter - nburn) = sigma2;
+        result_probs(iter - nburn) = tab_freq / n;
+      }
       result_clust.row(iter - nburn)  = arma::trans(arma::conv_to<arma::vec>::from(clust));
 
       if(out_dens){
@@ -1167,7 +1190,7 @@ Rcpp::List MAR_mv_MKR(arma::vec y,
       resu["dens"]   = result_dens;
     }
     resu["clust"]  = result_clust;
-    resu["beta"]   = result_beta;
+    resu["beta"]   = result_beta_all;
     resu["sigma2"] = result_sigma2;
     resu["probs"]  = result_probs;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
@@ -1253,9 +1276,10 @@ Rcpp::List MAR_mv_MKR_L(arma::vec y,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::mat> result_beta;
+
+  arma::field<arma::mat> result_beta_all(niter - nburn);
   arma::vec result_sigma2(niter - nburn);
-  std::list<arma::vec> result_probs;
+  arma::field<arma::vec> result_probs(niter - nburn);
 
   // initialize the result densities objects (response and covs)
   arma::cube result_dens(grid_response.n_rows, grid_covs.n_rows, 1);
@@ -1328,10 +1352,12 @@ Rcpp::List MAR_mv_MKR_L(arma::vec y,
     // if the burn-in phase is complete
     if(iter >= nburn){
       arma::vec tab_freq = freq_vec(clust) - discount;
-      result_probs.push_back(tab_freq / n);
 
-      result_beta.push_back(beta);
-      result_sigma2(iter - nburn) = sigma2;
+      if(out_param){
+        result_probs(iter - nburn) = tab_freq / n;
+        result_beta_all(iter - nburn) = beta;
+        result_sigma2(iter - nburn) = sigma2;
+      }
       result_clust.row(iter - nburn)  = arma::trans(arma::conv_to<arma::vec>::from(clust));
 
       if(out_dens){
@@ -1374,7 +1400,7 @@ Rcpp::List MAR_mv_MKR_L(arma::vec y,
       resu["dens"]   = result_dens;
     }
     resu["clust"]  = result_clust;
-    resu["beta"]   = result_beta;
+    resu["beta"]   = result_beta_all;
     resu["sigma2"] = result_sigma2;
     resu["probs"]  = result_probs;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;

@@ -10,6 +10,6 @@ License: LGPL-3 | file LICENSE
 NeedsCompilation: yes
 Imports: methods, stats, ggplot2, coda, Rcpp, ggpubr
 Depends: R (>= 3.5.0)
-LinkingTo: RcppArmadillo, Rcpp(>= 0.12.13)
-RoxygenNote: 7.1.0
+LinkingTo: RcppArmadillo, Rcpp(>= 0.12.13), RcppDist
+RoxygenNote: 7.1.1
 Encoding: UTF-8

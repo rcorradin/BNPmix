@@ -569,9 +569,10 @@ Rcpp::List cSLI_mv_L(arma::mat data,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::mat> result_mu;
-  arma::cube result_s2(d, d, niter - nburn);
-  std::list<arma::vec> result_probs;
+  arma::field<arma::mat> result_mu(niter - nburn);
+  arma::cube result_s2(d,d,niter - nburn);
+  arma::field<arma::vec> result_probs(niter - nburn);
+
   arma::mat result_dens(grid.n_rows, 1);
   if(!light_dens){
     result_dens.resize(niter - nburn, grid.n_rows);
@@ -684,9 +685,12 @@ Rcpp::List cSLI_mv_L(arma::mat data,
 
     // save the results
     if(iter >= nburn){
-      result_mu.push_back(mu);
-      result_s2.slice(iter - nburn) = (s2);
-      result_probs.push_back(w);
+      if(out_param){
+        result_mu(iter - nburn) = mu;
+        result_s2.slice(iter - nburn) = s2;
+        result_probs(iter - nburn) = w;
+      }
+
       n_clust(iter - nburn) = w.n_elem;
       if(out_dens){
         dens = eval_density_mv_L(grid,
@@ -830,9 +834,10 @@ Rcpp::List cSLI_mv(arma::mat data,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::mat> result_mu;
-  std::list<arma::cube> result_s2;
-  std::list<arma::vec> result_probs;
+  arma::field<arma::mat> result_mu(niter - nburn);
+  arma::field<arma::cube> result_s2(niter - nburn);
+  arma::field<arma::vec> result_probs(niter - nburn);
+
   arma::mat result_dens(grid.n_rows, 1);
   if(!light_dens){
     result_dens.resize(niter - nburn, grid.n_rows);
@@ -970,9 +975,13 @@ Rcpp::List cSLI_mv(arma::mat data,
 
     // save the results
     if(iter >= nburn){
-      result_mu.push_back(mu);
-      result_s2.push_back(s2);
-      result_probs.push_back(w);
+
+      if(out_param){
+        result_mu(iter - nburn) = mu;
+        result_s2(iter - nburn) = s2;
+        result_probs(iter - nburn) = w;
+      }
+
       n_clust(iter - nburn) = w.n_elem;
       if(out_dens){
         dens = eval_density_mv(grid,
@@ -1119,9 +1128,10 @@ Rcpp::List cSLI_mv_P(arma::mat data,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::mat> result_mu;
-  std::list<arma::mat> result_s2;
-  std::list<arma::vec> result_probs;
+  arma::field<arma::mat> result_mu(niter - nburn);
+  arma::field<arma::mat> result_s2(niter - nburn);
+  arma::field<arma::vec> result_probs(niter - nburn);
+
   arma::mat result_dens(grid.n_rows, 1);
   if(!light_dens){
     result_dens.resize(niter - nburn, grid.n_rows);
@@ -1243,9 +1253,11 @@ Rcpp::List cSLI_mv_P(arma::mat data,
 
     // save the results
     if(iter >= nburn){
-      result_mu.push_back(mu);
-      result_s2.push_back(s2);
-      result_probs.push_back(w);
+      if(out_param){
+        result_mu(iter - nburn) = mu;
+        result_s2(iter - nburn) = s2;
+        result_probs(iter - nburn) = w;
+      }
       n_clust(iter - nburn) = w.n_elem;
       if(out_dens){
         dens = eval_density_mv_P(grid,
@@ -1392,9 +1404,9 @@ Rcpp::List cSLI_mv_MKR(arma::vec y,
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
   arma::mat result_beta(niter - nburn, d);
-  std::list<arma::mat> result_beta_all;
-  std::list<arma::vec> result_sigma2;
-  std::list<arma::vec> result_probs;
+  arma::field<arma::mat> result_beta_all(niter - nburn);
+  arma::field<arma::vec> result_sigma2(niter - nburn);
+  arma::field<arma::vec> result_probs(niter - nburn);
 
   // initialize the result densities objects (response and covs)
   arma::cube result_dens(grid_response.n_rows, grid_covs.n_rows, 1);
@@ -1522,9 +1534,11 @@ Rcpp::List cSLI_mv_MKR(arma::vec y,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      result_probs.push_back(w);
-      result_beta_all.push_back(beta);
-      result_sigma2.push_back(sigma2);
+      if(out_param){
+        result_beta_all(iter - nburn) = beta;
+        result_sigma2(iter - nburn) = sigma2;
+        result_probs(iter - nburn) = w;
+      }
       result_clust.row(iter - nburn)  = arma::trans(arma::conv_to<arma::vec>::from(clust));
 
       if(out_dens){
@@ -1666,9 +1680,10 @@ Rcpp::List cSLI_mv_MKR_L(arma::vec y,
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
   arma::mat result_beta(niter - nburn, d);
-  std::list<arma::mat> result_beta_all;
+
+  arma::field<arma::mat> result_beta_all(niter - nburn);
   arma::vec result_sigma2(niter - nburn);
-  std::list<arma::vec> result_probs;
+  arma::field<arma::vec> result_probs(niter - nburn);
 
   // initialize the result densities objects (response and covs)
   arma::cube result_dens(grid_response.n_rows, grid_covs.n_rows, 1);
@@ -1785,9 +1800,12 @@ Rcpp::List cSLI_mv_MKR_L(arma::vec y,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      result_probs.push_back(w);
-      result_beta_all.push_back(beta);
-      result_sigma2(iter - nburn) = sigma2;
+      if(out_param){
+        result_probs(iter - nburn) = w;
+        result_beta_all(iter - nburn) = beta;
+        result_sigma2(iter - nburn) = sigma2;
+      }
+
       result_clust.row(iter - nburn)  = arma::trans(arma::conv_to<arma::vec>::from(clust));
 
       if(out_dens){

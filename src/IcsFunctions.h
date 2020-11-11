@@ -189,7 +189,9 @@ void clust_update_ICS_mv(arma::mat data,
                          arma::mat mujoin,
                          arma::cube s2join,
                          arma::vec probjoin,
-                         arma::vec &clust);
+                         arma::vec &clust,
+                         //-*-temp
+                         double &new_clust);
 
 /*----------------------------------------------------------------------
  *
