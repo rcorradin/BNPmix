@@ -77,9 +77,11 @@ Rcpp::List MAR_L(arma::vec data,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::vec> result_mu(niter - nburn);
+  arma::field<arma::vec> result_mu;
+  arma::field<arma::vec> result_probs;
+  // std::list<arma::vec> result_mu(niter - nburn);
+  // std::list<arma::vec> result_probs(niter - nburn);
   arma::vec result_s2(niter - nburn);
-  std::list<arma::vec> result_probs(niter - nburn);
   arma::mat result_dens(niter - nburn, grid.n_elem);
   result_dens.fill(0);
 
@@ -141,10 +143,10 @@ Rcpp::List MAR_L(arma::vec data,
     // if the burn-in phase is complete
     if(iter >= nburn){
       result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
-      result_mu.push_back(mu);
+      result_mu(iter - nburn) = mu;
       result_s2(iter - nburn) = s2;
       arma::vec tab_freq = freq_vec(clust) - sigma_PY;
-      result_probs.push_back(tab_freq / n);
+      result_probs(iter - nburn) = tab_freq / n;
       if(out_dens){
         dens = eval_density_L(grid,
                               mu,
@@ -245,9 +247,9 @@ Rcpp::List MAR(arma::vec data,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::vec> result_mu(niter - nburn);
-  std::list<arma::vec> result_s2(niter - nburn);
-  std::list<arma::vec> result_probs(niter - nburn);
+  arma::field<arma::vec> result_mu(niter - nburn);
+  arma::field<arma::vec> result_s2(niter - nburn);
+  arma::field<arma::vec> result_probs(niter - nburn);
   arma::mat result_dens(niter - nburn, grid.n_elem);
   result_dens.fill(0);
 
@@ -314,16 +316,22 @@ Rcpp::List MAR(arma::vec data,
     // if the burn-in phase is complete
     if(iter >= nburn){
       result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
-      result_mu.push_back(mu);
-      result_s2.push_back(s2);
+      result_mu(iter - nburn) = mu;
+      result_s2(iter - nburn) = s2;
       arma::vec tab_freq = freq_vec(clust) - sigma_PY;
-      result_probs.push_back(tab_freq / n);
+      result_probs(iter - nburn) = tab_freq / n;
 
       if(out_dens){
-        dens = eval_density(grid,
+        tab_freq.resize(tab_freq.n_elem + 1);
+        tab_freq(tab_freq.n_elem - 1) = mass + mu.n_elem * sigma_PY;
+        dens = eval_density_MAR(grid,
                             mu,
                             s2,
-                            tab_freq);
+                            tab_freq,
+                            m0,
+                            k0,
+                            a0,
+                            b0);
         result_dens.row(iter - nburn) = arma::trans(dens);
       }
     }

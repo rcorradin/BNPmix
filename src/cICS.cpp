@@ -87,9 +87,11 @@ Rcpp::List cICS_L(arma::vec data,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::vec> result_mu;
+  arma::field<arma::vec> result_mu(niter - nburn);
+  arma::field<arma::vec> result_probs(niter - nburn);
+  // std::list<arma::vec> result_mu;
+  // std::list<arma::vec> result_probs;
   arma::vec result_s2(niter - nburn);
-  std::list<arma::vec> result_probs;
   arma::mat result_dens(niter - nburn, grid.n_elem);
   result_dens.fill(0);
 
@@ -173,7 +175,6 @@ Rcpp::List cICS_L(arma::vec data,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      result_probs.push_back(probjoin);
       if(out_dens){
         dens = eval_density_L(grid,
                               mujoin,
@@ -183,15 +184,29 @@ Rcpp::List cICS_L(arma::vec data,
       }
     }
 
-    // clean parameter objects
-    para_clean_ICS_L(mu,
-                     clust);
+    if(out_param){
+      // clean parameter objects
+      para_clean_ICS_L_export(mu,
+                              mujoin,
+                              probjoin,
+                              clust);
 
-    // if the burn-in phase is complete
-    if(iter >= nburn){
-      result_mu.push_back(mu);
-      result_s2(iter - nburn) = s2;
-      result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
+      // if the burn-in phase is complete
+      if(iter >= nburn){
+        result_probs(iter - nburn) = probjoin;
+        result_mu(iter - nburn) = mujoin;
+        result_s2(iter - nburn) = s2;
+        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
+      }
+    } else {
+      // clean parameter objects
+      para_clean_ICS_L(mu,
+                       clust);
+
+      // if the burn-in phase is complete
+      if(iter >= nburn){
+        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
+      }
     }
 
     if(print_message){
@@ -294,9 +309,12 @@ Rcpp::List cICS(arma::vec data,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::vec> result_mu;
-  std::list<arma::vec> result_s2;
-  std::list<arma::vec> result_probs;
+  arma::field<arma::vec> result_mu(niter - nburn);
+  arma::field<arma::vec> result_s2(niter - nburn);
+  arma::field<arma::vec> result_probs(niter - nburn);
+  // std::list<arma::vec> result_mu;
+  // std::list<arma::vec> result_s2;
+  // std::list<arma::vec> result_probs;
   arma::mat result_dens(niter - nburn, grid.n_elem);
   result_dens.fill(0);
 
@@ -397,7 +415,6 @@ Rcpp::List cICS(arma::vec data,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      result_probs.push_back(probjoin);
       if(out_dens){
         dens = eval_density(grid,
                             mujoin,
@@ -407,34 +424,33 @@ Rcpp::List cICS(arma::vec data,
       }
     }
 
-    // clean parameter objects
-    para_clean_ICS(mu,
-                   s2,
-                   clust);
-
-    // if the burn-in phase is complete
-    if(iter >= nburn){
-      result_mu.push_back(mu);
-      result_s2.push_back(s2);
-      result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
-    }
-
-    ///////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////
-    // temp////////////////////////////////////////////////////////////////
-    if(iter >= nburn){
-      arma::vec tab_freq = freq_vec(clust) - discount;
-      if(out_dens){
-        dens = eval_density(grid,
-                            mu,
+    if(out_param){
+      // clean parameter objects
+      para_clean_ICS_export(mu,
                             s2,
-                            tab_freq);
-        result_dens_dev.row(iter - nburn) = arma::trans(dens);
+                            mujoin,
+                            s2join,
+                            probjoin,
+                            clust);
+
+      // if the burn-in phase is complete
+      if(iter >= nburn){
+        result_mu(iter - nburn) = mujoin;
+        result_s2(iter - nburn) = s2join;
+        result_probs(iter - nburn) = probjoin;
+        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
+      }
+    } else {
+      // clean parameter objects
+      para_clean_ICS(mu,
+                     s2,
+                     clust);
+
+      // if the burn-in phase is complete
+      if(iter >= nburn){
+        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
       }
     }
-    ////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////
 
     if(print_message){
       // print the current completed work
@@ -464,15 +480,6 @@ Rcpp::List cICS(arma::vec data,
     resu["clust"]  = result_clust;
     resu["time"]   = double(end_s-start_s)/CLOCKS_PER_SEC;
   }
-
-  ///////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////
-  // temp////////////////////////////////////////////////////////////////
-  resu["tdns"] = result_dens_dev;
-  ///////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////
-  ///////////////////////////////////////////////////////////////////////
-
   return resu;
 }
 
@@ -633,9 +640,6 @@ Rcpp::List cICS_mv_L(arma::mat data,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      if(out_param){
-        result_probs(iter - nburn) = probjoin;
-      }
       if(out_dens){
         dens = eval_density_mv_L(grid,
                                  mujoin,
@@ -649,17 +653,29 @@ Rcpp::List cICS_mv_L(arma::mat data,
       }
     }
 
-    // clean parameter objects
-    para_clean_ICS_mv_L(mu,
-                        clust);
+    if(out_param){
+      // clean parameter objects
+      para_clean_ICS_mv_L_export(mu,
+                                 mujoin,
+                                 probjoin,
+                                 clust);
 
-    // if the burn-in phase is complete
-    if(iter >= nburn){
-      if(out_param){
-        result_mu(iter - nburn) = mu;
+      // if the burn-in phase is complete
+      if(iter >= nburn){
+        result_probs(iter - nburn) = probjoin;
+        result_mu(iter - nburn) = mujoin;
         result_s2.slice(iter - nburn) = s2;
+        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
       }
-      result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
+    } else {
+      // clean parameter objects
+      para_clean_ICS_mv_L(mu,
+                          clust);
+
+      // if the burn-in phase is complete
+      if(iter >= nburn){
+        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
+      }
     }
 
     if(print_message){
@@ -879,9 +895,6 @@ Rcpp::List cICS_mv(arma::mat data,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      if(out_param){
-        result_probs(iter - nburn) = probjoin;
-      }
       if(out_dens){
         dens = eval_density_mv(grid,
                                mujoin,
@@ -897,18 +910,32 @@ Rcpp::List cICS_mv(arma::mat data,
       clust_news(iter - nburn) = new_clust;
     }
 
-    // clean parameter objects
-    para_clean_ICS_mv(mu,
-                      s2,
-                      clust);
+    if(out_param){
+      // clean parameter objects
+      para_clean_ICS_mv_export(mu,
+                               s2,
+                               mujoin,
+                               s2join,
+                               probjoin,
+                               clust);
 
-    // if the burn-in phase is complete
-    if(iter >= nburn){
-      if(out_param){
-        result_mu(iter - nburn) = mu;
-        result_s2(iter - nburn) = s2;
+      // if the burn-in phase is complete
+      if(iter >= nburn){
+        result_mu(iter - nburn) = mujoin;
+        result_s2(iter - nburn) = s2join;
+        result_probs(iter - nburn) = probjoin;
+        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
       }
-      result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
+    } else {
+      // clean parameter objects
+      para_clean_ICS_mv(mu,
+                        s2,
+                        clust);
+
+      // if the burn-in phase is complete
+      if(iter >= nburn){
+        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
+      }
     }
 
     if(print_message){
@@ -1124,9 +1151,6 @@ Rcpp::List cICS_mv_P(arma::mat data,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      if(out_param){
-        result_probs(iter - nburn) = probjoin;
-      }
       if(out_dens){
         dens = eval_density_mv_P(grid,
                                  mujoin,
@@ -1141,18 +1165,32 @@ Rcpp::List cICS_mv_P(arma::mat data,
       }
     }
 
-    // clean parameter objects
-    para_clean_ICS_mv_P(mu,
-                        s2,
-                        clust);
+    if(out_param){
+      // clean parameter objects
+      para_clean_ICS_mv_P_export(mu,
+                                 s2,
+                                 mujoin,
+                                 s2join,
+                                 probjoin,
+                                 clust);
 
-    // if the burn-in phase is complete
-    if(iter >= nburn){
-      if(out_param){
-        result_mu(iter - nburn) = mu;
-        result_s2(iter - nburn) = s2;
+      // if the burn-in phase is complete
+      if(iter >= nburn){
+        result_probs(iter - nburn) = probjoin;
+        result_mu(iter - nburn) = mujoin;
+        result_s2(iter - nburn) = s2join;
+        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
       }
-      result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
+    } else {
+      // clean parameter objects
+      para_clean_ICS_mv_P(mu,
+                          s2,
+                          clust);
+
+      // if the burn-in phase is complete
+      if(iter >= nburn){
+        result_clust.row(iter - nburn) = arma::trans(arma::conv_to<arma::vec>::from(clust));
+      }
     }
 
     if(print_message){
@@ -1380,10 +1418,6 @@ Rcpp::List cICS_mv_MKR(arma::vec y,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      if(out_param){
-        result_probs(iter - nburn) = probjoin;
-      }
-
       if(out_dens){
         dens = eval_density_mv_MKR(grid_covs,
                                    grid_response,
@@ -1399,18 +1433,32 @@ Rcpp::List cICS_mv_MKR(arma::vec y,
       }
     }
 
-    // clean parameter objects
-    para_clean_ICS_mv_MRK(beta,
-                          sigma2,
-                          clust);
+    if(out_param){
+      // clean parameter objects
+      para_clean_ICS_mv_MRK_export(beta,
+                                   sigma2,
+                                   betajoin,
+                                   sigma2join,
+                                   probjoin,
+                                   clust);
 
-    // if the burn-in phase is complete
-    if(iter >= nburn){
-      if(out_param){
+      // if the burn-in phase is complete
+      if(iter >= nburn){
         result_beta_all(iter - nburn) = beta;
         result_sigma2(iter - nburn) = sigma2;
+        result_probs(iter - nburn) = probjoin;
+        result_clust.row(iter - nburn)  = arma::trans(arma::conv_to<arma::vec>::from(clust));
       }
-      result_clust.row(iter - nburn)  = arma::trans(arma::conv_to<arma::vec>::from(clust));
+    } else {
+      // clean parameter objects
+      para_clean_ICS_mv_MRK(beta,
+                            sigma2,
+                            clust);
+
+      // if the burn-in phase is complete
+      if(iter >= nburn){
+        result_clust.row(iter - nburn)  = arma::trans(arma::conv_to<arma::vec>::from(clust));
+      }
     }
 
     if(print_message){
@@ -1624,10 +1672,6 @@ Rcpp::List cICS_mv_MKR_L(arma::vec y,
 
     // if the burn-in phase is complete
     if(iter >= nburn){
-      if(out_param){
-        result_probs(iter - nburn) = probjoin;
-      }
-
       if(out_dens){
         dens = eval_density_mv_MKR_L(grid_covs,
                                      grid_response,
@@ -1643,17 +1687,29 @@ Rcpp::List cICS_mv_MKR_L(arma::vec y,
       }
     }
 
-    // clean parameter objects
-    para_clean_ICS_mv_MRK_L(beta,
-                            clust);
+    if(out_param){
+      // clean parameter objects
+      para_clean_ICS_mv_MRK_L_export(beta,
+                                     betajoin,
+                                     probjoin,
+                                     clust);
 
-    // if the burn-in phase is complete
-    if(iter >= nburn){
-      if(out_param){
+      // if the burn-in phase is complete
+      if(iter >= nburn){
         result_beta_all(iter - nburn) = beta;
         result_sigma2(iter - nburn) = sigma2;
+        result_probs(iter - nburn) = probjoin;
+        result_clust.row(iter - nburn)  = arma::trans(arma::conv_to<arma::vec>::from(clust));
       }
-      result_clust.row(iter - nburn)  = arma::trans(arma::conv_to<arma::vec>::from(clust));
+    } else {
+      // clean parameter objects
+      para_clean_ICS_mv_MRK_L(beta,
+                              clust);
+
+      // if the burn-in phase is complete
+      if(iter >= nburn){
+        result_clust.row(iter - nburn)  = arma::trans(arma::conv_to<arma::vec>::from(clust));
+      }
     }
 
     if(print_message){

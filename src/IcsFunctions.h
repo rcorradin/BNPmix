@@ -30,6 +30,11 @@ void hyper_accelerate_ICS_L(arma::vec mu,
 void para_clean_ICS_L(arma::vec &mu,
                       arma::vec &clust);
 
+void para_clean_ICS_L_export(arma::vec &mu,
+                             arma::vec &mujoin,
+                             arma::vec &probjoin,
+                             arma::vec &clust);
+
 void simu_trunc_PY_L(arma::vec &mutemp,
                      arma::vec &freqtemp,
                      double mass,
@@ -79,6 +84,13 @@ void para_clean_ICS(arma::vec &mu,
                     arma::vec &s2,
                     arma::vec &clust);
 
+void para_clean_ICS_export(arma::vec &mu,
+                           arma::vec &s2,
+                           arma::vec &mujoin,
+                           arma::vec &s2join,
+                           arma::vec &probjoin,
+                           arma::vec &clust);
+
 void simu_trunc_PY(arma::vec &mutemp,
                    arma::vec &s2temp,
                    arma::vec &freqtemp,
@@ -124,6 +136,11 @@ void hyper_accelerate_ICS_mv_L(arma::mat mu,
 
 void para_clean_ICS_mv_L(arma::mat &mu,
                          arma::vec &clust);
+
+void para_clean_ICS_mv_L_export(arma::mat &mu,
+                                arma::mat &mujoin,
+                                arma::vec &probjoin,
+                                arma::vec &clust);
 
 void simu_trunc_PY_mv_L(arma::mat &mutemp,
                         arma::vec &freqtemp,
@@ -173,6 +190,13 @@ void hyper_accelerate_ICS_mv_LS(arma::mat mu,
 void para_clean_ICS_mv(arma::mat &mu,
                        arma::cube &s2,
                        arma::vec &clust);
+
+void para_clean_ICS_mv_export(arma::mat &mu,
+                              arma::cube &s2,
+                              arma::mat &mujoin,
+                              arma::cube &s2join,
+                              arma::vec &probjoin,
+                              arma::vec &clust);
 
 void simu_trunc_PY_mv(arma::mat &mutemp,
                        arma::cube &s2temp,
@@ -227,6 +251,13 @@ void hyper_accelerate_ICS_mv_P(arma::mat mu,
 void para_clean_ICS_mv_P(arma::mat &mu,
                          arma::mat &s2,
                          arma::vec &clust);
+
+void para_clean_ICS_mv_P_export(arma::mat &mu,
+                                arma::mat &s2,
+                                arma::mat &mujoin,
+                                arma::mat &s2join,
+                                arma::vec &probjoin,
+                                arma::vec &clust);
 
 void simu_trunc_PY_mv_P(arma::mat &mutemp,
                         arma::mat &s2temp,
@@ -284,6 +315,13 @@ void para_clean_ICS_mv_MRK(arma::mat &beta,
                            arma::vec &sigma2,
                            arma::vec &clust);
 
+void para_clean_ICS_mv_MRK_export(arma::mat &beta,
+                                  arma::vec &sigma2,
+                                  arma::mat &betajoin,
+                                  arma::vec &sigma2join,
+                                  arma::vec &probjoin,
+                                  arma::vec &clust);
+
 void simu_trunc_PY_mv_MRK(arma::mat &betatemp,
                           arma::vec &sigma2temp,
                           arma::vec &freqtemp,
@@ -336,6 +374,11 @@ void hyper_accelerate_ICS_mv_MRK_L(arma::vec y,
 
 void para_clean_ICS_mv_MRK_L(arma::mat &beta,
                              arma::vec &clust);
+
+void para_clean_ICS_mv_MRK_L_export(arma::mat &beta,
+                                    arma::mat &betajoin,
+                                    arma::vec &probjoin,
+                                    arma::vec &clust);
 
 void simu_trunc_PY_mv_MRK_L(arma::mat &betatemp,
                             arma::vec &freqtemp,

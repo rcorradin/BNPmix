@@ -1,0 +1,1607 @@
+%\VignetteIndexEntry{R packages: LaTeX vignettes}
+%\VignetteEngine{R.rsp::tex}
+%\VignetteKeyword{R}
+%\VignetteKeyword{package}
+%\VignetteKeyword{vignette}
+%\VignetteKeyword{LaTeX}
+
+\documentclass[nojss]{jss}
+
+%% -- LaTeX packages and custom commands ---------------------------------------
+
+%% recommended packages
+\usepackage{thumbpdf,lmodern}
+\usepackage{pifont}
+%\usepackage{pdflscape}
+\usepackage{footnote}
+\usepackage{tabularx}
+\makesavenoteenv{tabular}
+\makesavenoteenv{table}
+
+%% another package (only for this demo article)
+\usepackage{framed}
+\usepackage{amsfonts, amsmath}
+\usepackage{mathrsfs}
+\usepackage{amssymb,verbatim,epsfig}
+\usepackage{bm,dsfont}
+%% DRAW packs
+\usepackage{tikz}
+\usetikzlibrary{bayesnet}
+\usepackage[normalem]{ulem}
+\usepackage{multirow}
+\usepackage[per-mode=symbol-or-fraction]{siunitx}
+%\usepackage[dvipsnames]{xcolor}
+
+%
+
+\newtheorem{exmp}{Example}[section]
+
+%%% new custom commands
+\newcommand{\class}[1]{`\code{#1}'}
+\newcommand{\fct}[1]{\code{#1()}}
+
+
+\newcommand{\Xsp}{\mathbb X}
+\newcommand{\Xal}{\mathcal X}
+\newcommand{\Fsp}{\mathcal F}
+\newcommand{\Tal}{\Xi}
+\newcommand{\Tsp}{\Theta}
+
+
+% comandi eriditati da ICS
+\def\R{\mathds{R}}
+\def\X{\mathds{X}}
+\def\e{\mathrm{e}}
+\def\ga{\mbox{Ga}}
+\def\iga{\mbox{IGa}}
+\def\N{\mbox{N}}
+\def\IW{\mbox{IW}}
+\def\W{\mbox{W}}
+\def\siga{\mbox{sqrtIGa}}
+\def\be{\mbox{Be}}
+\def\bin{\mbox{Bin}}
+\def\geo{\mbox{Geo}}
+\def\no{\mbox{N}}
+\def\po{\mbox{Po}}
+\def\pg{\mbox{Pg}}
+\def\st{\mbox{St}}
+\def\sno{\mbox{SkewN}}
+\def\un{\mbox{Un}}
+\def\bga{\mbox{BGa}}
+\def\dir{\mbox{Dir}}
+\def\tri{\mbox{Tri}}
+\def\bebin{\mbox{BeBin}}
+\def\dbb{\mbox{DoubleBB}}
+\def\bbb{\mbox{BBB}}
+\def\E{\mathds{E}}
+\def\V{\mbox{Var}}
+\def\Cov{\mbox{Cov}}
+\def\Cor{\mbox{Corr}}
+\def\p{\mbox{p}}
+\def\b{\mbox{b}}
+\def\P{\mbox{P}}
+\def\Cr{\mbox{Corr}}
+\def\Cv{\mbox{Cov}}
+\def\pt{\mbox{PT}}
+\def\rpt{\mbox{rPT}}
+\def\dpt{\mbox{dPT}}
+\def\bep{\mbox{BeP}}
+\def\d{\mathrm{d}}
+\def\rest{\mbox{rest}}
+\def\data{\mbox{data}}
+\def\tr{\mbox{tr}}
+\def\ba{{\bm a}}
+\def\bb{{\bm b}}
+\def\bc{{\bm c}}
+\def\bk{{\bm k}}
+\def\bM{{\bm m}}
+\def\bt{{\bm t}}
+\def\bs{{\bm s}}
+\def\bu{{\bm u}}
+\def\bv{{\bm v}}
+\def\bx{{\bm x}}
+\def\by{{\bm y}}
+\def\bz{{\bm z}}
+\def\bC{{\bm C}}
+\def\bS{{\bm S}}
+\def\bT{{\bm T}}
+\def\bU{{\bm U}}
+\def\bV{{\bm V}}
+\def\bW{{\bm W}}
+\def\bX{{\bm X}}
+\def\bY{{\bm Y}}
+\def\bZ{{\bm Z}}
+\def\bp{{\bm p}}
+\def\bw{{\bm w}}
+\def\bn{{\bm n}}
+\def\bzero{{\bm 0}}
+\def\simind{\stackrel{\mbox{\scriptsize{ind}}}{\sim}}
+\def\simiid{\stackrel{\mbox{\scriptsize{iid}}}{\sim}}
+\def\simas{\stackrel{\mbox{\scriptsize{a.s.}}}{\sim}}
+\newcommand{\bbeta}{\boldsymbol{\beta}}
+\newcommand{\btau}{\boldsymbol{\tau}}
+\newcommand{\blambda}{\boldsymbol{\lambda}}
+\newcommand{\bzeta}{\boldsymbol{\zeta}}
+\newcommand{\bLambda}{\boldsymbol{\Lambda}}
+\newcommand{\bgamma}{\boldsymbol{\gamma}}
+\newcommand{\bdelta}{\boldsymbol{\delta}}
+\newcommand{\btheta}{\boldsymbol{\theta}}
+\newcommand{\brho}{\boldsymbol{\rho}}
+\newcommand{\bmu}{\boldsymbol{\mu}}
+\newcommand{\bnu}{\boldsymbol{\nu}}
+\newcommand{\bsigma}{\boldsymbol{\sigma}}
+\newcommand{\bSigma}{\boldsymbol{\Sigma}}
+\newcommand{\bOmega}{\boldsymbol{\Omega}}
+\newcommand{\bTheta}{\boldsymbol{\Theta}}
+\newcommand{\ds}{\displaystyle}
+\newcommand{\Ree}{{\rm I}\!{\rm R}}
+\newcommand{\Naa}{{\rm I}\!{\rm N}}
+\newcommand{\zbar}{\overline{z}}
+\newcommand{\wpr}{\mbox{w.pr. }}
+\newcommand{\Gstar}{G^\star}
+\newcommand{\DP}{\mathcal{DP}}
+\newcommand{\DDP}{\mathcal{DDP}}
+\newcommand{\DPT}{\mathcal{DPT}}
+\newcommand{\PT}{\mathcal{PT}}
+\newcommand{\AC}{\mathcal{A}}
+\newcommand{\BB}{\mathcal{B}}
+\newcommand{\CC}{\mathcal{C}}
+\newcommand{\DD}{\mathcal{D}}
+\newcommand{\FF}{\mathcal{F}}
+\newcommand{\LL}{\mathcal{L}}
+\newcommand{\PP}{\mathcal{P}}
+\newcommand{\YY}{\mathcal{Y}}
+\newcommand{\ZZ}{\mathcal{Z}}
+\newcommand{\PY}{\mathcal{PD}}
+\newcommand{\law}{\mathcal{L}}
+\newcommand{\sigmasib}{\sigma_{\rm si
+		\def\ga{\mbox{Ga}}
+		\def\iga{\mbox{IGa}}
+		\def\siga{\mbox{sqrtIGa}}
+		\def\be{\mbox{Be}}
+		\def\bin{\mbox{Bin}}
+		\def\geo{\mbox{Geo}}
+		\def\no{\mbox{N}}
+		\def\po{\mbox{Po}}
+		\def\pg{\mbox{Pg}}
+		\def\st{\mbox{St}}
+		\def\sno{\mbox{SkewN}}
+		\def\un{\mbox{Un}}
+		\def\bga{\mbox{BGa}}
+		\def\dir{\mbox{Dir}}
+		\def\tri{\mbox{Tri}}
+		\def\bebin{\mbox{BeBin}}
+		\def\dbb{\mbox{DoubleBB}}
+		\def\bbb{\mbox{BBB}}
+		\def\E{\mathds{E}}
+		\def\V{\mbox{Var}}
+		\def\Cov{\mbox{Cov}}
+		\def\Cor{\mbox{Corr}}
+		\def\p{\mbox{p}}
+		\def\b{\mbox{b}}
+		\def\P{\mbox{P}}
+		\def\Cr{\mbox{Corr}}
+		\def\Cv{\mbox{Cov}}
+		\def\pt{\mbox{PT}}
+		\def\rpt{\mbox{rPT}}
+		\def\dpt{\mbox{dPT}}
+		\def\bep{\mbox{BeP}}
+		\def\d{\mathrm{d}}
+		\def\rest{\mbox{rest}}
+		\def\data{\mbox{data}}
+		\def\tr{\mbox{tr}}
+		\def\bc{{\bm c}}
+		\def\bk{{\bm k}}
+		\def\bM{{\bm m}}
+		\def\bt{{\bm t}}
+		\def\bu{{\bm u}}
+		\def\bv{{\bm v}}
+		\def\bx{{\bm x}}
+		\def\by{{\bm y}}
+		\def\bz{{\bm z}}
+		\def\bC{{\bm C}}
+		\def\bS{{\bm S}}
+		\def\bT{{\bm T}}
+		\def\bU{{\bm U}}
+		\def\bV{{\bm V}}
+		\def\bW{{\bm W}}
+		\def\bX{{\bm X}}
+		\def\bY{{\bm Y}}
+		\def\bZ{{\bm Z}}
+		\def\bp{{\bm p}}
+		\def\bzero{{\bm 0}}
+		\def\simind{\stackrel{\mbox{\scriptsize{ind}}}{\sim}}
+		\def\simiid{\stackrel{\mbox{\scriptsize{iid}}}{\sim}}
+		\newcommand{\bbeta}{\boldsymbol{\beta}}
+		\newcommand{\blambda}{\boldsymbol{\lambda}}
+		\newcommand{\bzeta}{\boldsymbol{\zeta}}
+		\newcommand{\bLambda}{\boldsymbol{\Lambda}}
+		\newcommand{\bgamma}{\boldsymbol{\gamma}}
+		\newcommand{\bdelta}{\boldsymbol{\delta}}
+		\newcommand{\btheta}{\boldsymbol{\theta}}
+		\newcommand{\brho}{\boldsymbol{\rho}}
+		\newcommand{\bmu}{\boldsymbol{\mu}}
+		\newcommand{\bnu}{\boldsymbol{\nu}}
+		\newcommand{\bsigma}{\boldsymbol{\sigma}}
+		\newcommand{\bSigma}{\boldsymbol{\Sigma}}
+		\newcommand{\bOmega}{\boldsymbol{\Omega}}
+		\newcommand{\ds}{\displaystyle}
+		\newcommand{\Ree}{{\rm I}\!{\rm R}}
+		\newcommand{\Naa}{{\rm I}\!{\rm N}}
+		\newcommand{\zbar}{\overline{z}}
+		\newcommand{\wpr}{\mbox{w.pr. }}
+		\newcommand{\Gstar}{G^\star}
+		\newcommand{\DP}{\mathcal{DP}}
+		\newcommand{\DDP}{\mathcal{DDP}}
+		\newcommand{\DPT}{\mathcal{DPT}}
+		\newcommand{\PT}{\mathcal{PT}}
+		\newcommand{\AC}{\mathcal{A}}
+		\newcommand{\BB}{\mathcal{B}}
+		\newcommand{\CC}{\mathcal{C}}
+		\newcommand{\DD}{\mathcal{D}}
+		\newcommand{\FF}{\mathcal{F}}
+		\newcommand{\LL}{\mathcal{L}}
+		\newcommand{\PP}{\mathcal{P}}
+		\newcommand{\YY}{\mathcal{Y}}
+		\newcommand{\ZZ}{\mathcal{Z}}
+		\newcommand{\PY}{\mathcal{PD}}
+		\newcommand{\law}{\mathcal{L}}
+		\newcommand{\sigmasib}{\sigma_{\rm sib}}
+		\newcommand{\bpTt}{\tilde{\bm{p}}_{\Theta^*,\boldsymbol{\theta^*}}}
+		\newcommand{\bpi}{\boldsymbol \pi}
+		\newcommand{\bpT}{\mathbf{\tilde p}_\Theta}}}
+\newcommand{\bpTt}{\tilde{\bm{p}}_{\Theta^*,\boldsymbol{\theta^*}}}
+\newcommand{\bpi}{\boldsymbol \pi}
+\newcommand{\bpT}{\mathbf{\tilde p}_\Theta}
+\newcommand{\Law}{\mathcal{L}}
+\newcommand{\bptT}{\tilde{\bp}_{\Theta^*,\btheta^*}}
+
+		\newcommand{\kernel}{\mathcal K}
+
+\newcommand{\nope}{{\color{red}\ding{55}}}
+\newcommand{\yeah}{{\color{green}\ding{51}}}
+\newcommand{\yeahtwo}{{\color{cyan}\ding{51}}}
+
+
+
+%% -- Article metainformation (author, title, ...) -----------------------------
+
+%% - \author{} with primary affiliation
+%% - \Plainauthor{} without affiliations
+%% - Separate authors by \And or \AND (in \author) or by comma (in \Plainauthor).
+%% - \AND starts a new line, \And does not.
+\author{Riccardo Corradin\\University of Milano-Bicocca
+\And Antonio Canale\\University of Padova
+	\And Bernardo Nipoti\\University of Milano-Bicocca}%Trinity College Dublin}
+\Plainauthor{Riccardo Corradin, Antonio Canale, Bernardo Nipoti}
+
+%% - \title{} in title case
+%% - \Plaintitle{} without LaTeX markup (if any)
+%% - \Shorttitle{} with LaTeX markup (if any), used as running title
+\title{\pkg{BNPmix}: an \proglang{R} package for 
+Bayesian nonparametric modelling via Pitman-Yor mixtures}
+\Plaintitle{BNPmix: an R package for 
+Bayesian nonparametric modelling via Pitman-Yor mixtures}
+\Shorttitle{\pkg{BNPmix}: an \proglang{R} package for 
+	Bayesian nonparametric modelling via Pitman-Yor mixtures}
+
+%% - \Abstract{} almost as usual
+\Abstract{
+	This introduction to the R package \pkg{BNPmix} is currently in press
+	in the Journal of Statistical Software. \pkg{BNPmix} is an \proglang{R} package for Bayesian nonparametric multivariate density estimation, clustering, and regression, using Pitman-Yor mixture models, a flexible and robust generalization of the popular class of Dirichlet process mixture models. A variety of model specifications and state-of-the-art posterior samplers are implemented. 
+In order to achieve computational efficiency, all sampling methods are written in \proglang{C++} and seamless integrated into \proglang{R} by means of the \pkg{Rcpp} and \pkg{RcppArmadillo} packages. \pkg{BNPmix} exploits the  \pkg{ggplot2} capabilities and implements a series of generic functions to plot and print summaries of posterior densities and induced clustering of the data.
+}
+
+\Keywords{Bayesian nonparametric mixture, \proglang{C++}, multivariate density estimation, clustering, importance conditional sampler, slice sampler, marginal sampler}
+\Plainkeywords{Bayesian nonparametric mixture,  C++, density estimation, clustering, importance conditional sampler, slice sampler, marginal sampler}
+
+%% - \Address{} of at least one author
+%% - May contain multiple affiliations for each author
+%%   (in extra lines, separated by \emph{and}\\).
+%% - May contain multiple authors for the same affiliation
+%%   (in the same first line, separated by comma).
+\Address{
+  Riccardo Corradin\\
+  Department of Economics, Management and Statistics\\
+  University of Milano-Bicocca, Milan, Italy\\
+  E-mail: \email{riccardo.corradin@unimib.it}\\
+  \emph{and}\\
+  Antonio Canale \\
+  Department of Statistics \\
+  University of Padova, Padova, Italy\\
+  E-mail: \email{canale@stat.unipd.it}\\
+  \emph{and}\\
+  Bernardo Nipoti \\
+  Department of Economics, Management and Statistics\\
+  University of Milano-Bicocca, Milan, Italy\\
+%  School of Computer Science and Statistics \\
+  %Trinity College of Dublin, Dublin, Ireland \\
+  E-mail: \email{bernardo.nipoti@unimib.it} %\email{nipotib@tcd.ie}
+}
+
+\begin{document}
+
+
+%% -- Introduction -------------------------------------------------------------
+
+%% - In principle "as usual".
+%% - But should typically have some discussion of both _software_ and _methods_.
+%% - Use \proglang{}, \pkg{}, and \code{} markup throughout the manuscript.
+%% - If such markup is in (sub)section titles, a plain text version has to be
+%%   added as well.
+%% - All software mentioned should be properly \cite-d.
+%% - All abbreviations should be introduced.
+
+%% - Unless the expansions of abbreviations are proper names (like "Journal
+%%   of Statistical Software" above) they should be in sentence case (like
+%%   "generalized linear models" below).
+
+\section[Introduction]{Introduction} \label{sec:intro}
+
+Bayesian nonparametric (BNP) methods provide flexible solutions to complex problems and data which are not easily described by parametric models \citep{hjo10,Mul15}. A remarkable example is represented by BNP mixtures, flexible models for density estimation and clustering, nowadays a well-established modelling option in the toolbox of statisticians and applied researchers. This line of research was initiated by the Dirichlet process (DP) \citep{Fer73} mixture of Gaussian kernels by \citet{Lo84}, a contribution which paved the way to  the definition of a rich variety of nonparametric mixture models. More recently, increasing interest has been dedicated to mixture models based on nonparametric mixing random probability measures, other than the DP, which might provide increased modelling flexibility \citep[e.g.,][]{Nie04,Lij05,Lij05b,Lij07,Arg16}. 
+
+A BNP mixture model for the observations $\bY^{(n)}=(\bY_1,\dots,\bY_n)$, with $\bY_i \in \R^p$, is defined by the random distribution %for estimating the density $\tilde f$ of excheangeable data  $\by=(y_1,\dots,y_n)$ with $y_i \in \R^p$  
+\begin{equation}\label{eq:DPmm}
+\tilde{f}(\by) = \int_{\Theta} \kernel(\by;\theta) \d \tilde p(\theta),  
+\end{equation} 
+%
+where $\Theta$ is the parameter space, $\kernel(\cdot;\cdot)$ is a suitable kernel defined on $\R^p\times\Theta$, and $\tilde p$ is a discrete random probability measure on $\Theta$. Assuming that $\tilde p$ is distributed as a Pitman-Yor process (PY) \citep{Per92,Pit95, Pit97} leads to a model which stands out for being a good compromise between modelling flexibility, and mathematical and computational tractability. %\citep[see][]{DeB15}. 
+Based on such assumption, model \eqref{eq:DPmm} can be alternatively written in hierarchical form as
+%
+\begin{equation}\label{eq:hier_model}
+\begin{split}
+\bY_i \mid \theta_i &\simind \kernel(\bY_i; \theta_i), \qquad i=1,\ldots,n\\
+\theta_i \mid \tilde{p} &\simiid \tilde{p},\\
+\tilde p &\sim PY(\alpha, \vartheta; P_0),
+\end{split} 
+\end{equation} 
+where  $PY(\alpha, \vartheta; P_0)$ denotes a PY process with discount parameter $\alpha\in[0,1)$, strength parameter $\vartheta>-\alpha$, and base probability measure $P_0$ defined on $\Theta$. By exploiting the so-called stick-breaking representation \citep{Set94, Pit97} of the PY process, the random density $\tilde f$  can be equivalently written as an infinite sum, specifically
+\begin{equation}\label{eq:model}
+	\tilde f(\by) =  \sum_{j = 1}^\infty \pi_j \kernel(\by; \tilde\theta_j),
+\end{equation}
+with $\tilde\theta_j \simiid P_0$ and $\pi_j = V_j \prod_{l < j} (1 - V_l)$ with $V_j \simind \mbox{Beta}(1 - \alpha, \vartheta + j \alpha)$. The PY process (with $\alpha>0$) and the DP, special case recovered when $\alpha=0$, are characterized by two radically different learning mechanisms \citep[see][]{DeB15}. The discount parameter plays an important modelling role and has an impact on the induced prior distribution on the number of clusters in the data, the larger being $\alpha$ the flatter and less informative the prior. This, in the context of mixture models, makes the PY more robust in estimating the clustering structure underlying the data.
+
+While open source software implementing Markov chain Monte Carlo (MCMC) methods for some classes of BNP mixture models is already available, the \pkg{BNPmix} package, described in this paper, aims at filling an existing gap by providing reliable routines which make posterior inference based on PY mixtures possible, straightforward and efficient. The \pkg{BNPmix} package implements different specifications of model \eqref{eq:hier_model} including both univariate and multivariate kernels. 
+The inclusion of concomitant independent variables is also accounted for, by considering mixture models for partially exchangeable data with stratification induced by a categorical covariate \citep[see][and references therein]{Fot15}, and mixture models for regression problems \citep[in the spirit of][]{Dei04}. 
+Moreover, while there is consensus that MCMC methods represent the gold standard for carrying out %exact 
+posterior inference for BNP mixtures, it is known that different MCMC simulation schemes feature different properties and thus might be convenient to serve different purposes. With this in mind, \pkg{BNPmix} implements three state-of-the-art MCMC methods for PY mixture models, henceforth referred to as marginal sampler, slice sampler and importance conditional sampler, providing the user with the option to choose one.
+
+%\textcolor{red}{While there is an increasing attention in the  BNP literature for variational methods that approximate the posterior distribution \citep{blei2006variational, hughes2015reliable, campbell2015streaming, tank2015streaming}, the availability of \proglang{R} packages implementing this approach for Bayesian nonparametric models is limited. The package \pkg{MixDir} \citep{mixdir} is a notable exception implementing a hierarchical DP mixture of multinomial distributions.}
+
+The list of  \proglang{R} packages implementing MCMC techniques for BNP models is %\textcolor{blue}{instead} 
+rich. In order to clarify which features are specific to \pkg{BNPmix} and which are shared by other packages, we review state-of-the-art \proglang{R} packages for BNP inference via MCMC. To this end, a list of the models implemented in \pkg{BNPmix} is presented in Table~\ref{tab:cfr1} in Appendix \ref{sec:app_pkg}, along with the availability of the same models in other packages. Similarly, Table~\ref{tab:cfr2} in Appendix \ref{sec:app_pkg} compares the main technical features of \pkg{BNPmix} with those of other packages. %Tables~\ref{tab:cfr1} and ~\ref{tab:cfr2} are presented in  Appendix \ref{sec:app_pkg}. 
+While these tables focus on the features of \pkg{BNPmix}, it is worth stressing that the packages considered for the comparison also implement other models, which we review concisely. 
+% In addition to the features there described,  there are many specific models thata are not implemented in \pkg{BNPmix} but are implemented in other BNP \proglang{R} packages. 
+The \pkg{DPpackage} by \citet{Jar11} is probably the most comprehensive of the packages we considered. It is mainly written in \proglang{Fortran} and consists of a rich collection of functions implementing some of the most successful Bayesian nonparametric and semiparametric models, including DP and dependent Dirichlet process (DDP) mixtures, hierarchical DP, P\'olya trees, and random Bernstein polynomials. Regrettably, despite being widely used, the \pkg{DPpackage} was recently archived from the Comprehensive \proglang{R} Archive Network.
+More recent and, in some case, more specific \proglang{R} packages for BNP inference via mixture models are \pkg{PReMiuM} \citep{Has15}, \pkg{BNPdensity} \citep{bnpdensity}, \pkg{dirichletprocess} \citep{dirichletprocess}, \pkg{BNPMIXcluster} \citep{bnpmixcluster} and \pkg{msBP} \citep{CanJSS}.
+%
+The main focus of \pkg{PReMiuM} is the definition of nonparametric regression models linking an outcome (continuous, binary or discrete) to a set of covariates via dependent nonparametric mixtures. The package implements a rich set of functions to explore the output of the analysis, including the induced clustering structure and the role of each covariate in driving the final model specification. Models are implemented for the DP case and extended to the PY process only by means of approximation. Another interesting feature of \pkg{PReMiuM} is the implementation of a label switching move \citep{Has15} to improve mixing of MCMC samplers. 
+%
+\pkg{BNPdensity} implements a Ferguson and Klass algorithm \citep{Fer72,Bar13} for a large class of univariate mixture models, with the mixing random probability assumed distributed as a normalized random measure \citep{Reg03}. The package offers the choice of five different kernels (Gaussian, double exponential, gamma, lognormal and beta) and accounts for the presence of censored data. 
+%
+The \pkg{dirichletprocess} package provides a set of functions allowing users to implement their own DP mixture model: a new object class is introduced, which acts as building block for a variety of specific statistical models. 
+%
+\pkg{BNPMIXcluster} focuses exclusively on the case of multivariate mixed-scale data \citep{CanSII, Car19}, framework for which a marginal MCMC sampler for PY mixture models is implemented. 
+The package \pkg{msBP} only implements the multiscale Bernstein polynomial mixture model of \citet{Can16}. 
+%
+The described set of \proglang{R} packages, overall, offers the possibility of carrying out statistical inference by means of a very broad collection of BNP mixture models. At the same time, when the focus is on the use of the PY process, \pkg{BNPmix} plays a leading role. Finally, it is worth mentioning the increasing attention recently dedicated by the BNP literature to variational methods approximating the posterior distribution \citep{blei2006variational, hughes2015reliable, campbell2015streaming, tank2015streaming}: the availability of \proglang{R} packages implementing such approach for BNP models is rather limited though, a notable exception being the package \pkg{MixDir} \citep{mixdir} which implements a hierarchical DP mixture of multinomial kernels.
+
+The rest of the paper is organized as follows. Section \ref{sec:mod} describes the model specifications accounted for in \pkg{BNPmix}. Section \ref{sec:sampling} introduces the implemented state-of-the-art MCMC methods for posterior simulation. An overview of the design philosophy of the package is presented in Section \ref{sec:coding}.
+In Section \ref{sec:usage} the main features and usage of the package are illustrated by means of illustrative analyses of both synthetic and real data. A further comparison with other \proglang{R} packages for BNP inference and technical details on the parametrization of the implemented models are provided in the Appendix.
+
+
+\section{Model specifications}\label{sec:mod}
+%\section{Sampling schemes, kernels and base measures}\label{sec:mod}
+In this section we briefly introduce the different PY mixture models implemented in the \pkg{BNPmix} package. % and the available MCMC sampling schemes. 
+The implemented models can be classified into two main classes, based on whether they account for individual covariates or not. The latter ones can be obtained by suitably specifying parametric space, kernel and base measure in \eqref{eq:hier_model}. The first ones can be seen as generalizations of \eqref{eq:hier_model} to the context of regression problems, and to the analysis of correlated samples by means of DDP.
+
+The focus of the \pkg{BNPmix} package is on models obtained by mixing univariate, multivariate Gaussian kernels, or univariate normal regression kernels, 
+specifications which guarantee that the resulting mixture models are dense in the space of regular densities \citep{Lo84}. %\textcolor{blue}{BN: questa frase \'e accurata anche nel caso dei modelli di regressione? Inoltre non capisco quale fosse il problema di questa frase nella precedente versione}.
+In addition, the parametric space and the base measure can be chosen so to impose constraints on the variance and, in the multivariate case, the covariance structure of the model. The resulting mixture models are discussed next in more detail. For the sake of clarity, the parametric forms of the distributions introduced along the paper are reported in Appendix \ref{app:distr}. 
+
+\subsubsection{Univariate location PY mixture model}%base measures: location}
+
+We consider a univariate Gaussian kernel and define a mixture on its location parameter \citep{Wes91}. That is, we set $\theta=\mu$, and thus $\Theta=\R$, and consider the kernel $\kernel(y; \theta) = %\kernel(x; \mu, \sigma^2) = 
+\phi(y; \mu, \sigma^2)$, where $\phi(\cdot; \mu, \sigma^2)$ denotes the probability density function of a normal random variable with mean $\mu$ and variance $\sigma^2$. Following this specification, the random density in \eqref{eq:model} becomes $$\tilde f(y)=\sum_{j=1}^\infty \pi_j \phi(y;\tilde\mu_j,\sigma^2).$$ 
+In order to achieve conjugacy between kernel and base measure, we assume $P_0$ is normal, namely  $\tilde\mu_j \simiid N(m_0, \sigma_0^2)$, and we assign $\sigma^2$ an inverse gamma prior, that is $\sigma^2 \sim \iga(a_0,b_0)$. 
+%For the univariate case, we can specify a base measure for the location component of the kernel function or a base measure for both the location and scale components of the kernel function. 
+%We choose to preserve conjugacy between kernel function and base measure: as far as the kernel is normal distribution, for the location scale a conjugate choice is to set up on $\mu$ a normal distribution, $\mu \sim N(\mu; m_0, \sigma_0^2)$. 
+The model can be completed by specifying a normal-inverse gamma hyperprior on $(m_0,\sigma_0^2)$, %denoted by $(m_0, \sigma_0^2) \sim N\text{-}IG(m_1, k_1, a_1, b_1)$, 
+which is tantamount to assume $\sigma_0^2 \sim \iga(a_1, b_1)$ and $m_0 \mid \sigma_0^2 \sim \N(m_1, \sigma_0^2 / k_1)$.
+Figure~\ref{fig:uni_loc} displays a graphical representation of the model specification for the univariate location PY mixture model.
+ 
+\begin{figure}[h]
+	\centering
+	\tikz{
+		\node[latent] (m1) {$m_1$};
+		\node[latent, below = of m1] (k1) {$k_1$};
+		\node[latent, below = of k1] (a1) {$a_1$};
+		\node[latent, below = of a1] (b1) {$b_1$};
+		
+		\node[latent, right = of k1] (m0) {$m_0$};
+		\node[latent, right = of a1] (s20) {$\sigma_0^2$};
+		
+		\node[latent, right = of s20] (mu) {$\tilde\mu_j$}; 
+		\node[latent, above = of mu] (p) {$\tilde p$};
+		\node[latent, above = of p] (lambda) {$\vartheta$};
+		\node[latent, above = of m0] (sig) {$\alpha$};
+		
+		
+		\node[obs, right = of mu] (x) {$Y_i$};
+		\node[latent, above = of x] (s2) {$\sigma^2$};
+		\node[latent, above = of s2] (a0) {$a_0$};
+		\node[latent, right = of a0] (b0) {$b_0$};
+		\coordinate[below right = of x] (xsp);
+		
+		\plate[inner sep=0.40cm, xshift=-0.12cm, yshift=0.12cm] {plate1} {(mu) (x) (xsp)} {$j \geq 1$}; 
+		\plate[inner sep=0.25cm, xshift=-0.12cm, yshift=0.12cm] {plate2} {(x)} {$i \leq n$}; 
+		
+		\edge {m1} {m0}
+		\edge {k1} {m0}
+		\edge {s20} {m0}
+		\edge {m0} {s20}
+		\edge {a1} {s20}
+		\edge {b1} {s20}
+		
+		\edge {m0} {mu}
+		\edge {s20} {mu}
+		
+		\edge {mu} {x}
+		\edge {s2} {x}
+		
+		
+		\edge {p} {mu}
+		\edge {lambda} {p}
+		\edge {sig} {p}
+		
+		\edge {a0} {s2}
+		\edge {b0} {s2}
+	}\caption{Hierarchical representation of the univariate location PY mixture model with Gaussian kernel. %\textcolor{red}{la freccia tra $\sigma^2_0$ and $\mu_0$ va bene?}
+	}\label{fig:uni_loc}
+\end{figure}
+
+\subsubsection{Univariate location-scale PY mixture model}
+
+As an extension of the previous model specification, we consider a univariate Gaussian kernel and define a mixture on the vector $(\mu,\sigma^2)$ composed by location and scale parameters of the kernel \citep{Esc95}. That is, we set $\theta=(\mu,\sigma^2)$, and thus $\Theta=\R\times\R^+$, and consider the kernel $\kernel(y; \theta) = %\kernel(x; \mu, \sigma^2) = 
+\phi(y; \mu, \sigma^2)$.  Following this specification, the random density in \eqref{eq:model} becomes $$\tilde f(y)=\sum_{j=1}^\infty \pi_j \phi(y;\tilde\mu_j,\tilde\sigma_j^2).$$ 
+%we can consider base measures such that also the scale component is modeled by the mixing measure. We start from the same kernel as the previous case, $\kernel(x; \theta) = \kernel(x; \mu, \sigma^2) = N(x; \mu, \sigma^2)$, and we set up a base measure on both $\mu$ and $\sigma^2$. 
+In order to achieve conjugacy, we consider a normal-inverse gamma base measure $P_0$, namely % $N-IG$ distribution on $(\mu, \sigma^2)$, so then 
+$\tilde \sigma_j^2 \simiid \iga(a_0, b_0)$ and $\tilde \mu_j \mid \tilde\sigma_j^2 \simind \N(m_0, \tilde\sigma_j^2 / k_0)$. The model can be completed by assigning independent hyperpriors to the main parameters of the base measure. Specifically, $m_0 \sim \N(m_1, \sigma_1^2)$, $k_0 \sim \ga(\tau_1, \zeta_1)$, and $b_0 \sim \ga(a_1, b_1)$. %, where $m_0$, $k_0$ and $b_0$ are assumed a priori independent. %The previous choices for the hyperpriors preserve conjugacy with the base measure. 
+Figure~\ref{fig:uni_loc_sc} displays a hierarchical representation of the univariate location-scale PY mixture model.
+
+\begin{figure}[h]
+	\centering
+	\tikz{
+		\node[latent] (m1) {$m_1$};
+		\node[latent, below = of m1] (s21) {$\sigma_1^2$};
+		\node[latent, below = of s21] (tau1) {$\tau_1$};
+		\node[latent, below = of a1] (tau2) {$\zeta_1$};
+		
+		\node[latent, right = of s21] (m0) {$m_0$};
+		\node[latent, right = of tau1] (k0) {$k_0$};
+		
+		\node[latent, right = of m0] (mu) {$\tilde\mu_j$}; 
+		\coordinate[right = of mu] (musp);
+		\node[latent, above = of musp] (p) {$\tilde p$};
+		\node[latent, above right = of p] (lambda) {$\vartheta$};
+		\node[latent, above left = of p] (sig) {$\alpha$};
+		
+		\coordinate[below = of musp] (xsp);
+		\node[obs, below = of xsp] (x) {$Y_i$};
+		\node[latent, right = of musp] (s2) {$\tilde\sigma_j^2$};
+		
+		\node[latent, right = of s2] (a0) {$a_0$};
+		\node[latent, below = of a0] (b0) {$b_0$};
+		
+		\node[latent, right = of b0] (a1) {$a_1$};
+		\node[latent, below = of a1] (b1) {$b_1$};
+		
+		\plate[inner sep=0.40cm, xshift=0, yshift=0] {plate1} {(x) (mu) (s2)} {$j \geq 1$}; 
+		\plate[inner sep=0.25cm, xshift=0, yshift=0.12cm] {plate2} {(x)} {$i \leq n$}; 
+		
+		\edge {m1} {m0}
+		\edge {s21} {m0}
+		\edge {tau1} {s20}
+		\edge {tau2} {s20}
+		
+		\edge {m0} {mu}
+		\edge {k0} {mu}
+		
+		\edge {mu} {x}
+		\edge {s2} {x}
+		
+		
+		\edge {p} {mu}
+		\edge {s2} {mu}
+		\edge {mu}{s2}
+		\edge {p} {s2}
+		\edge {lambda} {p}
+		\edge {sig} {p}
+		
+		\edge {a0} {s2}
+		\edge {b0} {s2}
+		
+		\edge {a1} {b0}
+		\edge {b1} {b0}
+	}\caption{Hierarchical representation of the univariate PY process mixture model with location-scale base measure.}\label{fig:uni_loc_sc}
+\end{figure}
+
+
+
+\subsubsection{Multivariate location PY mixture model}
+%Multivariate base measure: location}
+We consider a $p$-dimensional multivariate Gaussian kernel and define a mixture on its mean vector $\bmu$ \citep{She13}. That is we set $\theta=\bmu$, and thus $\Theta=\R^p$, and $\kernel(\by; \theta) = \phi_p(\by; \bmu, \bSigma)$, where $\phi_p(\cdot; \bmu, \bSigma)$ is the probability density function of a $p$-dimensional normal random vector with mean $\bmu$ and covariance matrix $\bSigma$, with $\bSigma$ symmetric ad positive semi-definite. %As for the univariate case, for the location base measure we can set a normal distribution as base measure to model $\mu$. 
+Following this specification, the random density in \eqref{eq:model} becomes $$\tilde f(\by)=\sum_{j=1}^\infty \pi_j \phi_p(\by;\tilde\bmu_j,\bSigma).$$ 
+In order to achieve conjugacy, we consider a multivariate normal base measure $P_0$, that is $\tilde \bmu_j \simiid \N_p(\bM_0, \bS_0)$, %a multivariate normal distribution, that preserve conjugacy with the normal kernel function. 
+and we endow $\bSigma$ with an inverse Wishart prior, namely $\bSigma\sim \IW(\nu_0,\bSigma_0)$. 
+The model specification can be completed by assigning a normal-inverse Wishart hyperprior to $(\bM_0,\bS_0)$, %, denoted by $N\text{-}IW(\bM_1,k_1,\lambda_1,\bLambda_1)$, 
+that is by assuming $\bS_0 \sim \IW(\lambda_1, \bLambda_1)$ and $\bM_0 \mid \bS_0 \sim \N_p(\bM_1, \bS_0 / k_1)$. Figure~\ref{fig:multi_loc} displays a hierarchical representation of the multivariate location PY mixture model.
+
+\begin{figure}[h]
+	\centering
+	\tikz{
+		\node[latent] (m1) {$\bM_1$};
+		\node[latent, below = of m1] (k1) {$k_1$};
+		\node[latent, below = of k1] (a1) {$\lambda_1$};
+		\node[latent, below = of a1] (b1) {$\bLambda_1$};
+		
+		\node[latent, right = of k1] (m0) {$\bM_0$};
+		\node[latent, right = of a1] (s20) {$\bS_0$};
+		
+		\node[latent, right = of s20] (mu) {$\tilde \bmu_j$}; 
+		\node[latent, above = of mu] (p) {$\tilde p$};
+		\node[latent, above = of p] (lambda) {$\vartheta$};
+		\node[latent, above = of m0] (sig) {$\alpha$};
+		
+		
+		\node[obs, right = of mu] (x) {$\bY_i$};
+		\node[latent, above = of x] (s2) {$\bSigma$};
+		\node[latent, above = of s2] (a0) {$\bSigma_0$};
+		\node[latent, right = of a0] (b0) {$\nu_0$};
+		\coordinate[below right = of x] (xsp);
+		
+		\plate[inner sep=0.40cm, xshift=-0.12cm, yshift=0.12cm] {plate1} {(mu) (x) (xsp)} {$j \geq 1$}; 
+		\plate[inner sep=0.25cm, xshift=-0.12cm, yshift=0.12cm] {plate2} {(x)} {$i \leq n$}; 
+		
+		\edge {m1} {m0}
+		\edge {k1} {m0}
+		\edge {s20} {m0}
+		\edge {m0} {s20}
+		\edge {a1} {s20}
+		\edge {b1} {s20}
+		
+		\edge {m0} {mu}
+		\edge {s20} {mu}
+		
+		\edge {mu} {x}
+		\edge {s2} {x}
+		
+		
+		\edge {p} {mu}
+		\edge {lambda} {p}
+		\edge {sig} {p}
+		
+		\edge {a0} {s2}
+		\edge {b0} {s2}
+	}\caption{Hierarchical representation of the multivariate PY process mixture model with location base measure.}\label{fig:multi_loc}
+\end{figure}
+
+\subsubsection{Multivariate location-scale PY mixture model: full covariance matrix}
+
+As an extension of the previous specification, we consider a $p$-dimensional multivariate Gaussian kernel and define a mixture jointly on the mean vector $\bmu$ and the covariance matrix $\bSigma$ \citep{Esc95,Mul96}. That is, we set $\theta=(\bmu,\bSigma)$, and thus $\R^p\times S_+^p$, where $S_+^p$ denotes the space of $p\times p$ positive semi-definite matrices, and $\kernel(\by; \theta) = \phi_p(\by; \bmu, \bSigma)$. 
+Following this specification, the random density in \eqref{eq:model} becomes $$\tilde f(\by)=\sum_{j=1}^\infty \pi_j \phi_p(\by;\tilde\bmu_j,\tilde\bSigma_j).$$ 
+
+In order to achieve conjugacy, we specify a normal-inverse Wishart base measure $P_0$, namely
+%a natural choice for a location-scale base measure that preserve conjugacy with the kernel function is the normal-inverse-wishart distribution, we then set
+ $\tilde \bSigma_j \simiid \IW(\nu_0, \bSigma_0)$ and $\tilde\bmu_j \mid \tilde\bSigma_j \simind \N_p(\bM_0, \tilde \bSigma_j / k_0)$. The model can be completed by assuming independent hyperpriors on $\bM_0$, $k_0$ and $\bSigma_0$, namely $\bM_0 \sim \N_p(\bM_1, \bS_1)$, $k_0 \sim \ga(\tau_1, \zeta_1)$ and $\bSigma_0 \sim \W(\nu_1, \bSigma_1)$. Figure~\ref{fig:multi_loc_sc} displays a hierarchical representation of the multivariate location-scale PY mixture model with full covariance matrix.
+
+\begin{figure}[h]
+	\centering
+	\tikz{
+		\node[latent] (m1) {$\bM_1$};
+		\node[latent, below = of m1] (s21) {$\bS_1$};
+		\node[latent, below = of s21] (tau1) {$\tau_1$};
+		\node[latent, below = of tau1] (tau2) {$\zeta_1$};
+		
+		\node[latent, right = of s21] (m0) {$\bM_0$};
+		\node[latent, right = of tau1] (k0) {$k_0$};
+		
+		\node[latent, right = of m0] (mu) {$\tilde\bmu_j$}; 
+		\coordinate[right = of mu] (musp);
+		\node[latent, above = of musp] (p) {$\tilde p$};
+		\node[latent, above right = of p] (lambda) {$\vartheta$};
+		\node[latent, above left = of p] (sig) {$\alpha$};
+		
+		\coordinate[below = of musp] (xsp);
+		\node[obs, below = of xsp] (x) {$\bY_i$};
+		\node[latent, right = of musp] (s2) {$\tilde\bSigma_j$};
+		
+		\node[latent, right = of s2] (a0) {$\nu_0$};
+		\node[latent, below = of a0] (b0) {$\bSigma_0$};
+		
+		\node[latent, right = of b0] (a1) {$\nu_1$};
+		\node[latent, below = of a1] (b1) {$\bSigma_1$};
+		
+		\plate[inner sep=0.40cm, xshift=0, yshift=0] {plate1} {(x) (mu) (s2)} {$j \geq 1$}; 
+		\plate[inner sep=0.25cm, xshift=0, yshift=0.12cm] {plate2} {(x)} {$i \leq n$}; 
+		
+		\edge {m1} {m0}
+		\edge {s21} {m0}
+		\edge {tau1} {s20}
+		\edge {tau2} {s20}
+		
+		\edge {m0} {mu}
+		\edge {k0} {mu}
+		
+		\edge {mu} {x}
+		\edge {s2} {x}
+		
+		
+		\edge {p} {mu}
+		\edge {s2} {mu}
+		\edge {mu} {s2}
+		\edge {p} {s2}
+		\edge {lambda} {p}
+		\edge {sig} {p}
+		
+		\edge {a0} {s2}
+		\edge {b0} {s2}
+		
+		\edge {a1} {b0}
+		\edge {b1} {b0}
+	}\caption{Hierarchical representation of the multivariate PY process mixture model with location-scale base measure and full covariance matrix.}\label{fig:multi_loc_sc}
+\end{figure}
+
+\subsubsection{Multivariate location-scale PY mixture model: diagonal covariance matrix}
+
+A more parsimonious version of the multivariate location-scale PY mixture model presented in the previous section is obtained by constraining the random covariance matrices $\tilde \bSigma_j$ to be diagonal \citep[see, e.g.,][]{Bou14}. This model specification is particularly convenient when $p$ is large. Based on this assumption, the random density in \eqref{eq:model} becomes $$\tilde f(\by)=\sum_{j=1}^\infty \pi_j \prod_{r=1}^p \phi(y_r;\tilde\mu_{jr},\tilde\sigma^2_{jr}),$$ 
+
+where $y_r$ is the $r$th component of $\by$, $\tilde\bmu_j=(\tilde\mu_{j1},\ldots,\tilde\mu_{jp})$ and $\tilde\bSigma_j$ is a diagonal matrix with diagonal $\tilde\bsigma_j^2=(\tilde\sigma_{j1}^2,\ldots,\tilde\sigma_{jp}^2)$.
+%where $\bsigma^2$ is the diagonal of $\bSigma$ and $\bSigma$ is null outside the diagonal. 
+Conditionally on $\tilde p$, the marginal model specification for each component is equivalent to the univariate location-scale case. Specifically, the base measure $P_0$ is the product of $p$ independent normal-inverse gamma distributions, that is, $\tilde\sigma^2_{jr}\simiid \iga(a_{0r},b_{0r})$ and $\tilde \mu_{jr}\mid \tilde\sigma_{jr}^2\simind \N(m_{0r},\tilde \sigma_{jr}^2/k_{0r})$, for every $r=1,\ldots,p$. The model specification can be completed by assigning independent hyperpriors to the components of $\bb_0=(b_{01},\ldots,b_{0p})$, $\bM_0=(m_{01},\ldots,m_{0p})$ and $\bk_0=(k_{01},\ldots,k_{0p})$, namely $m_{0r}\sim \N(m_{1r},\sigma^2_{1r})$, $b_{0r}\sim \ga(a_{1r},b_{1r})$ and $k_{0r}\sim \ga(\tau_{1r},\tau_{2r})$, for every $r=1,\ldots,p$. Figure~\ref{fig:multi_loc_sc_diag} displays a hierarchical representation of the multivariate location-scale PY mixture model with diagonal covariance matrix. 
+
+\begin{figure}[h]
+	\centering
+	\tikz{
+		\node[latent] (m1) {$\bM_1$};
+		\node[latent, below = of m1] (s21) {$\bsigma^2_1$};
+		\node[latent, below = of s21] (tau1) {$\btau_1$};
+		\node[latent, below = of tau1] (tau2) {$\bzeta_1$};
+		
+		\node[latent, right = of s21] (m0) {$\bM_0$};
+		\node[latent, right = of tau1] (k0) {$\bk_0$};
+		
+		\node[latent, right = of m0] (mu) {$\tilde\bmu_j$}; 
+		\coordinate[right = of mu] (musp);
+		\node[latent, above = of musp] (p) {$\tilde p$};
+		\node[latent, above right = of p] (lambda) {$\vartheta$};
+		\node[latent, above left = of p] (sig) {$\alpha$};
+		
+		\coordinate[below = of musp] (xsp);
+		\node[obs, below = of xsp] (x) {$\bY_i$};
+		\node[latent, right = of musp] (s2) {$\tilde\bsigma^2_j$};
+		
+		\node[latent, right = of s2] (a0) {$\ba_0$};
+		\node[latent, below = of a0] (b0) {$\bb_0$};
+		
+		\node[latent, right = of b0] (a1) {$\ba_1$};
+		\node[latent, below = of a1] (b1) {$\bb_1$};
+		
+		\plate[inner sep=0.40cm, xshift=0, yshift=0] {plate1} {(x) (mu) (s2)} {$j \geq 1$}; 
+		\plate[inner sep=0.25cm, xshift=0, yshift=0.12cm] {plate2} {(x)} {$i \leq n$}; 
+		
+		\edge {m1} {m0}
+		\edge {s21} {m0}
+		\edge {tau1} {s20}
+		\edge {tau2} {s20}
+		
+		\edge {m0} {mu}
+		\edge {k0} {mu}
+		
+		\edge {mu} {x}
+		\edge {s2} {x}
+		
+		
+		\edge {p} {mu}
+		\edge {s2} {mu}
+		\edge {mu} {s2}
+		\edge {p} {s2}
+		\edge {lambda} {p}
+		\edge {sig} {p}
+		
+		\edge {a0} {s2}
+		\edge {b0} {s2}
+		
+		\edge {a1} {b0}
+		\edge {b1} {b0}
+	}\caption{Hierarchical representation of the multivariate PY process mixture model with location-scale base measure and diagonal covariance matrix.}\label{fig:multi_loc_sc_diag}
+\end{figure}
+
+
+\subsubsection{Univariate regression PY mixture model}
+
+	We consider an infinite mixture of regression model accounting for a $d$-dimensional vector of independent variables $\bx$ \citep{densityregression}. This is obtained by considering a univariate Gaussian kernel with regressors acting linearly on the location parameter, and by defining a mixture on the regression coefficients $\bbeta=(\beta_0,\beta_1,\ldots,\beta_d)$, with the scale parameter of the kernel common across different groups. That is, we define $\bx_0 = (1,\bx^\top)^\top$, we set $\theta=\bbeta$, %$\bbeta=(\beta_0,\beta_1,\ldots,\beta_d)$, 
+	and thus $\Theta=\R^{d+1}$, and consider the kernel $\kernel(y; \theta) = % \beta, \sigma^2) = %\kernel(x; \mu, \sigma^2) = 
+	\phi(y; \bx_0^\top \bbeta, \sigma^2).$  
+	Following this specification, the random density in \eqref{eq:model} becomes $$\tilde f(y \mid \bx)=\sum_{j=1}^\infty \pi_j \phi(y;\bx_0^\top \tilde \bbeta_j, \sigma^2).$$ 
+	In order to achieve conjugacy, we assume that the base measure $P_0$ is a multivariate normal distribution, that is $\tilde \bbeta_j \simiid \N_{d+1}(\bM_0, \bS_0)$, with $j\geq1$. We set an inverse gamma distribution for the common scale parameter, $\sigma^2 \sim \text{IGa}(a_0, b_0)$. The model can be completed by endowing $(\bM_0,\bS_0)$ with a normal-inverse Wishart hyperprior, that is $\bS_0 \sim \IW(\nu_1, \bS_1)$ and $\bM_0 \mid \bS_0 \sim \N_p(\bM_1, \bS_0 / k_1)$. Figure~\ref{fig:mix_regl} displays a hierarchical representation of the univariate regression-scale PY mixture model. 
+
+\begin{figure}[h]
+	\centering
+	\tikz{
+		\node[latent] (b1) {$\bM_1$};
+		\node[latent, below = of m1] (k1) {$k_1$};
+		\node[latent, below = of s21] (nu1) {$\nu_1$};
+		\node[latent, below = of tau1] (S1) {$\bS_1$};
+		
+		\node[latent, right = of s21] (b0) {$\bM_0$};
+		\node[latent, right = of tau1] (S0) {$\bS_0$};
+		
+		\node[latent, right = of m0] (beta) {$\tilde\bbeta_j$}; 
+		\node[latent, above = of beta] (p) {$\tilde p$};
+		\node[latent, above right = of p] (lambda) {$\vartheta$};
+		\node[latent, above left = of p] (sig) {$\alpha$};
+		
+		\node[obs, below = of beta] (x) {$Y_i$};
+		\node[latent, right = of beta] (s2) {$\bsigma^2$};
+		
+		\node[latent, right = of s2] (a0) {$b_0$};
+		\node[latent, above = of a0] (bg0) {$a_0$};
+		
+		\coordinate[below right = of S0] (xsp2);
+		\coordinate[right = of x] (z);
+		\coordinate[right = of z] (q);
+		\node[obs, right = of q] (y) {$\bx_i$};
+		
+		\plate[inner sep=0.7cm, xshift=0, yshift=-7] {plate1} {(x) (mu)} {$\,$}; 
+		\plate[inner sep=0.25cm, xshift=0, yshift=0.12cm] {plate2} {(x)} {$i \leq n$}; 
+		\plate[inner sep=0.15cm, xshift=0, yshift=0.12cm] {plate2} {(y)} {$i \leq n$}; 
+		\node[text width=3cm] at (5,-4.7) 
+		{\footnotesize$j \geq 1$};
+		
+		\edge {b1} {b0}
+		\edge {k1} {b0}
+		\edge {nu1} {S0}
+		\edge {S1} {S0}
+		\edge {b0} {S0}
+		\edge {S0} {b0}
+		
+		\edge {b0} {beta}
+		\edge {S0} {beta}
+		
+		\edge {beta} {x}
+		\edge {s2} {x}
+		\edge {y} {x}
+		
+		\edge {p} {beta}
+		\edge {lambda} {p}
+		\edge {sig} {p}
+		
+		\edge {a0} {s2}
+		\edge {bg0} {s2}
+	}\caption{Hierarchical representation of the univariate regression PY mixture model.}\label{fig:mix_regl}
+\end{figure}
+
+\subsubsection{Univariate regression-scale PY mixture model}
+
+As an extension of the previous specification, we consider an infinite mixture of regression model accounting for a $d$-dimensional vector of independent variables $\bx$, obtained by jointly defining a mixture on the 
+regression coefficients and the scale parameter of the univariate Gaussian kernel \citep{densityregression}. That is, %we define $ \bx_0 = (1,\bx^\top)^\top,$ $\bbeta=(\beta_0,\beta_1,\ldots,\beta_d)$, 
+we set $\theta=(\bbeta,\sigma^2)$, and thus $\Theta=\R^{d+1}\times\R^+$, and consider the kernel $\kernel(y; \theta) = %\kernel(x; \mu, \sigma^2) = 
+\phi(y; \bx_0^\top \bbeta, \sigma^2).$  
+Following this specification, the random density in \eqref{eq:model} becomes $$\tilde f(y \mid \bx)=\sum_{j=1}^\infty \pi_j \phi(y;\bx_0^\top \tilde \bbeta_j, \tilde\sigma^2_{j}).$$ 
+In order to achieve conjugacy, the base measure $P_0$ is set equal to a product of a multivariate normal distribution and an inverse gamma distribution, that is $\tilde \bbeta_j \simiid \N_{d+1}(\bM_0, \bS_0)$ and $\tilde \sigma_j^2 \simiid \iga(a_0, b_0)$. The model can be completed by endowing $(\bM_0,\bS_0)$ with a normal-inverse Wishart hyperprior, that is $\bS_0 \sim \IW(\nu_1, \bS_1)$ and $\bM_0 \mid \bS_0 \sim \N_d(\bM_1, \bS_0 / k_1)$, and by assuming $b_0 \sim \ga(\tau_1, \zeta_1)$. Figure~\ref{fig:mix_reg} displays a hierarchical representation of the univariate regression-scale PY mixture model. 
+
+\begin{figure}[h]
+	\centering
+	\tikz{
+		\node[latent] (b1) {$\bM_1$};
+		\node[latent, below = of m1] (k1) {$k_1$};
+		\node[latent, below = of s21] (nu1) {$\nu_1$};
+		\node[latent, below = of tau1] (S1) {$\bS_1$};
+		
+		\node[latent, right = of s21] (b0) {$\bM_0$};
+		\node[latent, right = of tau1] (S0) {$\bS_0$};
+		
+		\node[latent, right = of m0] (beta) {$\tilde\bbeta_j$}; 
+		\coordinate[right = of beta] (betasp);
+		\node[latent, above = of betasp] (p) {$\tilde p$};
+		\node[latent, above right = of p] (lambda) {$\vartheta$};
+		\node[latent, above left = of p] (sig) {$\alpha$};
+		
+		\coordinate[below = of betasp] (xsp);
+		\node[obs, below = of xsp] (x) {$Y_i$};
+		\node[latent, right = of betasp] (s2) {$\tilde\bsigma^2_j$};
+		
+		\node[latent, right = of s2] (a0) {$a_0$};
+		\node[latent, below = of a0] (bg0) {$b_0$};
+		
+		\node[latent, right = of bg0] (a1) {$\tau_1$};
+		\node[latent, below = of a1] (bg1) {$\zeta_1$};
+
+		\coordinate[below right = of S0] (xsp2);
+		\node[obs, below = of xsp2] (y) {$\bx_i$};
+		
+		\plate[inner sep=0.30cm, xshift=0, yshift=0] {plate1} {(x) (mu) (s2)} {$j \geq 1$}; 
+		\plate[inner sep=0.25cm, xshift=0, yshift=0.12cm] {plate2} {(x)} {$i \leq n$}; 
+		\plate[inner sep=0.15cm, xshift=0, yshift=0.12cm] {plate2} {(y)} {$i \leq n$}; 
+				
+		\edge {b1} {b0}
+		\edge {k1} {b0}
+		\edge {nu1} {S0}
+		\edge {S1} {S0}
+		\edge {b0} {S0}
+		\edge {S0} {b0}
+				
+		\edge {b0} {beta}
+		\edge {S0} {beta}
+		
+		\edge {beta} {x}
+		\edge {s2} {x}
+		\edge {y} {x}
+		
+		\edge {p} {beta}
+		\edge {p} {s2}
+		\edge {lambda} {p}
+		\edge {sig} {p}
+		
+		\edge {a0} {s2}
+		\edge {bg0} {s2}
+		
+		\edge {a1} {bg0}
+		\edge {bg1} {bg0}
+	}\caption{Hierarchical representation of the univariate regression-scale PY mixture model.}\label{fig:mix_reg}
+\end{figure}
+
+\subsubsection{Univariate location-scale DDP mixture model}
+
+We assume each observation $y_i$ is endowed with a categorical covariate $x_i$ taking values in $\{1,\ldots,L\}$, which allows observations to be gathered into $L$ distinct groups $(y_{l1},\ldots,y_{l n_l})$, with $l=1,\ldots,L$. In order to account for heterogeneity across groups, while allowing borrowing of information, we consider the partially exchangeable mixture model proposed by \citet{Lij14a}. Namely, each group is modelled by means of a mixture with Gaussian kernel and group specific random probability measure $\tilde p_l$. The vector $\tilde \bp=(\tilde p_1,\ldots,\tilde p_L)$ is distributed as a Griffiths-Milne dependent Dirichlet process (GM-DDP) with parameters $\vartheta>0$ and $z\in (0,1)$, and base measure $P_0$ on $\Theta=\R\times\R^+$, which implies that, marginally, groups are modelled with identically distributed location-scale DP mixtures, obtained by setting $\alpha=0$ in \eqref{eq:model}.
+
+The parameter $z$ controls the dependence across the components of $\tilde \bp$, with the two extremes of the range corresponding to full exchangeability (when $z\rightarrow 0$), that is $\tilde p_1=\tilde p_2=\ldots=\tilde p_L$, and  independence across groups (when $z\rightarrow 1$), that is $\tilde p_l\simiid DP(\vartheta; P_0)$. Such characterization of the extreme cases helps in setting a value for $z$, which by default is fixed equal to 0.5. A formal elicitation of $z$ might be obtained by specifying the value of the correlation between the random variables $\tilde p_{l_1}(A)$ and $\tilde p_{l_2}(A)$, with $l_1\neq l_2$ and for a measurable $A$ \citep[see Equations 12 and 13 in][]{Lij14a}, quantity which is invariant with respect to the choice of $A$.
+In order to achieve conjugacy, a normal-inverse gamma base measure is considered, that is  $\tilde \sigma_{lj}^2 \simiid \iga(a_0, b_0)$ and $\tilde\mu_{lj} \mid \tilde\sigma_{lj}^2 \simind \N(m_0, \tilde\sigma_{lj}^2 / k_0)$. Figure~\ref{fig:DDP_loc_sc_diag} displays a hierarchical representation of the univariate location-scale DDP mixture model. 
+
+
+\begin{figure}[h]
+	\centering
+	\tikz{
+		
+		\node[latent, right = of s21] (m0) {$m_0$};
+		\node[latent, right = of tau1] (k0) {$k_0$};
+		
+		\node[latent, right = of m0] (mu) {$\tilde\mu_{lj}$}; 
+		\coordinate[right = of mu] (musp);
+		\node[latent, above = of musp] (p) {$\tilde p_l$};
+		\node[latent, above left = of p] (z) {$z$};
+		%\node[latent, left = of z] (sig) {$\alpha$};
+		\node[latent, above right = of p] (lam) {$\vartheta$};
+		
+		\coordinate[below = of musp] (xsp);
+		\node[obs, below = of xsp] (x) {$Y_{li}$};
+		\node[latent, right = of musp] (s2) {$\tilde\sigma_{lj}^2$};
+		\coordinate[below = of x] (xsp2);
+		
+		\node[latent, right = of s2] (a0) {$a_0$};
+		\node[latent, below = of a0] (b0) {$b_0$};
+		
+		\plate[inner sep=0.40cm, xshift=0, yshift=0] {plate1} {(x) (mu) (s2)} {$j \geq 1$}; 
+		\plate[inner sep=0.25cm, xshift=0, yshift=0.12cm] {plate2} {(x)} {$i \leq n_l$}; 
+		\plate[inner sep=0.55cm, xshift=0, yshift=-0.25cm] {plate3} {(x) (mu) (s2) (p) (xsp2)} {$l \leq L$}; 
+		
+		\edge {mu} {x}
+		\edge {s2} {x}
+		
+		\edge {p} {mu}
+		\edge {p} {s2}
+		
+		%\edge {sig} {p}
+		\edge {z} {p}
+		\edge {lam} {p}
+		
+		\edge {m0} {mu}
+		\edge {k0} {mu}
+		
+		\edge {a0} {s2}
+		\edge {b0} {s2}
+		
+	}\caption{Hierarchical representation of the univariate location-scale DDP mixture model with Gaussian kernel.}\label{fig:DDP_loc_sc_diag}
+\end{figure}
+
+
+
+\section{Posterior simulation methods}\label{sec:sampling}
+
+The \pkg{BNPmix} package implements three types of MCMC algorithm for posterior simulation, namely the marginal sampler \citep{Esc95,Mul96,Nea00}, the slice sampler \citep{Wal07,Kal11}, and the importance conditional sampler (ICS) \citep{Can19}. The three sampling schemes are implemented for all the models described in Section~\ref{sec:mod}, exception made for the univariate location-scale DDP mixture model, for which only the ICS is made available. Different simulation methods might be convenient in serving different purposes \citep[see discussion in][]{Can19}: with this in mind, the method is offered as an option in the functions of the package, with the default one being the ICS, whose efficiency has been proved to be the most robust to model specifications~\citep{Can19}.
+
+
+
+\subsubsection{Marginal sampler}
+
+
+\citet{Esc95} and \citet{Mul96} propose a marginal sampling scheme for DP mixtures of univariate and multivariate Gaussian kernels, respectively. The approach relies on the analytical marginalization of the mixing random probability measure $\tilde p$, while the parameters $\btheta=(\theta_1,\ldots,\theta_n)$ appearing in \eqref{eq:hier_model} are integrated out by means of a Gibbs sampler. The full conditional of each $\theta_i$ is reminiscent of the urn scheme of \citet{Bla73}, and, for the PY case with generic kernel $\kernel(\cdot;\cdot)$, is given by 
+\begin{equation}\label{eq:fc_pred}
+	\P[\theta_i \in \d t \mid \btheta^{(-i)}, \by^{(n)}] \propto \frac{\vartheta + k^{(-i)} \alpha}{\vartheta + n - 1} \int \kernel(\by_i; t) P_0(\d t) + \sum_{j = 1}^{k^{(-i)}} \frac{n^{(-i)}_{j}-\alpha}{\vartheta + n - 1} \kernel(\by_i; \theta_{j}^*) \delta_{\theta_{j}^*}(\d t),
+\end{equation}
+%
+where $\btheta^{(-i)} = (\theta_1, \dots, \theta_{i-1}, \theta_{i+1}, \dots, \theta_n)$ and $k^{(-i)}$ is the number of distinct values $\theta_j^*$ in $\btheta^{(-i)}$, with $n^{(-i)}_j$ denoting their frequencies. As a result, the marginal method generates realizations from the conditional posterior mean of the random density $\tilde f$, that is realizations of $\E[\tilde f\mid \btheta, \by^{(n)}]$, where the expectation is taken with respect to $\tilde p$. n case of nonconjugate specification of kernel and base measure, one can resort to Algorithm 8 of \citet{Nea00} which introduces a set of auxiliary random variables to evaluate the probability that $\theta_i$ takes a new value in \eqref{eq:fc_pred}.
+
+
+
+\subsubsection{Slice sampler}
+
+Introduced by \citet{Wal07} for DP mixtures, and improved on by \citet{Kal11}, the slice sampler is a conditional method which works by introducing a suitable vector of augmenting random variables $\bU^{(n)}=(U_1,\ldots,U_n)$. The components of $\bU$ are independent uniform random variables and are such that the joint distribution of $(\bY_i,U_i)$ is given by
+\begin{equation}\label{eq:slice}
+	f(\by_i, u_i) = \sum_{j = 1}^\infty \xi_j^{-1} \mathds{1}_{\{u_i < \xi_j\}} \pi_j \kernel (\by_i; \tilde \theta_j),
+\end{equation}
+
+where $\{\xi_j\}_{j=1}^\infty$ is any positive sequence. The random distribution of $\bY_i$, given in \eqref{eq:model}, is recovered by marginalising \eqref{eq:slice} with respect to $U_i$. As a by-product and conveniently, the problem of dealing with the infinite-dimensional $\tilde p$ boils down to the problem of dealing with a finite sum, with a random number of terms. Approximate realizations of the posterior distributions of $\tilde f$ %in \eqref{eq:model} 
+are obtained by implementing a Gibbs sampler which serves the purpose of marginalising with respect to $\bU$. Different choices for the sequence $\{\xi_j\}_{j=1}^\infty$ are considered. Following \citet{Kal11}, \pkg{BNPmix} implements the dependent slice-efficient version of the algorithm by setting  $\xi_j = \pi_j$, which leads to a convenient simplification of \eqref{eq:slice}, and different versions of the independent slice-efficient sampler obtained by choosing a deterministic sequence $\{\xi_j\}_{j=1}^\infty$, 
+the default choice being  $\xi_j = \E(\pi_j)$. 
+The efficiency of the dependent slice-efficient algorithm, when used for PY mixtures, is compromised if large values of $\alpha$ and $\vartheta$ are considered \citep[see discussion in][]{Can19}. 
+
+\subsubsection{Importance conditional sampler}
+
+
+The ICS is a conditional sampling strategy for PY mixture models, recently introduced by \citet{Can19}. It combines a convenient characterization of the posterior distribution of a PY process \citep{Pit96} with a sampling importance resampling (SIR) step. The problem of dealing with the infinite-dimensional $\tilde p$ reduces to: 1) evaluating $\tilde p$ on a finite dimensional partition of the parameter space $\Theta$, and 2) sampling, via SIR, from a distribution proportional to $\kernel(\by_i,t)\tilde q(\d t)$, where $\tilde q$ is PY process used as proposal distribution. Approximate realizations of the posterior distribution of $\tilde f$ are then obtained by marginalising $\btheta$ out with a Gibbs sampler. The full conditional distribution of each $\theta_i$, in a similar fashion as Algorithm~8 in \citet{Nea00}, boils down to a discrete distribution with a finite support, given, up to a proportionality constant, by 
+
+
+\begin{equation}
+	\P[\theta_i \in \d t \mid \by_i, \tilde p] \propto p_0 \sum_{l=1}^{k_m} \frac{m_l}{m}\kernel(\by_i; s_l^*) \delta_{s_l^*}(\d t) + \sum_{j = 1}^{k_n} p_j \kernel(\by_i; t^*_j) \delta_{t^*_j}(\d t),
+\end{equation}
+
+where $(t^*_1,\ldots,t_{k_n}^*)$ are the fixed jump points of $\tilde p$, $(p_0,p_1,\ldots,p_{k_n})$ is the random vector obtained by evaluating $\tilde p$ on the partition $(\Theta\setminus\{t_1^*,\ldots, t_{k_n}^*\}, t_1^*,\ldots, t^*_{k_n})$, and $(s^*_1,\ldots,s_{k_n}^*)$ and $(m_1,\ldots,m_{k_m})$ are, respectively, the distinct values in the $m$-dimensional exchangeable sample generated from $\tilde q$ and their frequencies. The value of $m$ can be chosen arbitrarily, with large values favouring a good mixing of the chain at the price of a longer runtime. % \citep{Can19}.
+
+
+\section{Package implementation} 
+\label{sec:coding}
+
+The \pkg{BNPmix} package consists of three main \proglang{R} functions, wrappers of \proglang{C++} routines which implement the BNP models described in Section \ref{sec:mod} and the MCMC simulation methods introduced in Section \ref{sec:sampling}, along with some user-friendly functions which facilitate the elicitation of prior distributions and the postprocessing of generated posterior samples.  The three main functions are \code{PYdensity}, \code{PYregression}, and \code{DDPdensity}, and implement, respectively, Pitman-Yor mixture models for density estimation and clustering, a Pitman-Yor mixture model for density regression, and a DDP mixture model for density estimation of correlated samples. The spirit of the package is two-fold. On the one side, it provides a ready-to-use suite of functions to estimate a rich variety of BNP models: to this end, all functions provide a default specifications of their arguments, thus allowing for a non-informed estimation procedure.  
+On the other side, each function offers a detailed list of arguments, concerning prior parameters, hyperpriors specification, kernel structure and sampling approach, which can be tuned by the more experienced user so to formalise and exploit available prior information. 
+
+
+The remainder of the section deals with both what lies under the hood (Section \ref{sec:cpp}) and the design of the \proglang{R} wrappers (Section \ref{sec:tuning}).
+
+
+\subsection{Low level implementation}
+\label{sec:cpp}
+
+All the main functions of the \pkg{BNPmix} package are written in \proglang{C++} and exploit the seamless interface to \proglang{R} provided by \pkg{Rcpp} and \pkg{RcppArmadillo} \citep{rcpp,armadillo}. 
+
+All the \proglang{C++} routines implementing the models listed in Section \ref{sec:mod} share a common structure as they consist of a main function---where all the required objects are initialized---with a loop cycling over the number of MCMC iterations. Within this loop, all the method-specific functions are called to update the MCMC status. 
+
+Broadly speaking, any MCMC algorithm for posterior simulation under a mixture model setup includes two steps, which consist in $i)$ allocating individual observations to clusters or mixture components, and 
+$ii)$ updating the parameters specific to each group or mixture component.
+In our \proglang{C++} implementation, step $i)$ is performed by specific functions, 
+with names of the type \code{clust_update_method_model},  where \code{method} refers to one of the three MCMC methods discussed in Section \ref{sec:sampling} while \code{model} refers to one of the mixture specifications presented in Section \ref{sec:mod}. 
+%
+While step $i)$ differs intrinsically from one MCMC method to another, step $ii)$ stays fundamentally unchanged for different MCMC methods, as the update of component specific parameters essentially depends on the structure of the kernel only. In our \proglang{C++} implementation, step $ii)$ is performed by specific routines, whose names---\code{accellerate_method_model}---follow the same logic as those of the functions implementing step $i)$. While method-specific, these functions share most of  the \proglang{C++} code needed to perform common tasks. Such common structure allows, as a by-product, for a fair comparison between the performance of different MCMC simulation methods.
+
+In order to limit the memory usage, all the \code{accellerate_method_model} functions are of type void. This conveniently allows us to update, at each iteration of the MCMC, all the quantities needed to produce posterior summaries---e.g., realizations of posterior densities evaluated at a grid of points, or partitions of the data into clusters---while passing on to the next iteration only those required for the evaluation of full conditional distributions. The number of elements to update can vary across the iterations of the MCMC \citep[see][for details]{Can19}, aspect which is addressed %  this is dealt with 
+by means of method-specific functions, named \code{para_clean_method_model}, which suitably resize and reorder the arrays where the values taken by model parameters are stored. In line with the two-fold spirit of the package, however, the option to save all the quantities generated by the MCMC algorithm is offered for the user to independently compute any posterior summary that might be of interest.
+
+
+Finally, functions of the type \code{hyper_accellerate_method_model} allow hyperprior distributions to be added on the parameters defining the base measure, thus avoiding the often daunting task of eliciting the same parameters.
+ 
+
+ 
+
+\subsection{Wrappers to the main functions}\label{sec:tuning}
+
+A BNP mixture model can be fitted with the \pkg{BNPmix} package by calling an \proglang{R} function which, based on its arguments, interfaces with one of the specific \proglang{C++} subroutines described in Section \ref{sec:cpp}. All the \proglang{R} functions require a data set \code{y} and a set of arguments referring to MCMC method, prior specification and form of the produced output. The MCMC parameters are passed through the named list \code{mcmc}, which allows the following arguments to be specified: %to specify the following arguments:
+\begin{itemize}
+	\item \code{niter}, the number of MCMC iterations;
+	\item \code{nburn}, the number of burn-in iterations to discard;
+	  \item \code{nupd}, argument controlling the number of iterations to be displayed on screen;
+ % \item \code{nupd}, the number of iterations to be displayed on screen; 
+   \item \code{print_message}, control option: if equal to \code{TRUE} the status is printed to standard output every \code{nupd} iterations. 
+\end{itemize}
+
+The prior specification is passed to the \proglang{C++} routines through the named list \code{prior}. The latter includes the arguments \code{strength} (1 by default) and \code{discount} (0 by default) for the strength parameter $\vartheta$ and the discount parameter $\alpha$ of the Pitman-Yor process, and a set of model-specific arguments, as described in Section \ref{sec:mod}. If \code{hyper = TRUE}, as by default, the parameters defining the base measure are endowed with hyperprior distributions. %It is worth mentioning that 
+%\code{hyper = TRUE} is the default choice and the default values for the hyperprior parameters have been elicited by assuming that \code{y} has zero mean and unit variance.%, choice which is suitable for data that are standardized before running the analysis.  %This is equivalent in standardizing \code{y} before running the analysis. 
+
+
+Finally, the arguments of the named list \code{output} describe the output which is to be returned. Such list shares a structure which is common to all the functions, and contains:
+\begin{itemize}
+%   \item \code{mean_dens}: if \code{TRUE} (default choice) it returns only the posterior mean of the density calculated on \code{grid}   
+%   \item \code{mcmc_dens}: if \code{TRUE}, the function returns each MCMC draw from the posterior of the density calculated on \code{grid};
+   \item \code{out_type}, summaries of the posterior distribution to be returned. If equal to \code{"FULL"}, the function returns the estimated partition and all the MCMC realizations of the posterior densities. %draw of the density from the posterior distribution. 
+   If equal to \code{"MEAN"}, the function returns the estimated partition and the mean of the sampled densities. If equal \code{"CLUST"}, the function only returns the estimated partition;
+   \item \code{out_param}, option to return the values taken by cluster or component-specific parameters. If equal to \code{TRUE}, the function returns all the MCMC draws of such parameters;
+   \item \code{grid}, a grid of points (or a data frame obtained via \code{expand.grid}) where to evaluate posterior densities.
+\end{itemize}
+
+While the general structure of these named lists is common across functions, there exist model-specific arguments which we describe, for each \proglang{R} function, in the remainder of the section.
+
+%In the remainder of the section, we describe the additional model-specific arguments that each named list contains for the different \proglang{R} functions. 
+
+
+\subsubsection{PY mixture models}
+The function \code{PYdensity} performs univariate and multivariate density estimation and clustering, via Pitman-Yor mixtures with Gaussian kernels.  Specific elements of the \code{mcmc} list are:
+\begin{itemize}
+	\item \code{method}, the MCMC algorithm chosen to perform the estimation. Three options are available, namely ICS %importance conditional sampler 
+	(\code{method = "ICS"}), marginal sampler (\code{method = "MAR"}) and slice  sampler (\code{method = "SLI"});
+	\item \code{model}, the specific mixture model, among those described in Section \ref{sec:mod},  to be fitted. The default choice is location-scale mixture (\code{model = "LS"}) for both univariate and multivariate data. Other options are location mixture (\code{model = "L"}) for both univariate and multivariate data, and location-scale mixture with diagonal covariance matrix (\code{model = "DLS"}) for multivariate data only;
+	\item \code{m_imp} (available if \code{method = "ICS"}), size---$m$ in the notation of Section \ref{sec:sampling}---of the exchangeable sample generated from the proposal distribution $\tilde q$, in the SIR step of the ICS method. Default is \code{m_imp = 10};
+	\item \code{slice_type} (available if \code{method = "SLI"}), the specification of the type of slice sampler. Options are \code{"DEP"} for dependent slice-efficient, and \code{"INDEP"} for independent slice-efficient. Default is \code{slice_type = "DEP"}. 
+\end{itemize}
+
+Finally, the named list \code{prior} for \code{PYdensity} admits a set of model-specific arguments, for which an exhaustive description is reported in Table \ref{tab:parpydensity}. The default values of the arguments in the \code{prior} list are set so that the expectation of the location component equals the sample mean, %of the data, 
+and both the variance of the location component and the expectation of the scale component coincide with the sample variance. %of the data, and the expectation of the scale component equals the sample variance of the data.}}% reports an exhaustive description of all the possible arguments for the different kernels and base measures. 
+
+
+\begin{table}[]
+	\center
+		\caption{Parameters for the \code{prior} list of the \code{PYdensity} function.}
+	\begin{tabular}{l|ll}
+	\hline
+		\code{hyper = FALSE}   & Univariate                                                                                                                                                                                                                                                                                                                                                                                                                                              & Multivariate                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  \\ \hline
+				\code{model = "L"}        & \begin{tabular}[c]{@{}l@{}}\code{m0}, mean of $\tilde \mu_j$\\ \code{s20}, variance of $\tilde  \mu_j$\\ \code{a0}, shape of $\sigma^2$\\ \code{b0}, scale of $\sigma^2$\end{tabular}                                                                                                                                                                                                              & \begin{tabular}[c]{@{}l@{}}\code{m0}, mean of $\tilde  \bmu_j$\\ \code{S20}, covariance of $\tilde  \bmu_j$\\ \code{Sigma0}, scale matrix of $\bSigma$\\ \code{n0}, df of $\bSigma$\end{tabular}                                                                                                                                                                                                                                                                    \\ \hline
+		\code{model = "LS"}  & \begin{tabular}[c]{@{}l@{}}\code{m0}, mean of $\tilde \mu_j$\\ \code{k0}, scale factor of $\tilde \mu_j$\\ \code{a0}, shape of $\tilde \sigma^2_j$\\ \code{b0}, scale of $\tilde \sigma^2_j$\end{tabular}                                                                                                                                                                                                       & \begin{tabular}[c]{@{}l@{}}\code{m0}, mean of $\tilde \bmu_j$\\ \code{k0}, scale factor of $\tilde \bmu_j$\\ \code{S0}, matrix of $\tilde  \bSigma_j$\\ \code{n0}, df of $\tilde \bSigma_j$\end{tabular}                                                                                                                                                                                                                                                              \\ \hline
+		\code{model = "DLS"}         &                                                                                                                                                                                                                                                                                                                                                                                                                                                         & \begin{tabular}[c]{@{}l@{}}\code{m0}, mean of $\tilde \bmu_j$ (vector)\\ \code{k0}, scale factor of $\tilde \bmu_j$ (vector)\\ \code{a0}, shape of $\tilde \bSigma_j$ (vector)\\ \code{b0}, scale of $\tilde \bSigma_j$ (vector)\end{tabular}                                                                                                                                                                                                                         \\ \hline \hline
+				\code{hyper = TRUE} & Univariate                                                                                                                                                                                                                                                                                                                                                                                                                                              & Multivariate                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  \\ \hline
+		\code{model = "L"}        & \begin{tabular}[c]{@{}l@{}}\code{m1}, mean of \code{m0}\\ \code{k1}, scale factor of \code{m0}\\ \code{a1}, shape of \code{s20}\\ \code{b1}, scale of \code{s20}\end{tabular}                                                                                                                                   & \begin{tabular}[c]{@{}l@{}}\code{m1}, mean of \code{m0}\\ \code{k1}, scale factor of \code{m0}\\ \code{lambda1}, df of \code{S20}\\ \code{Lambda1}, matrix of \code{S20}\end{tabular}                                                                                                                                                                                   \\ \hline
+		\code{model = "LS"}   & \begin{tabular}[c]{@{}l@{}}\code{m1}, mean of \code{m0}\\ \code{s21}, variance of \code{m0}\\ \code{tau1},  shape of \code{k0}\\ \code{zeta1}, rate of \code{k0}\\ \code{a1}, shape of \code{b0}\\ \code{b1}, rate of \code{b0}\end{tabular} & \begin{tabular}[c]{@{}l@{}}\code{m1}, mean of \code{m0}\\ \code{S1}, covariance of \code{m0}\\ \code{tau1},  shape of \code{k0}\\ \code{zeta1}, rate of \code{k0}\\ \code{n1}, df of \code{Sigma0}\\ \code{Sigma1}, matrix of \code{Sigma0}\end{tabular}                                               \\ \hline
+		\code{model = "DLS"}          &                                                                                                                                                                                                                                                                                                                                                                                                                                                         & \begin{tabular}[c]{@{}l@{}}\code{m1}, mean of \code{m0} (vector)\\ \code{s21}, variance of \code{m0} (vector)\\ \code{tau1},  shape of \code{k0} (vector)\\ \code{zeta1}, rate of \code{k0} (vector)\\ \code{a1}, shape of \code{b0} (vector)\\ \code{b1}, rate of \code{b0} (vector)\end{tabular}\\\hline
+	\end{tabular}
+	\label{tab:parpydensity}
+\end{table}
+
+\subsubsection{PY density regression}
+
+The function \code{PYregression} performs univariate density regression and clustering, via Pitman-Yor mixture of normal linear regressions. Beside \code{y}, the argument \code{x}, that is the values taken by the $d$ regressors, is also required. %\textcolor{green}{Currently the function implements $d=1$ and \code{x} is hence a vector of size \code{length{y}}}.
+
+The specific arguments of the named list \code{mcmc} for  \code{PYregression} are:
+\begin{itemize}
+	\item \code{method}, the MCMC algorithm chosen to perform the estimation. Three options are available, namely ICS 
+	(\code{method = "ICS"}), marginal sampler (\code{method = "MAR"}) and slice  sampler (\code{method = "SLI"});
+	\item \code{model}, the specific mixture model, between those described in Section \ref{sec:mod}, to be fitted. The default choice is location-scale mixture (\code{model = "LS"}), a second option is the location mixture (\code{model = "L"});
+	\item \code{m_imp} (available if \code{method = "ICS"}), size of the exchangeable sample generated from the proposal distribution $\tilde q$, in the SIR step of the ICS method.  Default is \code{m_imp = 10}; % as in \code{PYdensity};
+       \item  \code{m_marginal} (available if  \code{method = "MAR"}), number of auxiliary variables introduced for the Monte Carlo evaluation of the probability that $\theta_i$ takes a new value in \eqref{eq:fc_pred}  \citep[see Algorithm 8 of][]{Nea00};
+	\item \code{slice_type} (available if \code{method = "SLI"}), the specification of the type of slice sampler. Options are \code{"DEP"} for dependent slice-efficient, and \code{"INDEP"} for independent slice-efficient. Default is \code{slice_type = "DEP"}. 
+\end{itemize}
+
+Finally, the model-specific arguments admitted by the named list \code{prior} for \code{PYregression}, are described in Table~\ref{tab:parpyreg}. The default specification of the hyperparameters is such that the intercept has prior expectation equal to the average of \code{y} and variance 100, the regression coefficients have prior expectation and variance equal to 0 and 100, respectively, and the prior expectation for the scale component coincides to the sample variance of \code{y}.
+
+
+
+\begin{table}[h!]
+	\center
+	\caption{Parameters for the \code{prior} list of the \code{PYregression} function.}
+	\begin{tabular}{l|ll}
+		\hline
+		& \code{hyper = FALSE} & \code{hyper = TRUE} \\
+		\hline
+		\code{model = "L"} & \code{m0}, mean of $\tilde \beta_j$ &\code{m1}, mean of \code{m0}\\ 
+		& \code{S0}, covariance of $\tilde \beta_j$ &\code{k1}, scale factor of \code{m0}\\
+		& \code{a0}, shape parameter of $\sigma^2$ &\code{n1}, degrees of freedom for \code{S0}\\
+		& \code{b0}, scale parameter of  $\sigma^2$ &\code{S1}, scale matrix of \code{S0}\\
+		&&\code{a0}, shape parameter of $\sigma^2$\\
+		&&\code{b0}, scale parameter of  $\sigma^2$\\
+		\hline
+		\code{model = "LS"}&\code{m0}, mean of $\tilde \beta_j$ &\code{m1}, mean of \code{m0}\\
+		& \code{S0}, covariance of $\tilde \beta_j$ &\code{k1}, scale factor of \code{m0} \\
+		& \code{a0}, shape parameter of $\tilde \sigma_j^2$&\code{n1}, degrees of freedom for \code{S0} \\
+		& \code{b0}, scale parameter of  $\tilde \sigma_j^2$&\code{S1}, scale matrix of \code{S0} \\
+		& &\code{tau1}, shape of  \code{b0} \\
+		& &\code{zeta1}, rate of \code{b0} \\
+		\hline
+	\end{tabular}
+	\label{tab:parpyreg}
+\end{table}
+
+
+
+\subsubsection{DDP density estimation}
+
+The function \code{DDPdensity} performs univariate density estimation for correlated samples, via GM-DDP mixture model with Gaussian kernel. Beside \code{y}, an argument named \code{groups} is also required. The latter can be thought of as a label assigned to each observation in \code{y}, which thus identifies distinct subsamples in \code{y}. Unlike the previous two functions, the named list  \code{mcmc} does not account for the MCMC algorithm choice since only the ICS method is implemented for this class of models. Beside the common arguments, the \code{mcmc} named list includes, as model-specific, \code{m_imp}, which is the size of the exchangeable sample generated from the proposal distribution $\tilde q$, in the SIR step of the ICS method. %, as in \code{PYdensity} and \code{PYregression}.
+ 
+
+The base measure of the \code{DDPdensity} function is a normal-inverse gamma distribution with parameters  \code{m0}, \code{k0}, \code{a0} and \code{b0}, where the first two are mean and scale factor defining the normal base measure on the location parameter, and the latter two are shape and scale of the inverse gamma base measure on the scale parameter. These parameters can be specified as arguments of the named list \code{prior}.  Their default specification is such that the expectation of the location component of the base measure is equal to the overall sample mean, obtained by pooling the groups together, and the expectation of the scale component coincides to the overall sample variance. In addition, the \code{prior} list admits the argument \code{wei} ($z$ in the notation of Section \ref{sec:mod}), which is a parameter taking values in $(0,1)$ (default is $0.5$) and controlling the strength of the borrowing of information across groups. Finally, notice that, for  the \code{DDPdensity} function, the argument \code{discount} is fixed equal to $0$ while one can tune the argument \code{strength} (1 by default), corresponding to the parameter $\vartheta$ in the specification of the univariate location-scale DDP mixture model in Section \ref{sec:mod}.
+
+\subsubsection{Other functions}
+
+
+
+The \code{PYdensity}, \code{PYregression}, and \code{DDPdensity} functions return an object of class \code{BNPdens}. The \code{plot} method, extended to the \code{BNPdens} class by means of the \pkg{ggplot2} package, produces a plot of the estimated posterior mean density function. Based on the type of model and the dimension of the data, \code{plot} can be called with additional arguments. Specifically:
+
+\begin{itemize}
+	\item if the \code{BNPdens} object is produced by \code{PYdensity} and data are univariate, \code{plot} admits the argument \code{show_hist}, a logical argument which returns the histogram of the raw data along with the posterior density. The size of the bins can be set with \code{bin\_size}. Observations can be displayed on the $x$-axis by specifying \code{show_points = TRUE}. Moreover, if also \code{show_clust = TRUE}, the displayed observations are coloured based on the estimated clustering. The \code{col} argument controls the colour of the estimated posterior density. Pointwise posterior credible bands of level \code{conf_level} around the posterior mean densities can be added by setting \code{show_bands = TRUE}; 
+	\item if the \code{BNPdens} object is produced by \code{PYdensity} and data are multivariate,  \code{plot} generates, for the pair of variables indexed by \code{dimension}, the bivariate contour plot of the corresponding bivariate marginal density function. Adding \code{show_points = TRUE} or \code{show_clust = TRUE}, allows to display the observations in the contour plot and to colour them based on the estimated clustering; % as for the univariate case;
+	\item if the \code{BNPdens} object is produced by \code{PYregression} and the number of covariates does not exceed four, the \code{plot} function returns the scatterplot of the observations coloured according to the estimated clustering;
+	\item if the \code{BNPdens} object is produced by \code{DDPdensity} and thus data consist of two or more subgroups, the \code{plot} function returns a wrapped plot, with each subplot corresponding to a specific group. An additional argument specific to the output of \code{DDPdensity} is \code{wrap\_dim}, which allows to choose the number of rows and columns in the plot.
+\end{itemize}
+
+Other methods have been extended to the \code{BNPdens} class. The \code{print} method returns details on the \code{BNPdens} object and the model which produced it. 
+%, and thus prints whether it is the result of an estimation of an univariate PY mixture model, a multivariate PY mixture model, a regression PY mixture model or a DDP mixture model. 
+The \code{summary} method returns some basic information on the model fitting, such as number of iterations, number of burn-in iterations, computational time and average number of clusters. The \code{partition} method, when applied to \code{BNPdens} objects, returns a point estimate for the clustering of the data, based on the partitions visited during the MCMC algorithm. %modelled via the described mixture models.
+This can be achieved by adopting two distinct loss functions, %the space of partitions: 
+namely the variation of information loss function (\code{dist = "VI"}) and Binder's loss function (\code{dist = "Binder"}). This method is an efficient \proglang{C++} implementation of the method described by \citet{Wad18}. 
+%
+The \pkg{BNPmix} package also includes a method, named \code{BNPdens2coda}, to interface objects of class \code{BNPdens} with the \pkg{coda} package. For univariate PY mixture models, the \code{BNPdens2coda} method exports a matrix, whose first row reports the number of blocks of the partitions visited by the chain, while each one of the remaining rows is composed by the values taken by the density at each point of the grid (\code{grid}), at different iterations of the MCMC algorithm. For multivariate and regression PY mixture models, the \code{BNPdens2coda} method exports only a vector with the number of blocks of the partitions visited by the chain. For DDP mixture models the \code{BNPdens2coda} method exports a matrix whose first row reports the number of clusters of the partition visited by the chain, while the other rows report the values taken by the weights of the group specific processes at each iteration.
+%
+Finally, the \code{PYcalibrate} function allows to elicit the strength parameter of the Pitman-Yor process by specifying the sample size and by fixing the discount parameter and 
+the expected number of clusters a priori. 
+
+
+	\subsection{Package scalability}
+	
+	Considering the variety of models implemented in the \pkg{BNPmix} package and the possibility to fit these models to data sets with different levels of complexity in terms of size ($n$), dimension ($p$), presence and number of covariates ($d$) and  number of groups ($L$), we briefly comment on the scalability of the package with respect to these quantities. 
+	Based on our experience, when considering the default specifications and without taking into account the time needed to evaluate estimated densities on a given grid of values (i.e., \code{output\$out_type = "CLUST"}), the average time per iteration for the functions \code{PYdensity}, \code{PYregression}, and  \code{DDPdensity}, 
+	displays a linear grow as the sample size $n$ becomes large. 
+The runtime is also affected by the complexity of the data. Specifically, assuming $n$ is kept fixed, a growth faster than linear is observed both when the dimension $p$ in \code{PYdensity} and when the number of covariates $d$ in \code{PYregression} increase. Finally, the function \code{DDPdensity} shows a roughly linear growth of its average time per iteration as the number of groups $L$ becomes large. 
+	The described behaviour of \code{PYdensity}, \code{PYregression} and \code{DDPdensity} is not surprising as it is well known that MCMC %-based procedures 
+	methods are severely affected by the dimension of the space that has to be explored by the chain, that is the support of the posterior distribution for the functions implemented in \pkg{BNPmix}, which is ultimately connected to the quantities discussed above. Evaluating the generated densities on a given grid of points at each iteration of an MCMC algorithm can severely affect computational efficiency, issue which is particularly relevant for large dimensions $p$ in \code{PYdensity} or number of covariates $d$ in \code{PYregression}. Note, however, that \pkg{BNPmix} conveniently allows users to specify the type of desired output (see Section \ref{sec:tuning}), thus avoiding unnecessary computations if not needed. 
+
+
+%====================================================
+
+\section{Usage of the package} 
+\label{sec:usage}
+We next illustrate the use of the \pkg{BNPmix} package by walking the reader through the entire process of density estimation, clustering and regression, via BNP mixture models. % under the BNP setup. 
+We start by showing how to elicit prior distribtuions, how to run the sampler, and how to process the output of the functions, for inferential purposes. In order to do this, we analyze different subsets of the Collaborative Perinatal Project (CPP) data set \citep{Kle09}, as well as synthetic data. The CPP data set is a rich collection of observations referring to a large prospective study conducted in the United States in the '60s. The goal of the study was to assess the cause of neurological disorders and other pathologies in children. The full data set counts more than 2\,300 observations, each consisting of several measurements referring to pregnant women and their babies. The focus of our illustrative analysis is on three quantities: the  gestational age (in weeks), the weight of the baby at birth (in \si{\gram}), and the concentration level in maternal serum of DDE (in \si{\micro\gram\per\liter}), %$\mu$g/$l$), 
+a persistent metabolite of the pesticide DDT, known to have adverse impact on health \citep{Lon01}. This subset of the original data set is available in the \pkg{BNPmix} package via
+
+\begin{Schunk}
+\begin{Sinput}
+R> library("BNPmix")
+R> data("CPP")
+\end{Sinput}
+\end{Schunk}
+
+\subsection{Univariate density estimation}
+\label{sec:unidens}
+
+We illustrate here how to perform univariate density estimation and clustering, by focusing on the gestational age for a group of women belonging to one of the 12 university hospitals participating in the study. 
+
+\begin{Schunk}
+\begin{Sinput}
+R> y <- CPP[CPP$hosp == 11, ]
+\end{Sinput}
+\end{Schunk}
+
+We consider a DP location-scale mixture model, thus setting the discount parameter $\alpha = 0$. Previous studies show that the distribution of the gestational age is left skewed and shows an irregular shape due to the presence of three subpopulations corresponding to early preterm, preterm, and normal births. For this reason we fix the prior expected number of clusters to three and choose the value of strength parameter $\vartheta$ accordingly. This can be done by using the \code{PYcalibrate} function.
+
+\begin{Schunk}
+\begin{Sinput}
+R> DPprior <- PYcalibrate(Ek = 3, n = nrow(y), discount = 0)
+\end{Sinput}
+\end{Schunk}
+
+We endow the parameters of the base measure with hyperprior distributions with default parameters.  The complete prior specification for our BNP mixture model is specified as
+
+\begin{Schunk}
+\begin{Sinput}
+R> prior <- list(strength = DPprior$strength, discount = 0)
+\end{Sinput}
+\end{Schunk}
+
+Before running the MCMC algorithm (opting here and henceforth for the default ICS simulation method), we specify the number of MCMC iterations and the grid of points where to evaluate the density. This can be done with
+
+\begin{Schunk}
+\begin{Sinput}
+R> mcmc <- list(niter = 5000, nburn = 4000)
+R> output <- list(grid = seq(30, 46, length.out = 100), out_type = "FULL")
+\end{Sinput}
+\end{Schunk}
+
+Then MCMC algorithm can then be run by calling the \code{PYdensity} function and providing all the previously defined lists.
+
+\begin{Schunk}
+\begin{Sinput}
+R> set.seed(42)
+R> fit1 <- PYdensity(y = y$gest, mcmc = mcmc, prior = prior, output = output)
+R> print(fit1)
+\end{Sinput}
+\begin{Soutput}
+BNPdens object
+Type: univariate density
+\end{Soutput}
+\end{Schunk}
+
+The plot of the posterior mean density is produced by calling the method \code{plot} on the fitted model \code{fit1}. The posterior mean density plot can be endowed with pointwise quantile-based posterior credible bands, histogram of the raw data, observations coloured according to the estimated clustering %of the observations 
+(obtained by calling the function \code{partition} within the method \code{plot}), or a combination of them. The two examples  displayed in Figure \ref{fig:univariate} have been produced by the following code:
+
+\begin{Schunk}
+\begin{Sinput}
+R> plot(fit1, show_hist = TRUE, xlab = "gestational age")
+R> plot(fit1, bands = FALSE, show_clust = TRUE, xlab = "gestational age")
+\end{Sinput}
+\end{Schunk}
+
+\begin{figure}[h]
+   \centering
+	\includegraphics[width=0.45\textwidth]{Figures/univariate}
+	\includegraphics[width=0.45\textwidth]{Figures/univariate2}
+   \caption{Posterior mean density of \code{gest} in the 11th hospital and (left) 95\% pointwise posterior credible bands along with the histogram of the raw data and (right) observations coloured according to the estimated clustering.}
+   \label{fig:univariate}
+\end{figure}
+
+
+\subsection{Multivariate density estimation}
+
+Next we illustrate how to perform density estimation and model-based clustering for multivariate data. The first illustration focuses on the three continuous variables composing the \code{CPP} data set. The goal of the analysis is to provide an estimate of the joint trivariate density function of the variables gestational age,  DDE (after a logarithmic transformation), and weight at birth.
+
+\begin{Schunk}
+\begin{Sinput}
+R> y <- cbind(CPP$gest, log(CPP$dde), CPP$weight)
+\end{Sinput}
+\end{Schunk}
+
+
+Given the lack of precise prior information on the clustering structure of the data when these three variables are concerned, we consider a PY mixture model with discount parameter $\alpha = 0.5$ and strength parameter $\vartheta$ equal to 1. We also assume hyperprior distributions on the parameters of the base measure and adopt the default empirical specification for the corresponding hyperparameters.% with an empirical approach, {\color{red}corresponding to the default choice. }
+
+\begin{Schunk}
+\begin{Sinput}
+R> prior <- list(strength = 1, discount = 0.5)
+\end{Sinput}
+\end{Schunk}
+
+We specify the remaining arguments of \code{PYdensity} and run the MCMC algorithm  with
+
+\begin{Schunk}
+\begin{Sinput}
+R> grid <- expand.grid(seq(30, 46, length.out = 25),
++    seq(0.7, 5.2, length.out = 25), seq(0, 130, length.out = 25))
+R> output <- list(grid = grid, out_type = "FULL")
+R> mcmc <- list(niter = 5000, nburn = 4000)
+R> set.seed(42)
+R> fit2 <- PYdensity(y = y, mcmc = mcmc, prior = prior, output = output)
+\end{Sinput}
+\end{Schunk}
+
+Posterior mean densities, univariate marginal or bivariate marginal (collected and displayed in Figure \ref{fig:mosaic}), can be produced by calling the method \code{plot} as follows:
+%In order to plot the posterior mean marginal univariate or bivariate densities (collected in Figure \ref{fig:mosaic}) we can call the method \code{plot} as follows 
+
+\begin{Schunk}
+\begin{Sinput}
+R> p12 <- plot(fit2, dim = c(1, 2), show_clust =  TRUE, 
++    xlab = "gestational age", ylab = "log(DDE)")
+R> p21 <- plot(fit2, dim = c(2, 1), show_clust = TRUE, 
++    ylab = "gestational age", xlab = "log(DDE)")
+R> p13 <- plot(fit2, dim = c(1, 3), show_clust = TRUE,  
++    xlab = "gestational age", ylab = "weight")
+R> p23 <- plot(fit2, dim = c(2, 3), show_clust = TRUE,  
++    xlab = "log(DDE)", ylab = "weight")
+R> p32 <- plot(fit2, dim = c(3, 2), show_clust = TRUE,  
++    ylab = "log(DDE)", xlab = "weight")
+R> p31 <- plot(fit2, dim = c(3, 1), show_clust = TRUE,  
++    ylab = "gestational age", xlab = "weight")
+R> p1 <- plot(fit2, dim = c(1, 1), show_clust = TRUE,  
++    xlab = "gestational age", ylab = "density")
+R> p2 <- plot(fit2, dim = c(2, 2), show_clust = TRUE,  
++    xlab = "log(DDE)", ylab = "density")
+R> p3 <- plot(fit2, dim = c(3, 3), show_clust = TRUE,  
++    xlab = "weight", ylab = "density")
+R> gridExtra::grid.arrange(p1, p12, p13, p21, p2, p23, p31, p32, p3,
++    layout_matrix = matrix(1:9, 3, 3))
+\end{Sinput}
+\end{Schunk}
+
+\begin{figure}[h!]
+   \centering
+	\includegraphics[width=0.85\textwidth]{Figures/mosaic}
+   \caption{Posterior mean densities, univariate marginal and pairwise bivariate marginal, obtained by calling \code{plot} on the fitted model \code{fit2}. In addition to the posterior mean density value, each pairwise bivariate density shows the data points coloured according to the estimated clustering.}
+   \label{fig:mosaic}
+\end{figure}
+
+
+A second illustration of the usage of \code{PYdensity} focuses on model-based clustering only, and considers observations of a larger dimension. To this end, we consider a synthetic data set and estimate the clustering structure induced by a BNP model assuming a more parsimonious location-scale mixture specification where each Gaussian component has a diagonal covariance matrix. This is done by specifying the option \code{model = "DLS"} in the \code{mcmc} list.
+
+\begin{Schunk}
+\begin{Sinput}
+R> output = list(out_type = "CLUST")
+R> mcmc <- list(niter = 5000, nburn = 4000, model = "DLS")
+\end{Sinput}
+\end{Schunk}
+
+A sample of 100 synthetic observations of dimension $p = 25$ is simulated from a mixture of two Gaussians and one Student-$t$ distribution. Given this simulation framework, we might expect to observe two regions of the sample space dense of observations, and a moderate number of observations, generated from the heavy tailed mixture component, which are likely to constitute singleton clusters in our model-based clustering analysis. The code to simulate these data is
+
+\begin{Schunk}
+\begin{Sinput}
+R> p <- 25
+R> set.seed(42)
+R> ysim <- rbind(
++    mnormt::rmnorm(50, mean = rep(1, p), varcov = diag(1, p)),
++    mnormt::rmnorm(40, mean = seq(from = 1, to = 5, length.out = p), 
++    varcov = diag(1, p)),
++    matrix(rt(10*p, df = 1), 10, p))
+R> ysim <- scale(ysim)
+\end{Sinput}
+\end{Schunk}
+
+We run the MCMC with the following prior specification:
+
+\begin{Schunk}
+\begin{Sinput}
+R> prior <- list(strength = 10, discount = 0.5, hyper = TRUE)
+R> fit.sim <- PYdensity(y = ysim, mcmc = mcmc, prior = prior, 
++    output = output)
+\end{Sinput}
+\end{Schunk}
+
+
+The clustering structure detected by the model fitted to the object \code{fit.sim} can be explored by using the function \code{partition}. 
+As point estimate, we consider the partition which, among those visited during the MCMC, minimises the posterior expected loss, where we work under the variation of information framework introduced and studied by \citet{Wad18} in the context of clustering estimation problems.
+
+\begin{Schunk}
+\begin{Sinput}
+R> fit.sim.part <- partition(fit.sim)
+R> table(fit.sim.part$partitions[3, ])
+\end{Sinput}
+\begin{Soutput}
+ 1  2  3  4  5  6  7  8  9 
+40  1  1  1  4  1  1 50  1 
+\end{Soutput}
+\end{Schunk}
+
+The data appear grouped into 9 clusters. The frequencies are consistent with the presence of two large clusters and seven small ones, five of which being singletons, arguably representing the 10\% of the data coming from the heavy-tailed Student-$t$ distribution. Further insight on the clustering structure of the data can be gained by visualising the estimated dissimilarity matrix with
+
+\begin{Schunk}
+\begin{Sinput}
+R> dissmat <- as.dist(1 - fit.sim.part$psm)
+R> clus <- hclust(dissmat)
+R> heatmap(as.matrix(dissmat), Colv = as.dendrogram(hclust(dissmat)), 
++    Rowv = NA)
+\end{Sinput}
+\end{Schunk}
+%
+The dendrogram obtained with the complete linkage through the \code{hclust} function (displayed in Figure \ref{fig:dendro}) clearly shows the presence of two main clusters. The remaining small clusters, while distinct in our analysis, can be interpreted as one group of outlying observations, in agreement with the simulation scenario we devised. 
+
+\begin{figure}[h]
+   \centering
+	\includegraphics[width=0.6\textwidth]{Figures/dendro}
+   \caption{Dissimilarity matrix %(obtained as the complement of the similarity matrix) 
+   returned by \code{partition(fit.sim)}, obtained by using \citet{Wad18}'s method with variation of information loss function (\code{dist = "VI"}). }
+   \label{fig:dendro}
+\end{figure}
+
+
+\subsection{Density regression}
+
+In order to illustrate the usage of the \code{PYregression} function, we study how the distribution of gestational age changes with DDE. Following the same argument as in Section \ref{sec:unidens}, we fix the prior expected number of clusters to 3 and, given a moderate discount parameter $\alpha = 0.25$, we elicit the strength parameter via \code{PYcalibrate}. We opt for the default specification of the other hyperparameters and summarise our prior assumptions with the code
+
+\begin{Schunk}
+\begin{Sinput}
+R> PYpar <- PYcalibrate(Ek = 3, n = nrow(CPP), discount = 0.25)
+R> prior <- list(strength = PYpar$strength, discount = PYpar$discount)
+\end{Sinput}
+\end{Schunk}
+
+As summary of the posterior distribution, we compute the estimated conditional density of \code{gest}, conditionally on 6 values of \code{dde} equal to the minimum observed value and the empirical quantiles of order 0.25, 0.5, 0.75, 0.95, and 0.99.
+
+\begin{Schunk}
+\begin{Sinput}
+R> grid_y <- seq(26, 47, length.out = 100)
+R> grid_x <- round(quantile(CPP$dde, c(0, 0.25, 0.5, 0.75, 0.95, 0.99)))
+R> mcmc <- list(niter = 5000, nburn = 4000)
+R> output <- list(grid_x = grid_x, grid_y = grid_y, 
++    out_type = "FULL", out_param = TRUE)
+R> set.seed(42)
+R> fit.reg <- PYregression(y = CPP$gest, x = CPP$dde, prior = prior,
++    mcmc = mcmc, output = output)
+\end{Sinput}
+\end{Schunk}
+
+
+We next plot the posterior mean conditional density of \code{gest}, given the values of \code{dde} in \code{grid_x}. In doing this, we exploit all the information contained in the object \code{fit.reg}, which allows us to compute also pointwise posterior credible bands for the estimated densities. 
+
+
+\begin{Schunk}
+\begin{Sinput}
+R> regplot <- data.frame(
++    dens = as.vector(apply(fit.reg$density, c(1, 2), mean)), 
++    qlow = as.vector(apply(fit.reg$density, c(1, 2), 
++    quantile, probs = 0.025)), 
++    qupp = as.vector(apply(fit.reg$density, c(1, 2), 
++    quantile, probs = 0.975)), 
++    grid = rep(grid_y, 6), 
++    label = factor(rep(paste("DDE = ", grid_x), each = length(grid_y)),
++    level = rep(paste("DDE = ", grid_x))))
+R> ggplot2::ggplot(regplot) + theme_bw() + 
++    geom_line(data = regplot, map = aes(x = grid, y = dens)) + 
++    geom_ribbon(data = regplot, map = aes(x = grid, ymin = qlow, 
++    ymax = qupp), fill = "blue", alpha = 0.3) + 
++    facet_wrap(~label, ncol = 3, nrow = 2) + 
++    labs(x = "gestational age", y = "density")
+\end{Sinput}
+\end{Schunk}
+
+
+\begin{figure}[h]
+   \centering
+	\includegraphics[width=.9\textwidth]{Figures/regression}
+   \caption{Posterior mean conditional  univariate densities (and 95\% pointwise credible bands) of \code{gest}, conditionally on the values of \code{dde} reported in the plots' headers.}
+   \label{fig:regression}
+\end{figure}
+
+
+The results  displayed in Figure~\ref{fig:regression} show, for increasing values of \code{dde}, a deflation of the mode around 40 weeks of pregnancy and an inflation of the left tail of the distribution (corresponding to preterm births). This is an expected behaviour, possibly due to the negative effect of DDE on gestational age \citep{Lon01}. For a related discussion involving a different BNP mixture approach see \citet{Can18}. 
+
+
+
+\subsection{Density estimation for correlated samples}
+
+We conclude this section by illustrating the usage of the \code{DDPdensity} function. The CPP data set consists of observations coming from 12 hospitals: while assuming homogeneity within each hospital seems reasonable, we opt for a model which might account for heterogeneity across hospitals and thus consider the GM-DDP mixture model with Gaussian kernels, described in Section \ref{sec:mod}. We use an empirical approach and center the base measure parameters on sample summaries, as by default.
+
+\begin{Schunk}
+\begin{Sinput}
+R> mcmc <- list(niter = 5000, nburn = 4000)
+R> grid <- seq(30, 46, length.out = 100)
+R> output <- list(grid = grid, out_type = "FULL")
+\end{Sinput}
+\end{Schunk}
+
+The lists defined above are supplied as arguments to the function \code{DDPdensity}, which can be run to estimate the posterior mean densities for the 12 hospitals. The latter can be visualized by running the method \code{plot} on the output of \code{DDPdensity}.
+
+\begin{Schunk}
+\begin{Sinput}
+R> fit.ddp <- DDPdensity(y = CPP$gest, group = CPP$hosp, mcmc = mcmc,
++    output = output)
+R> fit.ddp$group <- factor(CPP$hosp, 
++    labels = paste("Hospital ", levels(CPP$hosp)))
+R> plot(fit.ddp, wrap_dim = c(3, 4), ylab = "density", 
++    xlab = "gestational age")
+\end{Sinput}
+\end{Schunk}
+
+\begin{figure}[h]
+   \centering
+	\includegraphics[width=0.9\textwidth]{Figures/ddp}
+   \caption{Posterior mean densities and 95\% pointwise posterior credible bands of gestational age for the 12 hospitals.}
+   \label{fig:ddp}
+\end{figure}
+
+Figure \ref{fig:ddp} displays the estimated densities along with pointwise 95\% posterior credible bands. The model successfully accounts for heterogeneity across hospitals: this can be noticed, for example, by observing that the estimated densities for hospitals 3 and 5 are more skewed than those of most of the other hospitals in the study. At the same time, the model allows for borrowing information across hospitals displaying similar distributions: the result of this is apparent when the posterior density of \code{gest} for hospital 11 is compared with the one, for the same hospital, displayed in Figure \ref{fig:univariate} and obtained by ignoring information from other hospitals.
+
+\subsection*{Technical details}
+\label{sec:end}
+
+The results presented in this section were obtained by using an Ubuntu 20.04 machine. All the routines were executed on 
+\proglang{R}~4.0.0 with the
+\pkg{BNPmix}~0.2.7 package, dependent of 
+\pkg{Rcpp}~1.0.4.6 and \pkg{RcppArmadillo}~0.9.900.1.0 packages. \proglang{R} itself
+and all packages used are available from the Comprehensive
+\proglang{R} Archive Network (CRAN) at
+\url{https://CRAN.R-project.org/}.
+
+\section*{Acknowledgments}
+
+The authors wish to thank two anonymous referees and the guest editors of the special issue on Bayesian Statistics. Riccardo Corradin and Bernardo Nipoti  are grateful to the DEMS Data Science Lab for supporting this work by
+providing computational resources. Antonio Canale is supported by the University of Padova under the STARS Grant programme (acronym of the project: BNP-CD).
+
+
+\bibliography{BNPmix_ref}
+
+
+\newpage
+
+\begin{appendix}
+
+\section{Appendix}
+
+
+\subsection{Packages comparison}\label{sec:app_pkg}
+
+We compare state-of-the-art \proglang{R} packages for BNP inference. To this end, a list of the models implemented in \pkg{BNPmix} is presented in Table~\ref{tab:cfr1} along with the availability of the same models in other packages. Similarly, Table~\ref{tab:cfr2} compares the main technical features of \pkg{BNPmix} with those of other packages.
+
+\begin{table}[h]
+\centering
+\caption{Mixture models implemented in the package  \pkg{BNPmix} and availability of the same in other \proglang{R} packages for BNP inference via mixtures: \yeah$\,$ indicates the model is implemented, \nope$\,$ the model is not. The structure of the Gaussian kernel can be location (L), location-scale (LS) and, only for the multivariate case, location-scale with diagonal covariance matrix (DLS) as described in Section~\ref{sec:mod}.}
+\label{tab:cfr1}
+\begin{tabularx}{\textwidth}{ l|cc|ccccc|cc}
+\hline
+\multirow{3}{*}{package} & 
+\multicolumn{2}{c|}{\multirow{2}{*}{mixing process}} & 
+\multicolumn{5}{c|}{Gaussian kernel structure} & 
+\multicolumn{2}{c}{\multirow{2}{*}{dependent mixture}} \\ 
+ & & & \multicolumn{2}{c}{univariate} & \multicolumn{3}{c|}{multivariate} & & \\
+%\cline{2-10}
+ & 	DP & 	PY & 	L & 	LS & 	L & 	LS & 	DLS & 	GM-DDP & 	regression \\
+ \hline
+\pkg{BNPmix} &	\yeah & 	\yeah & 	\yeah & 	\yeah & 	\yeah & 	\yeah & 	\yeah & 	\yeah & 	\yeah \\
+\pkg{DPpackage} &	\yeah & 	\nope & 	\yeah & 	\yeah & 	\yeah & 	\yeah & 	\nope & 	\nope & 	\yeah \\
+\pkg{PreMiuM} &	\yeah & 	\yeah\footnotemark[1] & 	\nope & 	\yeah & 	\nope & 	\yeah & 	\nope & 	\nope & 	\yeah \\
+\pkg{BNPdensity} &	\yeah & 	\nope & 	\yeah & 	\yeah & 	\nope & 	\nope & 	\nope & 	\nope & 	\nope \\
+\pkg{dirichletprocess} &	\yeah & 	\nope & 	\nope & 	\yeah & 	\nope & 	\yeah & 	\nope & 	\nope & 	\nope \\
+\pkg{BNPMIXcluster} &	\yeah & 	\yeah & 	\nope & 	\nope & 	\nope & 	\nope & 	\nope & 	\nope & 	\nope \\
+\pkg{msBP} &	\nope & 	\nope & 	\nope & 	\nope & 	\nope & 	\nope & 	\nope & 	\nope & 	\nope \\
+\hline
+\end{tabularx}
+\vspace{0.1ex}
+
+     {$^1$ \footnotesize{PY mixtures are implemented only by approximating the PY process via deterministic truncation.}}
+\end{table}
+%\footnotetext[1]{prova}
+
+\begin{table}[h]
+\centering
+\caption{Main technical features of the \pkg{BNPmix} package and comparison with other \proglang{R} packages for BNP models using MCMC. The sampling methods considered in the table are marginal \citep{Esc95}, dependent slice efficient \citep{Kal11}, independent slice efficient \citep{Kal11}, ICS \citep{Can19}, marginal algorithm 8 \citep{Nea00}, truncated sampler \citep{Ish00a}, label switching move \citep{Has15} for the truncated sampler, Ferguson and Klass algorithm \citep{Fer72,Bar13}, and the slice sampler for multi-scale Bernstein polynomials \citep{Can16}.} 
+\label{tab:cfr2}
+\begin{tabular}{llccc}
+\hline
+\multirow{2}{*}{package}&\multirow{2}{*}{sampling method}& \multicolumn{2}{c}{programming language} & S3 \\
+ & & core functions & MCMC loop & system \\
+\hline
+\multirow{4}{*}{\pkg{BNPmix}} &
+Marginal 
+& \multirow{4}{*}{\proglang{C++}} & \multirow{4}{*}{\proglang{C++}} & \multirow{4}{*}{\yeah} \\
+& Slice dependent & & & \\
+& Slice independent
+& & & \\
+& ICS 
+ & & & \\
+\hline
+ \multirow{2}{*}{\pkg{DPpackage}}& Marginal 
+	 & \multirow{2}{*}{\proglang{Fortran}} & 	\multirow{2}{*}{\proglang{Fortran}} & 	\multirow{2}{*}{\nope} \\ 
+ &  Marginal algorithm 8 & & & \\ 
+ \hline
+\multirow{4}{*}{\pkg{PreMiuM}} &	
+Truncated sampler & 	\multirow{4}{*}{\proglang{C++}} & \multirow{4}{*}{\proglang{C++}} & 	\multirow{4}{*}{\nope} \\
+& Slice dependent (not for PY) & & & \\
+& Slice independent (not for PY) & & & \\
+& Label switching move & & & \\
+\hline
+\pkg{BNPdensity} & Ferguson and Klass & 	\proglang{R} & 	\proglang{R} & 	\yeah \\ \hline
+\multirow{2}{*}{\pkg{dirichletprocess}} &	 Marginal  & 	\multirow{2}{*}{\proglang{R}} & \multirow{2}{*}{\proglang{R}} & \multirow{2}{*}{\yeah} \\
+& Marginal algorithm 8  & & & \\
+\hline
+\pkg{BNPMIXcluster} &  Marginal algorithm 8 & 	\proglang{C++} & 	\proglang{R} & 	\nope \\ \hline
+\pkg{msBP} &	Slice sampler & 	\proglang{C++} & 	\proglang{R} & 	\nope \\\hline 
+\end{tabular}
+\end{table}
+
+\clearpage
+
+\subsection{Base measures and hyperdistributions}
+\label{app:distr}
+
+Table \ref{app:dist} summarizes the base measures and the hyperdistributions on the base measures parameters, for the specifications of univariate and multivariate PY mixture models with Gaussian kernels, described in Section \ref{sec:mod}. The focus of the table is on the models that can be fitted by using \code{PYdensity}. The top part of the table refers to the models without hyperpriors on the parameters of the base measure (\code{hyper = FALSE}), the bottom part  (\code{hyper = TRUE}) instead describes the specification of the hyperpriors.
+
+\begin{table}[h]
+	\center
+	\caption{Base measures and optional hyperprior distributions on the parameters of the base measures, for location (L), location-scale (LS) and, only for the multivariate case, location-scale with diagonal covariance matrix (DLS) PY mixture models. As for the multivariate location-scale PY mixture model with diagonal covariance matrix, assume that $r=1,\ldots,p$.}
+	\label{app:dist}
+	\begin{tabular}{c|ll}
+	\hline
+		\code{hyper = FALSE}   & Univariate                                                                                                                                                 & Multivariate                                                                                                                                                        \\ \hline
+		L        & \begin{tabular}[c]{@{}l@{}}$\tilde \mu_j \sim \N(m_0, \sigma_0^2)$\\ $\sigma^2 \sim \iga(a_0, b_0)$\end{tabular}                                                     & \begin{tabular}[c]{@{}l@{}}$\tilde \bmu_j \sim \N(\bM_0, \bS_0)$\\ $\bSigma \sim \IW(\nu_0, \bSigma_0)$\end{tabular}                                                         \\ \hline
+		LS & \begin{tabular}[c]{@{}l@{}}$\tilde \mu_j \mid \tilde \sigma_j^2 \sim \N(m_0, \tilde \sigma_j^2 / k_0)$\\ $\tilde \sigma^2_j \sim \iga(a_0, b_0)$\end{tabular}                             & \begin{tabular}[c]{@{}l@{}}$\tilde \bmu_j \mid \tilde \bSigma_j \sim \N(\bM_0, \tilde \bSigma_j / k_0)$\\ $\tilde \bSigma_j \sim \IW(\nu_0, \bSigma_0)$\end{tabular}                              \\ \hline
+		DLS &                                                                                                                               & \begin{tabular}[c]{@{}l@{}}$\tilde\mu_{jr} \mid \tilde\sigma_{jr}^2 \sim \N(m_{0r}, \tilde\sigma_{jr}^2 / k_{0r})$\\ $\tilde\sigma^2_{jr} \sim \iga(a_{0r}, b_{0r})$\end{tabular}      \\ \hline\hline
+		\code{hyper = TRUE} & Univariate                                                                                                                                                 & Multivariate                                                                                                                                                        \\ \hline
+		L        & \begin{tabular}[c]{@{}l@{}}$m_0 \mid \sigma_0^2 \sim \N(m1, \sigma_0^2 / k1)$\\ $\sigma_0^2 \sim \iga(a_1, b_1)$ %\\ $\sigma^2 \sim \iga(a_0, b_0)$
+		\end{tabular}& \begin{tabular}[c]{@{}l@{}}$\bM_0 \mid \bS_0 \sim \N(m1, \bS_0 / k1)$\\ $\bS_0 \sim \IW(\lambda_1, \bLambda_1)$ %\\ $\bSigma \sim \IW(\nu_0, \bSigma_0)$
+		\end{tabular}     
+		\\ \hline
+		LS & \begin{tabular}[c]{@{}l@{}}$m_0  \sim \N(m_1, \sigma_1^2)$\\ $k_0 \sim \ga(\tau_1, \zeta_1)$ \\ $b_0 \sim \ga(a_1, b_1)$\end{tabular}                            & \begin{tabular}[c]{@{}l@{}}$\bM_0  \sim \N(\bM_1, \bS_1)$\\ $k_0 \sim \ga(\tau_1, \zeta_1)$ \\ $\bSigma_0 \sim \W(\nu_1, \bSigma_1)$\end{tabular}                        \\ \hline
+		DLS  &                                                                                                                                                            & \begin{tabular}[c]{@{}l@{}}$m_{0r}  \sim \N(m_{1r}, \sigma_{1r}^2)$\\ $k_{0r} \sim \ga(\tau_{1r}, \zeta_{1r})$ \\ $b_{0r} \sim \ga(a_{1r}, b_{1r})$\end{tabular}\\\hline
+	\end{tabular}
+\end{table}
+
+For the sake of clarity and in order to avoid any ambiguity, Table \ref{tab:par} reports the parametrization of the relevant probability distributions, adopted throughout the paper. 
+
+
+\begin{table}[h]
+	\center
+	\caption{Parametrizations of the probability distributions used throughout the paper. Multivariate distributions are assumed of dimension $p$. As for the Wishart and the inverse Wishart distribution, only the $(j,l)$th element of the covariance matrix is reported .}\label{tab:par} 
+	\resizebox{\textwidth}{!}{
+\setlength\tabcolsep{2.5pt}
+	\begin{tabular}{l|c|c|c|c}
+	\hline
+	Distribution & Notation & Parameters & Expectation & Variance/Covariance \\
+	\hline
+	Univ. normal & $\N(\mu, \sigma^2)$ & $\mu$ (location), $\sigma^2$ (scale) & $\mu$ & $\sigma^2$ \\
+	Mult. normal& $\N_p(\bmu, \bSigma)$ & $\bmu$ (location), $\bSigma$ (scale) & $\bmu$ & $\bSigma$ \\
+	Gamma & $\mbox{Ga}(a,b)$ & $a$ (shape), $b$ (rate) &  $a/b$ & $a/b^2$\\
+	Inverse gamma & $\mbox{IGa}(a,b)$ & $a$ (shape), $b$ (scale) & $\frac{b}{a - 1}$ & $\frac{(b - 1)^2}{(a - 1)^2 (b - 1)}$	\\
+	Wishart & $\W(\nu, \bS)$  & $\nu$ (d.o.f.), $\bS$ (scale) & $\nu \bS$ & $\nu(\bS_{jl}^2 + \bS_{jj}\bS_{ll})$\\%\footnote{\textcolor{red}{covariance for the $(j,l)$th component}} \\
+	Inverse Wishart & $\IW(\nu, \bS)$ & $\nu$ (d.o.f.), $\bS$ (scale) & $\frac{\bS}{\nu - p - 1}$ & $\frac{(\nu - p + 1)\bS^2_{jl} + (\nu - p - 1)\bS_{jj}\bS_{ll}}{(\nu - p)(\nu - p - 1)^2 (\nu - p - 3)}$\\
+	\hline
+	\end{tabular}
+	}
+	\end{table}
+
+
+\end{appendix}
+
+%% -----------------------------------------------------------------------------
+
+
+\end{document}

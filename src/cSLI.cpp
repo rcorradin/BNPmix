@@ -84,9 +84,9 @@ Rcpp::List cSLI_L(arma::vec data,
   int n = data.n_elem;
 
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::vec> result_mu;
+  arma::field<arma::vec> result_mu(niter - nburn);
   arma::vec result_s2(niter - nburn);
-  std::list<arma::vec> result_probs;
+  arma::field<arma::vec> result_probs(niter - nburn);
   arma::mat result_dens(niter - nburn, grid.n_elem);
   arma::vec n_clust(niter - nburn);
   result_dens.fill(0);
@@ -195,9 +195,9 @@ Rcpp::List cSLI_L(arma::vec data,
 
     // save the results
     if(iter >= nburn){
-      result_mu.push_back(mu);
+      result_mu(iter - nburn) = mu;
       result_s2(iter - nburn) = s2;
-      result_probs.push_back(w);
+      result_probs(iter - nburn) = w;
       n_clust(iter - nburn) = w.n_elem;
       if(out_dens){
         result_dens.row(iter - nburn) = arma::trans(eval_density_L(grid, mu, s2, w));
@@ -317,9 +317,9 @@ Rcpp::List cSLI(arma::vec data,
   int n = data.n_elem;
 
   arma::mat result_clust(niter - nburn, n);
-  std::list<arma::vec> result_mu;
-  std::list<arma::vec> result_s2;
-  std::list<arma::vec> result_probs;
+  arma::field<arma::vec> result_mu(niter - nburn);
+  arma::field<arma::vec> result_s2(niter - nburn);
+  arma::field<arma::vec> result_probs(niter - nburn);
   arma::mat result_dens(niter - nburn, grid.n_elem);
   result_dens.fill(0);
 
@@ -436,9 +436,9 @@ Rcpp::List cSLI(arma::vec data,
     // save the results
     if(iter >= nburn){
       if(out_param){
-        result_mu.push_back(mu);
-        result_s2.push_back(s2);
-        result_probs.push_back(w);
+        result_mu(iter - nburn) = mu;
+        result_s2(iter - nburn) = s2;
+        result_probs(iter - nburn) = w;
       }
       if(out_dens){
         result_dens.row(iter - nburn) = arma::trans(eval_density(grid, mu, s2, w));

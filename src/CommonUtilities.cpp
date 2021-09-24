@@ -18,7 +18,8 @@
 
 #include "RcppArmadillo.h"
 #include "Distributions.h"
-// [[Rcpp::depends("RcppArmadillo")]]
+#include "RcppDist.h"
+// [[Rcpp::depends("RcppArmadillo", "RcppDist")]]
 
 /*==================================================================================
  * freq_vec - compute frequencies
@@ -62,6 +63,40 @@ arma::vec eval_density(arma::vec grid,
   for(arma::uword j = 0; j < mu.n_elem; j++){
     result += probs[j] * normpdf(grid, mu[j], sqrt(s2[j]));
   }
+  return(result);
+}
+
+/*==================================================================================
+ * eval_density MAR - evaluate density with gaussian kernel
+ *
+ * args:
+ * - grid,  a grid of points where the density has to be evaluated
+ * - mu,    a vector of location parameters
+ * - s2,    a vector of scale parameters
+ * - probs, a vector of weights of the mixtures
+ *
+ * return:
+ * - a vector of density values on grid's points
+ ==================================================================================*/
+
+arma::vec eval_density_MAR(arma::vec grid,
+                       arma::vec mu,
+                       arma::vec s2,
+                       arma::vec probs,
+                       double m0,
+                       double k0,
+                       double a0,
+                       double b0){
+  probs = probs / sum(probs);
+  arma::vec result(grid.n_elem, arma::fill::zeros);
+  for(arma::uword j = 0; j < mu.n_elem; j++){
+    result += probs[j] * normpdf(grid, mu[j], sqrt(s2[j]));
+  }
+
+  for(arma::uword i = 0; i < grid.n_elem; i++){
+    result(i) += probs(mu.n_elem) * d_lst(grid(i), 2 * a0, m0, sqrt(b0 / a0 * (1.0 + 1.0 / k0)), false);
+  }
+
   return(result);
 }
 

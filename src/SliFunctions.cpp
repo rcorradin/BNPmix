@@ -578,9 +578,10 @@ void grow_param_SLI_PY(arma::vec &mu,
   int k_old = mu.n_elem;
   int k = w.n_elem;
 
+  double pw = pow(10.0, 5.0);
   while(sum((1 - u) < w_sum) < n){
 
-    if(k < pow(10.0, 5.0) - 1){
+    if(k < pw - 1){
       k = w.n_elem;
       v.resize(k + 1);
       w.resize(k + 1);

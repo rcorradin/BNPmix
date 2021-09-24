@@ -13,6 +13,15 @@ arma::vec eval_density(arma::vec grid,
                        arma::vec s2,
                        arma::vec probs);
 
+arma::vec eval_density_MAR(arma::vec grid,
+                           arma::vec mu,
+                           arma::vec s2,
+                           arma::vec probs,
+                           double m0,
+                           double k0,
+                           double a0,
+                           double b0);
+
 arma::vec eval_density_mv(arma::mat grid,
                           arma::mat mu,
                           arma::cube s2,
