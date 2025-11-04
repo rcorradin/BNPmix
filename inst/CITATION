@@ -1,0 +1,20 @@
+bibentry(bibtype = "Article",
+  title        = "{BNPmix}: An {R} Package for {B}ayesian Nonparametric Modeling via {P}itman-{Y}or Mixtures",
+  author       = c(person(given = "Riccardo",
+                          family = "Corradin",
+                          email = "riccardo.corradin@unimib.it"),
+                   person(given = "Antonio",
+                          family = "Canale",
+                          email = "canale@stat.unipd.it"),
+                   person(given = "Bernardo",
+                          family = "Nipoti",
+                          email = "bernardo.nipoti@unimib.it")),
+  journal      = "Journal of Statistical Software",
+  year         = "2021",
+  volume       = "100",
+  number       = "15",
+  pages        = "1--33",
+  doi          = "10.18637/jss.v100.i15",
+  header       = "To cite BNPmix in publications use:"
+)
+

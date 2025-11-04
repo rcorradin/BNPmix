@@ -77,8 +77,8 @@ Rcpp::List MAR_L(arma::vec data,
 
   // initialize results objects
   arma::mat result_clust(niter - nburn, n);
-  arma::field<arma::vec> result_mu;
-  arma::field<arma::vec> result_probs;
+  arma::field<arma::vec> result_mu(niter - nburn);
+  arma::field<arma::vec> result_probs(niter - nburn);
   // std::list<arma::vec> result_mu(niter - nburn);
   // std::list<arma::vec> result_probs(niter - nburn);
   arma::vec result_s2(niter - nburn);

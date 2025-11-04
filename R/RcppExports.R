@@ -256,8 +256,8 @@ MAR_mv_MKR_L <- function(y, covs, grid_response, grid_covs, niter, nburn, beta0,
 #'
 NULL
 
-cDDP <- function(data, group, ngr, grid, niter, nburn, m0, k0, a0, b0, mass, wei, napprox, n_approx_unif, nupd = 0L, out_dens = 1L, print_message = 1L, light_dens = 1L) {
-    .Call('_BNPmix_cDDP', PACKAGE = 'BNPmix', data, group, ngr, grid, niter, nburn, m0, k0, a0, b0, mass, wei, napprox, n_approx_unif, nupd, out_dens, print_message, light_dens)
+cDDP <- function(data, group, ngr, grid, niter, nburn, m0, k0, a0, b0, mass, wei, napprox, var_MH_step, nupd = 0L, out_dens = 1L, print_message = 1L, light_dens = 1L) {
+    .Call('_BNPmix_cDDP', PACKAGE = 'BNPmix', data, group, ngr, grid, niter, nburn, m0, k0, a0, b0, mass, wei, napprox, var_MH_step, nupd, out_dens, print_message, light_dens)
 }
 
 #' @export

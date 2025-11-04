@@ -64,7 +64,7 @@ Rcpp::List cDDP(arma::vec data,
                 double mass,
                 double wei,
                 int napprox,
-                int n_approx_unif,
+                double var_MH_step,
                 int nupd = 0,
                 bool out_dens = 1,
                 bool print_message = 1,
@@ -130,10 +130,12 @@ Rcpp::List cDDP(arma::vec data,
   ptilde(0).fill(1);
   clust.fill(0);
   temp_proc_cum.fill(1.0);
+  w.fill(wei);
 
   int start_s = clock();
   int current_s;
 
+  double temp2;
   //
   // STARTING
   // MAIN
@@ -143,12 +145,7 @@ Rcpp::List cDDP(arma::vec data,
   for(arma::uword iter = 0; iter < niter; iter++){
 
     //clean parameter objects
-    para_clean_DDP(mu,
-                    s2,
-                    clust,
-                    group,
-                    group_log,
-                    ngr);
+    para_clean_DDP(mu, s2, clust, group, group_log, ngr);
 
     // sample the probability vector
     // from Dirichlet distribution
@@ -161,49 +158,18 @@ Rcpp::List cDDP(arma::vec data,
         }
       } else {
         ptilde(g).resize(1);
-        double temp = arma::randg(1, arma::distr_param(1.0, 1.0))[0];
-        double temp2 = arma::randg(1, arma::distr_param(mass * wei, 1.0))[0];
-        ptilde(g)(0) =  temp2 / ( temp + temp2);
+        ptilde(g)(0) = 1.0;
       }
-
     }
 
     // update w
-    update_w_DDP(w,
-                  mass,
-                  wei,
-                  n_approx_unif,
-                  group_log,
-                  clust,
-                  group,
-                  temp_proc_cum,
-                  ngr);
+    update_w_DDP(w, mass, wei, var_MH_step, group_log, clust, group, temp_proc_cum, ngr);
 
     // acceleration step
-    accelerate_DDP(data,
-                    group,
-                    group_log,
-                    mu,
-                    s2,
-                    clust,
-                    m0,
-                    k0,
-                    a0,
-                    b0,
-                    ngr);
+    accelerate_DDP(data, group, group_log, mu, s2, clust, m0, k0, a0, b0, ngr);
 
     // simulate the required values
-    simu_trunc_DDP(mutemp,
-                    s2temp,
-                    freqtemp,
-                    mass,
-                    wei,
-                    m0,
-                    k0,
-                    a0,
-                    b0,
-                    napprox,
-                    ngr);
+    simu_trunc_DDP(mutemp, s2temp, freqtemp, mass, wei, m0, k0, a0, b0, napprox, ngr);
 
     // joint the existent parameters with
     // the simulated new ones
@@ -222,7 +188,7 @@ Rcpp::List cDDP(arma::vec data,
 
         mujoin(g) = mutemp(g);
         s2join(g) = s2temp(g);
-        probjoin(g) = freqtemp(g) / napprox;
+        probjoin(g) = freqtemp(g) / napprox * ptilde(g)(0);
       }
 
     }
@@ -236,19 +202,9 @@ Rcpp::List cDDP(arma::vec data,
       max_val(g - 1) = mujoin(g).n_elem;
     }
 
-
     // update cluster allocations
-    clust_update_DDP(data,
-                      group,
-                      group_log,
-                      mujoin_complete,
-                      s2join_complete,
-                      probjoin_complete,
-                      clust,
-                      temp_proc_cum,
-                      max_val,
-                      iter,
-                      ngr);
+    clust_update_DDP(data, group, group_log, mujoin_complete, s2join_complete,
+                     probjoin_complete, clust, temp_proc_cum, max_val, iter, ngr);
 
     mu = mujoin;
     s2 = s2join;
@@ -263,7 +219,6 @@ Rcpp::List cDDP(arma::vec data,
       // compute the density for each urn
       for(arma::uword g = 0; g < ngr; g++){
         if(out_dens){
-
           dens.col(g) = eval_density(grid, mujoin_complete(g),
                    s2join_complete(g), probjoin_complete(g));
         }

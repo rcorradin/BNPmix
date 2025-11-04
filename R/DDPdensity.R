@@ -34,6 +34,8 @@
 #'   \item \code{m_imp}, number of generated values for the importance sampling step of the
 #'   importance conditional sampler (default is 10). See \code{details}.
 #'
+#'   \item \code{var_MH_step}, variance of the Gaussian proposal for the Metropolis-Hastings of the weights update (default is 0.25).
+#'
 #' }
 #'
 #' @param prior a list giving the prior information, which contains:
@@ -76,23 +78,28 @@
 #'       P_0 (d\mu,d\sigma^2) = N(d \mu; m0, \sigma^2 / k0)  IGa(d \sigma^2; a0, b0).}
 #'
 #' Posterior sampling is obtained by implementing the importance conditional sampler (Canale et al., 2019).
+#' See Corradin et al. (to appear) for more details.
 #'
 #' @examples
 #' data_toy <- c(rnorm(50, -4, 1), rnorm(100, 0, 1), rnorm(50, 4, 1))
 #' group_toy <- c(rep(1,100), rep(2,100))
 #' grid <- seq(-7, 7, length.out = 50)
 #' est_model <- DDPdensity(y = data_toy, group = group_toy,
-#' mcmc = list(niter = 200, nburn = 100, napprox_unif = 50),
+#' mcmc = list(niter = 200, nburn = 100, var_MH_step = 0.25),
 #' output = list(grid = grid))
 #' summary(est_model)
 #' plot(est_model)
 #'
 #' @references
+#'
 #' Lijoi, A., Nipoti, B., and Pruenster, I. (2014). Bayesian inference with
-#' dependent normalized completely random measures. Bernoulli 20, 1260–1291.
+#' dependent normalized completely random measures. Bernoulli 20, 1260–1291, doi:10.3150/13-BEJ521
 #'
 #' Canale, A., Corradin, R., & Nipoti, B. (2019). Importance conditional sampling for
-#'  Bayesian nonparametric mixtures. arXiv preprint arXiv:1906.08147.
+#'  Bayesian nonparametric mixtures. arXiv preprint arXiv:1906.08147
+#'
+#' Corradin, R., Canale, A., Nipoti, B. (2021), BNPmix: An R Package for Bayesian Nonparametric Modeling via Pitman-Yor Mixtures,
+#' Journal of Statistical Software, doi:10.18637/jss.v100.i15
 
 
 DDPdensity <- function(y,
@@ -115,7 +122,7 @@ DDPdensity <- function(y,
   if(!is.null(mcmc$nupd) && (!is.numeric(mcmc$nupd)  | (mcmc$nupd<1))) stop("mcmc$nupd must be a positive integer")
   if(!is.null(mcmc$m_imp) && (!is.numeric(mcmc$m_imp) | (mcmc$m_imp<1))) stop("mcmc$m_imp must be a positive integer")
   if(!is.null(mcmc$print_message) & (!is.logical(mcmc$print_message))) stop("mcmc$print_message must be a logical value")
-  if(!is.null(mcmc$napprox_unif) && ((!is.numeric(mcmc$napprox_unif) | (mcmc$napprox_unif<1)))) stop("mcmc$napprox_unif must be a positive integer")
+  if(!is.null(mcmc$var_MH_step) && ((!is.numeric(mcmc$var_MH_step) | (mcmc$var_MH_step<0)))) stop("mcmc$var_MH_step must be a numerical positive value")
 
 
   if(!is.null(prior$m0) & !is.numeric(prior$m0)) stop("prior$m0 must be a numerical value")
@@ -131,7 +138,7 @@ DDPdensity <- function(y,
   nburn = mcmc$nburn
   nupd = ifelse(is.null(mcmc$nupd), round(niter / 10), mcmc$nupd)
   print_message = ifelse(is.null(mcmc$print_message), TRUE, mcmc$print_message)
-  napprox_unif = ifelse(is.null(mcmc$napprox_unif), 100, mcmc$napprox_unif)
+  var_MH_step = ifelse(is.null(mcmc$var_MH_step), 0.25, mcmc$var_MH_step)
   m_imp = ifelse(is.null(mcmc$m_imp), 10, mcmc$m_imp)
 
   # output
@@ -185,7 +192,7 @@ DDPdensity <- function(y,
                     strength,
                     wei,
                     m_imp,
-                    napprox_unif,
+                    var_MH_step,
                     nupd,
                     mcmc_dens,
                     print_message,

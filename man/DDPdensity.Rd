@@ -27,6 +27,8 @@ for the elements of \code{y};}
   \item \code{m_imp}, number of generated values for the importance sampling step of the
   importance conditional sampler (default is 10). See \code{details}.
 
+  \item \code{var_MH_step}, variance of the Gaussian proposal for the Metropolis-Hastings of the weights update (default is 0.25).
+
 }}
 
 \item{prior}{a list giving the prior information, which contains:
@@ -81,13 +83,14 @@ corresponding to full exchangeability (\code{wei}\eqn{\rightarrow 0})
       P_0 (d\mu,d\sigma^2) = N(d \mu; m0, \sigma^2 / k0)  IGa(d \sigma^2; a0, b0).}
 
 Posterior sampling is obtained by implementing the importance conditional sampler (Canale et al., 2019).
+See Corradin et al. (to appear) for more details.
 }
 \examples{
 data_toy <- c(rnorm(50, -4, 1), rnorm(100, 0, 1), rnorm(50, 4, 1))
 group_toy <- c(rep(1,100), rep(2,100))
 grid <- seq(-7, 7, length.out = 50)
 est_model <- DDPdensity(y = data_toy, group = group_toy,
-mcmc = list(niter = 200, nburn = 100, napprox_unif = 50),
+mcmc = list(niter = 200, nburn = 100, var_MH_step = 0.25),
 output = list(grid = grid))
 summary(est_model)
 plot(est_model)
@@ -95,8 +98,11 @@ plot(est_model)
 }
 \references{
 Lijoi, A., Nipoti, B., and Pruenster, I. (2014). Bayesian inference with
-dependent normalized completely random measures. Bernoulli 20, 1260–1291.
+dependent normalized completely random measures. Bernoulli 20, 1260–1291, doi:10.3150/13-BEJ521
 
 Canale, A., Corradin, R., & Nipoti, B. (2019). Importance conditional sampling for
- Bayesian nonparametric mixtures. arXiv preprint arXiv:1906.08147.
+ Bayesian nonparametric mixtures. arXiv preprint arXiv:1906.08147
+
+Corradin, R., Canale, A., Nipoti, B. (2021), BNPmix: An R Package for Bayesian Nonparametric Modeling via Pitman-Yor Mixtures,
+Journal of Statistical Software, doi:10.18637/jss.v100.i15
 }

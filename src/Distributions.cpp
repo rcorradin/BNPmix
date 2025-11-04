@@ -53,17 +53,12 @@ int rintnunif(arma::vec weights){
 int rintnunif_log(arma::vec lweights){
 
   double u = arma::randu();
-  arma::vec probs(lweights.n_elem);
+  arma::vec probs;
+  double mw = max(lweights);
 
-  // for(arma::uword k = 0; k < probs.n_elem; k++) {
-  //   probs(k) = 1 / sum(exp(lweights - lweights(k)));
-  // }
-
-  for(arma::uword k = 0; k < probs.n_elem; k++) {
-    probs(k) = 1 / sum(exp(lweights - lweights(k)));
-  }
-
-  probs = arma::cumsum(probs);
+  probs = exp(lweights - mw);
+  probs /= sum(probs);
+  probs = cumsum(probs);
 
   for(arma::uword k = 0; k < probs.n_elem; k++) {
     if(u <= probs[k]) {
@@ -72,6 +67,28 @@ int rintnunif_log(arma::vec lweights){
   }
   return -1;
 }
+//   double u = arma::randu();
+//   arma::vec probs(lweights.n_elem);
+//
+//   // for(arma::uword k = 0; k < probs.n_elem; k++) {
+//   //   probs(k) = 1 / sum(exp(lweights - lweights(k)));
+//   // }
+//
+//   // for(arma::uword k = 0; k < probs.n_elem; k++) {
+//   //   probs(k) = 1 / sum(exp(lweights - lweights(k)));
+//   // }
+//   double mlw = max(lweights);
+//   probs = exp(lweights + mlw);
+//
+//   probs = arma::cumsum(probs);
+//
+//   for(arma::uword k = 0; k < probs.n_elem; k++) {
+//     if(u <= probs[k]) {
+//       return k;
+//     }
+//   }
+//   return -1;
+// }
 
 /*==================================================================================
  * rintnunifw - sample NON-Uniform discrete distribution (plus mass)

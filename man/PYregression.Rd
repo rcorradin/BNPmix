@@ -114,7 +114,8 @@ at the cost of increased running time (Canale et al. 2019). When updateing the i
 \eqn{\theta}, Algorithm 8 of Neal, 2000, requires to sample \code{m_marginal} values from the base
 measure. \code{m_marginal} can be chosen arbitrarily. Two options are available for the slice sampler,
 namely the dependent slice-efficient sampler (\code{slice_type = 'DEP'}), which is set as default, and the
-independent slice-efficient sampler (\code{slice_type = 'INDEP'}) (Kalli et al. 2011).
+independent slice-efficient sampler (\code{slice_type = 'INDEP'}) (Kalli et al. 2011). See Corradin et al. (to appear)
+for more details.
 }
 \examples{
 x_toy <- c(rnorm(100, 3, 1), rnorm(100, 3, 1))
@@ -130,14 +131,17 @@ plot(est_model)
 }
 \references{
 Canale, A., Corradin, R., Nipoti, B. (2019), Importance conditional sampling for Bayesian nonparametric mixtures,
-arXiv preprint, 	arXiv:1906.08147
+arXiv preprint, arXiv:1906.08147
+
+Corradin, R., Canale, A., Nipoti, B. (2021), BNPmix: An R Package for Bayesian Nonparametric Modeling via Pitman-Yor Mixtures,
+Journal of Statistical Software, doi:10.18637/jss.v100.i15
 
 De Iorio, M., Mueller, P., Rosner, G.L., and MacEachern, S. (2004), An ANOVA Model for Dependent Random Measures,
-Journal of the American Statistical Association 99, 205-215
+Journal of the American Statistical Association 99, 205-215, doi:10.1198/016214504000000205
 
-Kalli, M., Griffin,  J. E., and Walker,  S. G. (2011), Slice sampling mixture models.
-Statistics and Computing 21, 93-105.
+Kalli, M., Griffin, J. E., and Walker, S. G. (2011), Slice sampling mixture models.
+Statistics and Computing 21, 93-105, doi:10.1007/s11222-009-9150-y
 
 Neal, R. M. (2000), Markov Chain Sampling Methods for Dirichlet Process Mixture Models,
-Journal of Computational and Graphical Statistics 9, 249-265.
+Journal of Computational and Graphical Statistics 9, 249-265, doi:10.2307/1390653
 }
