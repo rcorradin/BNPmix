@@ -3,3 +3,6 @@
 .RData
 .Ruserdata
 Icon?
+src/cICSHPY.cpp
+src/IcsHPYFunctions.cpp
+src/IcsHPYFunctions.h

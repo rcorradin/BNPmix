@@ -49,7 +49,7 @@
 
 void accelerate_MAR_L(arma::vec data,
                       arma::vec &mu,
-                      double s2,
+                      double &s2,
                       arma::vec clust,
                       double m0,
                       double s20,
@@ -230,7 +230,7 @@ void clust_update_MAR_PY_L(arma::vec data,
       probs[j] = log(arma::normpdf(data[i], mu(j), sqrt(s2))) + log(nj - sigma_PY);
     }
     probs[k] = log(mass + k * sigma_PY) + log(arma::normpdf(data[i],
-                                              (m0/s20 + data(i)/s2) * (1/ s20 + 1 / s2),
+                                              (m0/s20 + data(i)/s2) / (1/ s20 + 1 / s2),
                                               1 / (1 / s20 + 1 / s2)));
 
     // sample new
