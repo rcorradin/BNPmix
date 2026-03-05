@@ -202,31 +202,31 @@ NULL
 NULL
 
 MAR_L <- function(data, grid, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1, mass, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, hyper = 1L) {
-    .Call('_BNPmix_MAR_L', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1, mass, nupd, out_param, out_dens, sigma_PY, print_message, hyper)
+    .Call(`_BNPmix_MAR_L`, data, grid, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1, mass, nupd, out_param, out_dens, sigma_PY, print_message, hyper)
 }
 
 MAR <- function(data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, hyper = 1L) {
-    .Call('_BNPmix_MAR', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, nupd, out_param, out_dens, sigma_PY, print_message, hyper)
+    .Call(`_BNPmix_MAR`, data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, nupd, out_param, out_dens, sigma_PY, print_message, hyper)
 }
 
 MAR_mv_L <- function(data, grid, niter, nburn, m0, S20, S0, n0, m1, k1, theta1, Theta1, mass, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, light_dens = 1L, hyper = 1L) {
-    .Call('_BNPmix_MAR_mv_L', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, S20, S0, n0, m1, k1, theta1, Theta1, mass, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper)
+    .Call(`_BNPmix_MAR_mv_L`, data, grid, niter, nburn, m0, S20, S0, n0, m1, k1, theta1, Theta1, mass, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper)
 }
 
 MAR_mv <- function(data, grid, niter, nburn, m0, k0, S0, n0, m1, S1, tau1, tau2, theta1, Theta1, mass, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, light_dens = 1L, hyper = 1L) {
-    .Call('_BNPmix_MAR_mv', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, S0, n0, m1, S1, tau1, tau2, theta1, Theta1, mass, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper)
+    .Call(`_BNPmix_MAR_mv`, data, grid, niter, nburn, m0, k0, S0, n0, m1, S1, tau1, tau2, theta1, Theta1, mass, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper)
 }
 
 MAR_mv_P <- function(data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, light_dens = 1L, hyper = 1L) {
-    .Call('_BNPmix_MAR_mv_P', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper)
+    .Call(`_BNPmix_MAR_mv_P`, data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper)
 }
 
 MAR_mv_MKR <- function(y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, tau1, tau2, strength, napprox, nupd = 0L, out_param = 0L, out_dens = 1L, discount = 0, print_message = 1L, light_dens = 1L, hyper = 1L) {
-    .Call('_BNPmix_MAR_mv_MKR', PACKAGE = 'BNPmix', y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, tau1, tau2, strength, napprox, nupd, out_param, out_dens, discount, print_message, light_dens, hyper)
+    .Call(`_BNPmix_MAR_mv_MKR`, y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, tau1, tau2, strength, napprox, nupd, out_param, out_dens, discount, print_message, light_dens, hyper)
 }
 
 MAR_mv_MKR_L <- function(y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, strength, napprox, nupd = 0L, out_param = 0L, out_dens = 1L, discount = 0, print_message = 1L, light_dens = 1L, hyper = 1L) {
-    .Call('_BNPmix_MAR_mv_MKR_L', PACKAGE = 'BNPmix', y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, strength, napprox, nupd, out_param, out_dens, discount, print_message, light_dens, hyper)
+    .Call(`_BNPmix_MAR_mv_MKR_L`, y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, strength, napprox, nupd, out_param, out_dens, discount, print_message, light_dens, hyper)
 }
 
 #' @export
@@ -257,7 +257,7 @@ MAR_mv_MKR_L <- function(y, covs, grid_response, grid_covs, niter, nburn, beta0,
 NULL
 
 cDDP <- function(data, group, ngr, grid, niter, nburn, m0, k0, a0, b0, mass, wei, napprox, var_MH_step, nupd = 0L, out_dens = 1L, print_message = 1L, light_dens = 1L) {
-    .Call('_BNPmix_cDDP', PACKAGE = 'BNPmix', data, group, ngr, grid, niter, nburn, m0, k0, a0, b0, mass, wei, napprox, var_MH_step, nupd, out_dens, print_message, light_dens)
+    .Call(`_BNPmix_cDDP`, data, group, ngr, grid, niter, nburn, m0, k0, a0, b0, mass, wei, napprox, var_MH_step, nupd, out_dens, print_message, light_dens)
 }
 
 #' @export
@@ -463,31 +463,31 @@ NULL
 NULL
 
 cICS_L <- function(data, grid, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1, strength, napprox, nupd = 0L, out_param = 0L, out_dens = 1L, discount = 0, print_message = 1L, hyper = 1L) {
-    .Call('_BNPmix_cICS_L', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1, strength, napprox, nupd, out_param, out_dens, discount, print_message, hyper)
+    .Call(`_BNPmix_cICS_L`, data, grid, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1, strength, napprox, nupd, out_param, out_dens, discount, print_message, hyper)
 }
 
 cICS <- function(data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, strength, napprox, nupd = 0L, out_param = 0L, out_dens = 1L, discount = 0, print_message = 1L, hyper = 1L) {
-    .Call('_BNPmix_cICS', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, strength, napprox, nupd, out_param, out_dens, discount, print_message, hyper)
+    .Call(`_BNPmix_cICS`, data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, strength, napprox, nupd, out_param, out_dens, discount, print_message, hyper)
 }
 
 cICS_mv_L <- function(data, grid, niter, nburn, m0, S20, S0, n0, m1, k1, theta1, Theta1, strength, napprox, nupd = 0L, out_param = 0L, out_dens = 1L, discount = 0, print_message = 1L, light_dens = 1L, hyper = 1L) {
-    .Call('_BNPmix_cICS_mv_L', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, S20, S0, n0, m1, k1, theta1, Theta1, strength, napprox, nupd, out_param, out_dens, discount, print_message, light_dens, hyper)
+    .Call(`_BNPmix_cICS_mv_L`, data, grid, niter, nburn, m0, S20, S0, n0, m1, k1, theta1, Theta1, strength, napprox, nupd, out_param, out_dens, discount, print_message, light_dens, hyper)
 }
 
 cICS_mv <- function(data, grid, niter, nburn, m0, k0, S0, n0, m1, S1, tau1, tau2, theta1, Theta1, strength, napprox, nupd = 0L, out_param = 0L, out_dens = 1L, discount = 0, print_message = 1L, light_dens = 1L, hyper = 1L) {
-    .Call('_BNPmix_cICS_mv', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, S0, n0, m1, S1, tau1, tau2, theta1, Theta1, strength, napprox, nupd, out_param, out_dens, discount, print_message, light_dens, hyper)
+    .Call(`_BNPmix_cICS_mv`, data, grid, niter, nburn, m0, k0, S0, n0, m1, S1, tau1, tau2, theta1, Theta1, strength, napprox, nupd, out_param, out_dens, discount, print_message, light_dens, hyper)
 }
 
 cICS_mv_P <- function(data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, strength, napprox, nupd = 0L, out_param = 0L, out_dens = 1L, discount = 0, print_message = 1L, light_dens = 1L, hyper = 1L) {
-    .Call('_BNPmix_cICS_mv_P', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, strength, napprox, nupd, out_param, out_dens, discount, print_message, light_dens, hyper)
+    .Call(`_BNPmix_cICS_mv_P`, data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, strength, napprox, nupd, out_param, out_dens, discount, print_message, light_dens, hyper)
 }
 
 cICS_mv_MKR <- function(y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, tau1, tau2, strength, napprox, nupd = 0L, out_param = 0L, out_dens = 1L, discount = 0, print_message = 1L, light_dens = 1L, hyper = 1L) {
-    .Call('_BNPmix_cICS_mv_MKR', PACKAGE = 'BNPmix', y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, tau1, tau2, strength, napprox, nupd, out_param, out_dens, discount, print_message, light_dens, hyper)
+    .Call(`_BNPmix_cICS_mv_MKR`, y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, tau1, tau2, strength, napprox, nupd, out_param, out_dens, discount, print_message, light_dens, hyper)
 }
 
 cICS_mv_MKR_L <- function(y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, strength, napprox, nupd = 0L, out_param = 0L, out_dens = 1L, discount = 0, print_message = 1L, light_dens = 1L, hyper = 1L) {
-    .Call('_BNPmix_cICS_mv_MKR_L', PACKAGE = 'BNPmix', y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, strength, napprox, nupd, out_param, out_dens, discount, print_message, light_dens, hyper)
+    .Call(`_BNPmix_cICS_mv_MKR_L`, y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, strength, napprox, nupd, out_param, out_dens, discount, print_message, light_dens, hyper)
 }
 
 #' @export
@@ -692,31 +692,31 @@ NULL
 NULL
 
 cSLI_L <- function(data, grid, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1, mass, param_seq_one, param_seq_two, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, hyper = TRUE, indep = FALSE) {
-    .Call('_BNPmix_cSLI_L', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1, mass, param_seq_one, param_seq_two, nupd, out_param, out_dens, sigma_PY, print_message, hyper, indep)
+    .Call(`_BNPmix_cSLI_L`, data, grid, niter, nburn, m0, s20, a0, b0, m1, k1, a1, b1, mass, param_seq_one, param_seq_two, nupd, out_param, out_dens, sigma_PY, print_message, hyper, indep)
 }
 
 cSLI <- function(data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, param_seq_one, param_seq_two, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, hyper = 1L, indep = TRUE) {
-    .Call('_BNPmix_cSLI', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, param_seq_one, param_seq_two, nupd, out_param, out_dens, sigma_PY, print_message, hyper, indep)
+    .Call(`_BNPmix_cSLI`, data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, param_seq_one, param_seq_two, nupd, out_param, out_dens, sigma_PY, print_message, hyper, indep)
 }
 
 cSLI_mv_L <- function(data, grid, niter, nburn, m0, S20, S0, n0, m1, k1, theta1, Theta1, mass, param_seq_one, param_seq_two, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, light_dens = 1L, hyper = 1L, indep = TRUE) {
-    .Call('_BNPmix_cSLI_mv_L', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, S20, S0, n0, m1, k1, theta1, Theta1, mass, param_seq_one, param_seq_two, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper, indep)
+    .Call(`_BNPmix_cSLI_mv_L`, data, grid, niter, nburn, m0, S20, S0, n0, m1, k1, theta1, Theta1, mass, param_seq_one, param_seq_two, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper, indep)
 }
 
 cSLI_mv <- function(data, grid, niter, nburn, m0, k0, S0, n0, m1, S1, tau1, tau2, theta1, Theta1, mass, param_seq_one, param_seq_two, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, light_dens = 1L, hyper = 1L, indep = TRUE) {
-    .Call('_BNPmix_cSLI_mv', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, S0, n0, m1, S1, tau1, tau2, theta1, Theta1, mass, param_seq_one, param_seq_two, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper, indep)
+    .Call(`_BNPmix_cSLI_mv`, data, grid, niter, nburn, m0, k0, S0, n0, m1, S1, tau1, tau2, theta1, Theta1, mass, param_seq_one, param_seq_two, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper, indep)
 }
 
 cSLI_mv_P <- function(data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, param_seq_one, param_seq_two, nupd = 0L, out_param = 0L, out_dens = 1L, sigma_PY = 0, print_message = 1L, light_dens = 1L, hyper = 1L, indep = TRUE) {
-    .Call('_BNPmix_cSLI_mv_P', PACKAGE = 'BNPmix', data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, param_seq_one, param_seq_two, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper, indep)
+    .Call(`_BNPmix_cSLI_mv_P`, data, grid, niter, nburn, m0, k0, a0, b0, m1, s21, tau1, tau2, a1, b1, mass, param_seq_one, param_seq_two, nupd, out_param, out_dens, sigma_PY, print_message, light_dens, hyper, indep)
 }
 
 cSLI_mv_MKR <- function(y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, tau1, tau2, strength, param_seq_one, param_seq_two, nupd = 0L, out_param = 0L, out_dens = 1L, discount = 0, print_message = 1L, light_dens = 1L, hyper = 1L, indep = TRUE) {
-    .Call('_BNPmix_cSLI_mv_MKR', PACKAGE = 'BNPmix', y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, tau1, tau2, strength, param_seq_one, param_seq_two, nupd, out_param, out_dens, discount, print_message, light_dens, hyper, indep)
+    .Call(`_BNPmix_cSLI_mv_MKR`, y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, tau1, tau2, strength, param_seq_one, param_seq_two, nupd, out_param, out_dens, discount, print_message, light_dens, hyper, indep)
 }
 
 cSLI_mv_MKR_L <- function(y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, strength, param_seq_one, param_seq_two, nupd = 0L, out_param = 0L, out_dens = 1L, discount = 0, print_message = 1L, light_dens = 1L, hyper = 1L, indep = TRUE) {
-    .Call('_BNPmix_cSLI_mv_MKR_L', PACKAGE = 'BNPmix', y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, strength, param_seq_one, param_seq_two, nupd, out_param, out_dens, discount, print_message, light_dens, hyper, indep)
+    .Call(`_BNPmix_cSLI_mv_MKR_L`, y, covs, grid_response, grid_covs, niter, nburn, beta0, Sb0, a0, b0, beta1, k1, sb1, Sb1, strength, param_seq_one, param_seq_two, nupd, out_param, out_dens, discount, print_message, light_dens, hyper, indep)
 }
 
 #' @export BNPmix_psm
@@ -780,18 +780,18 @@ NULL
 NULL
 
 BNPmix_psm <- function(M) {
-    .Call('_BNPmix_BNPmix_psm', PACKAGE = 'BNPmix', M)
+    .Call(`_BNPmix_BNPmix_psm`, M)
 }
 
 clean_partition <- function(M) {
-    .Call('_BNPmix_clean_partition', PACKAGE = 'BNPmix', M)
+    .Call(`_BNPmix_clean_partition`, M)
 }
 
 BNPmix_VI_LB <- function(C_mat, psm_mat) {
-    .Call('_BNPmix_BNPmix_VI_LB', PACKAGE = 'BNPmix', C_mat, psm_mat)
+    .Call(`_BNPmix_BNPmix_VI_LB`, C_mat, psm_mat)
 }
 
 BNPmix_BIN <- function(C_mat, psm_mat) {
-    .Call('_BNPmix_BNPmix_BIN', PACKAGE = 'BNPmix', C_mat, psm_mat)
+    .Call(`_BNPmix_BNPmix_BIN`, C_mat, psm_mat)
 }
 

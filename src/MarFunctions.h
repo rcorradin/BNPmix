@@ -12,7 +12,7 @@
 
 void accelerate_MAR_L(arma::vec data,
                       arma::vec &mu,
-                      double s2,
+                      double &s2,
                       arma::vec clust,
                       double m0,
                       double s20,
